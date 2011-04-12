@@ -1,5 +1,6 @@
 package org.sakaiproject.nakamura.search.solr;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -74,7 +75,9 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
     defaultMaxResults = OsgiUtil.toInteger(props.get("defaultMaxResults"),
         defaultMaxResults);
   }
-
+  
+  private static final Map<String,String> sortNameMap = ImmutableMap.of(
+      "created","_created","createdBy","_createdBy","lastModified","_lastModified","lastModifiedBy","_lastModifiedBy");
   public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
       Query query, boolean asAnon) throws SolrSearchException {
     try {
@@ -278,6 +281,10 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
    */
   private void parseSort(SolrQuery solrQuery, String val) {
     String[] sort = StringUtils.split(val);
+    // we don't support score sorting at all yet
+    if ("score".equals(sort[0])) {
+    	return;
+    }
     switch (sort.length) {
       case 1:
       solrQuery.setSortField(sort[0], ORDER.asc);
@@ -294,11 +301,11 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
           o = ORDER.asc;
         }
       }
-      // KERN-1752 solr is not using the field names with underscores
-      // so we must trim the underscores to match
+      // solr is now using the field names with underscores
+      // so we must add the underscores to match certain properties
       String sortOn = sort[0];
-      if (sortOn.startsWith("_")) {
-        sortOn = sortOn.substring(1);
+      if (sortNameMap.containsKey(sortOn)) {
+        sortOn = sortNameMap.get(sortOn);
       }
       solrQuery.setSortField(sortOn, o);
       break;
