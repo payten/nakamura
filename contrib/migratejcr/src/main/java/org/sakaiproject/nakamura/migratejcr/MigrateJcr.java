@@ -315,10 +315,13 @@ public class MigrateJcr {
         } else {
           LOGGER.info("User {} exists in sparse. Skipping it.", userId);
         }
-        // userManager.getAuthorizable(id).remove();
       } else {
         // handling a group home
-        String groupId = profileNode.getProperty("sakai:group-title").getString();
+        String groupTitle = profileNode.getProperty("sakai:group-title").getString();
+        String groupId = profileNode.getProperty("sakai:group-id").getString();
+        authManager.createGroup(groupId, groupTitle, null);
+        // TODO find out if the DefaultPostProcessor is being applied
+        // to set managers, etc. on the new group
         LOGGER.info("Adding group home folder for " + groupId);
         copyNodeToSparse(authHomeNode, "a:" + groupId, sparseSession);
       }
