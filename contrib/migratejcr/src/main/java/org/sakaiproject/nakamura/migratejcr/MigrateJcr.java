@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableMap.Builder;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
@@ -35,6 +36,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.Permission;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification.Operation;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -45,6 +47,7 @@ import org.osgi.service.component.ComponentContext;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -316,14 +319,28 @@ public class MigrateJcr {
           LOGGER.info("User {} exists in sparse. Skipping it.", userId);
         }
       } else {
-        // handling a group home
+        // handling a group
         String groupTitle = profileNode.getProperty("sakai:group-title").getString();
         String groupId = profileNode.getProperty("sakai:group-id").getString();
-        authManager.createGroup(groupId, groupTitle, null);
-        // TODO find out if the DefaultPostProcessor is being applied
-        // to set managers, etc. on the new group
-        LOGGER.info("Adding group home folder for " + groupId);
-        copyNodeToSparse(authHomeNode, "a:" + groupId, sparseSession);
+        if (authManager.createGroup(groupId, groupTitle, null)) {
+          Authorizable sparseGroup = authManager.findAuthorizable(groupId);
+          org.apache.jackrabbit.api.security.user.Authorizable group = userManager.getAuthorizable(groupId);
+          if (group instanceof Group) {
+            // add all memberships
+            Iterator<org.apache.jackrabbit.api.security.user.Authorizable> members = ((Group)group).getMembers();
+            while (members.hasNext()) {
+              org.apache.jackrabbit.api.security.user.Authorizable member = members.next();
+              sparseGroup.addPrincipal(member.getID());
+            }
+            authManager.updateAuthorizable(sparseGroup);
+          }
+          // TODO find out if the DefaultPostProcessor is being applied
+          // to set managers, etc. on the new group
+          LOGGER.info("Adding group home folder for " + groupId);
+          copyNodeToSparse(authHomeNode, "a:" + groupId, sparseSession);
+        } else {
+          LOGGER.info("Group {} exists in sparse. Skipping it.", groupId);
+        }
       }
     } catch (Exception e) {
       LOGGER.error("Failed getting basic profile information from "
