@@ -29,14 +29,25 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Permission;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification.Operation;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.osgi.service.component.ComponentContext;
 
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.List;
 import java.util.Set;
 
 import javax.jcr.Binary;
@@ -49,6 +60,11 @@ import javax.jcr.Value;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
+import javax.jcr.security.AccessControlEntry;
+import javax.jcr.security.AccessControlList;
+import javax.jcr.security.AccessControlPolicy;
+import javax.jcr.security.AccessControlPolicyIterator;
+import javax.jcr.security.Privilege;
 /**
  *
  */
@@ -119,7 +135,7 @@ public class MigrateJcr {
   private void copyNodeToSparse(Node contentNode, String path, Session session) throws Exception {
     ContentManager contentManager = session.getContentManager();
     if (contentManager.exists(path)) {
-      LOGGER.warn("Ignoring migration of content at path which alread exists in sparsemap: " + path);
+      LOGGER.warn("Ignoring migration of content at path which already exists in sparsemap: " + path);
       return;
     }
     PropertyIterator propIter = contentNode.getProperties();
@@ -157,16 +173,43 @@ public class MigrateJcr {
       propBuilder.put(prop.getName(), value);
     }
     Content sparseContent = new Content(path, propBuilder.build());
-    contentManager.update(sparseContent);
     if (contentNode.hasNode("jcr:content")) {
       Node fileContentNode = contentNode.getNode("jcr:content");
       Binary binaryData = fileContentNode.getProperty("jcr:data").getBinary();
       try {
-		contentManager.writeBody(sparseContent.getPath(), binaryData.getStream());
+    	  InputStream binaryStream = binaryData.getStream();
+    	  contentManager.update(sparseContent);
+		contentManager.writeBody(sparseContent.getPath(), binaryStream);
 	} catch (Exception e) {
 		LOGGER.error("Unable to write binary content for JCR path: " + fileContentNode.getPath());
 	}
+    } else {
+    	contentManager.update(sparseContent);
     }
+    AccessControlManager sparseAccessControl = session.getAccessControlManager();
+    List<AclModification> aclModifications = new ArrayList<AclModification>();
+    LOGGER.info("Reading access control policies for " + contentNode.getPath());
+    javax.jcr.security.AccessControlManager accessManager = AccessControlUtil.getAccessControlManager(contentNode.getSession());
+    AccessControlPolicy[] accessPolicies = accessManager.getEffectivePolicies(contentNode.getPath());
+    for (AccessControlPolicy policy : accessPolicies) {
+      if (policy instanceof AccessControlList) {
+        for(AccessControlEntry ace : ((AccessControlList)policy).getAccessControlEntries()) {
+          String principal = ace.getPrincipal().getName();
+          String permission = AccessControlUtil.isAllow(ace) ? AclModification.grantKey(principal) : AclModification.denyKey(principal);
+          for(Privilege priv : ace.getPrivileges()) {
+            Permission sparsePermission = Permissions.parse(priv.getName());
+            if (sparsePermission != null) {
+              aclModifications.add(new AclModification(permission, sparsePermission.getPermission(),Operation.OP_AND));
+              LOGGER.debug("translating jcr permission to sparse: " + permission + " -- " + priv.getName());
+            }
+          }
+        }
+      }
+    }
+    sparseAccessControl.setAcl(
+        Security.ZONE_CONTENT,
+        path,
+        aclModifications.toArray(new AclModification[aclModifications.size()]));
     // make recursive call for child nodes
     // depth-first traversal
     NodeIterator nodeIter = contentNode.getNodes();
