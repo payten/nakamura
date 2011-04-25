@@ -36,8 +36,6 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification.Operation;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
-import org.sakaiproject.nakamura.api.lite.authorizable.Group;
-import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.slf4j.Logger;
@@ -63,23 +61,24 @@ import javax.jcr.query.QueryResult;
 import javax.jcr.security.AccessControlEntry;
 import javax.jcr.security.AccessControlList;
 import javax.jcr.security.AccessControlPolicy;
-import javax.jcr.security.AccessControlPolicyIterator;
 import javax.jcr.security.Privilege;
+
 /**
  *
  */
 @Component
 public class MigrateJcr {
   private Logger LOGGER = LoggerFactory.getLogger(MigrateJcr.class);
-  
+
   @Reference(target = "(name=presparse)")
   private SlingRepository slingRepository;
-  
+
   @Reference
   private Repository sparseRepository;
 
-  private Set<String> ignoreProps = ImmutableSet.of("jcr:content","jcr:data", "jcr:mixinTypes","rep:policy");
-  
+  private Set<String> ignoreProps = ImmutableSet.of("jcr:content", "jcr:data",
+      "jcr:mixinTypes", "rep:policy");
+
   @Activate
   protected void activate(ComponentContext componentContext) {
     @SuppressWarnings("rawtypes")
@@ -97,9 +96,8 @@ public class MigrateJcr {
 
   private void cleanup() {
     // TODO Auto-generated method stub
-    
+
   }
-  
 
   @SuppressWarnings("deprecation")
   private void migrateContentPool() throws Exception {
@@ -115,8 +113,9 @@ public class MigrateJcr {
       QueryResult result = q.execute();
       NodeIterator resultNodes = result.getNodes();
       String nodeWord = resultNodes.getSize() == 1 ? "node" : "nodes";
-      LOGGER.info("Found {} pooled content {} in Jackrabbit.", resultNodes.getSize(), nodeWord);
-      while(resultNodes.hasNext()) {
+      LOGGER.info("Found {} pooled content {} in Jackrabbit.", resultNodes.getSize(),
+          nodeWord);
+      while (resultNodes.hasNext()) {
         Node contentNode = resultNodes.nextNode();
         LOGGER.info(contentNode.getPath());
         copyNodeToSparse(contentNode, contentNode.getName(), sparseSession);
@@ -129,28 +128,31 @@ public class MigrateJcr {
         sparseSession.logout();
       }
     }
-    
+
   }
 
-  private void copyNodeToSparse(Node contentNode, String path, Session session) throws Exception {
+  private void copyNodeToSparse(Node contentNode, String path, Session session)
+      throws Exception {
     ContentManager contentManager = session.getContentManager();
     if (contentManager.exists(path)) {
-      LOGGER.warn("Ignoring migration of content at path which already exists in sparsemap: " + path);
+      LOGGER
+          .warn("Ignoring migration of content at path which already exists in sparsemap: "
+              + path);
       return;
     }
     PropertyIterator propIter = contentNode.getProperties();
-    Builder<String,Object> propBuilder = ImmutableMap.builder();
-    while(propIter.hasNext()) {
+    Builder<String, Object> propBuilder = ImmutableMap.builder();
+    while (propIter.hasNext()) {
       Property prop = propIter.nextProperty();
-      if (ignoreProps .contains(prop.getName())) {
+      if (ignoreProps.contains(prop.getName())) {
         continue;
       }
       Object value;
       if (prop.isMultiple()) {
         Value[] values = prop.getValues();
-        if(values.length > 0 && values[0].getType() == PropertyType.STRING) {
+        if (values.length > 0 && values[0].getType() == PropertyType.STRING) {
           String[] valueStrings = new String[values.length];
-          for(int i = 0;i < values.length;i++) {
+          for (int i = 0; i < values.length; i++) {
             valueStrings[i] = values[i].getString();
           }
           value = valueStrings;
@@ -159,15 +161,31 @@ public class MigrateJcr {
           continue;
         }
       } else {
-        switch(prop.getType()) {
-        case PropertyType.BINARY: value = prop.getBinary(); break;
-        case PropertyType.BOOLEAN: value = prop.getBoolean(); break;
-        case PropertyType.DATE: value = prop.getDate(); break;
-        case PropertyType.DECIMAL: value = prop.getDecimal(); break;
-        case PropertyType.DOUBLE: value = prop.getDouble(); break;
-        case PropertyType.LONG: value = prop.getLong(); break;
-        case PropertyType.STRING: value = prop.getString(); break;
-        default: value = ""; break;
+        switch (prop.getType()) {
+        case PropertyType.BINARY:
+          value = prop.getBinary();
+          break;
+        case PropertyType.BOOLEAN:
+          value = prop.getBoolean();
+          break;
+        case PropertyType.DATE:
+          value = prop.getDate();
+          break;
+        case PropertyType.DECIMAL:
+          value = prop.getDecimal();
+          break;
+        case PropertyType.DOUBLE:
+          value = prop.getDouble();
+          break;
+        case PropertyType.LONG:
+          value = prop.getLong();
+          break;
+        case PropertyType.STRING:
+          value = prop.getString();
+          break;
+        default:
+          value = "";
+          break;
         }
       }
       propBuilder.put(prop.getName(), value);
@@ -177,43 +195,48 @@ public class MigrateJcr {
       Node fileContentNode = contentNode.getNode("jcr:content");
       Binary binaryData = fileContentNode.getProperty("jcr:data").getBinary();
       try {
-    	  InputStream binaryStream = binaryData.getStream();
-    	  contentManager.update(sparseContent);
-		contentManager.writeBody(sparseContent.getPath(), binaryStream);
-	} catch (Exception e) {
-		LOGGER.error("Unable to write binary content for JCR path: " + fileContentNode.getPath());
-	}
+        InputStream binaryStream = binaryData.getStream();
+        contentManager.update(sparseContent);
+        contentManager.writeBody(sparseContent.getPath(), binaryStream);
+      } catch (Exception e) {
+        LOGGER.error("Unable to write binary content for JCR path: "
+            + fileContentNode.getPath());
+      }
     } else {
-    	contentManager.update(sparseContent);
+      contentManager.update(sparseContent);
     }
     AccessControlManager sparseAccessControl = session.getAccessControlManager();
     List<AclModification> aclModifications = new ArrayList<AclModification>();
     LOGGER.info("Reading access control policies for " + contentNode.getPath());
-    javax.jcr.security.AccessControlManager accessManager = AccessControlUtil.getAccessControlManager(contentNode.getSession());
-    AccessControlPolicy[] accessPolicies = accessManager.getEffectivePolicies(contentNode.getPath());
+    javax.jcr.security.AccessControlManager accessManager = AccessControlUtil
+        .getAccessControlManager(contentNode.getSession());
+    AccessControlPolicy[] accessPolicies = accessManager.getEffectivePolicies(contentNode
+        .getPath());
     for (AccessControlPolicy policy : accessPolicies) {
       if (policy instanceof AccessControlList) {
-        for(AccessControlEntry ace : ((AccessControlList)policy).getAccessControlEntries()) {
+        for (AccessControlEntry ace : ((AccessControlList) policy)
+            .getAccessControlEntries()) {
           String principal = ace.getPrincipal().getName();
-          String permission = AccessControlUtil.isAllow(ace) ? AclModification.grantKey(principal) : AclModification.denyKey(principal);
-          for(Privilege priv : ace.getPrivileges()) {
+          String permission = AccessControlUtil.isAllow(ace) ? AclModification
+              .grantKey(principal) : AclModification.denyKey(principal);
+          for (Privilege priv : ace.getPrivileges()) {
             Permission sparsePermission = Permissions.parse(priv.getName());
             if (sparsePermission != null) {
-              aclModifications.add(new AclModification(permission, sparsePermission.getPermission(),Operation.OP_AND));
-              LOGGER.debug("translating jcr permission to sparse: " + permission + " -- " + priv.getName());
+              aclModifications.add(new AclModification(permission, sparsePermission
+                  .getPermission(), Operation.OP_AND));
+              LOGGER.debug("translating jcr permission to sparse: " + permission + " -- "
+                  + priv.getName());
             }
           }
         }
       }
     }
-    sparseAccessControl.setAcl(
-        Security.ZONE_CONTENT,
-        path,
+    sparseAccessControl.setAcl(Security.ZONE_CONTENT, path,
         aclModifications.toArray(new AclModification[aclModifications.size()]));
     // make recursive call for child nodes
     // depth-first traversal
     NodeIterator nodeIter = contentNode.getNodes();
-    while(nodeIter.hasNext()) {
+    while (nodeIter.hasNext()) {
       Node childNode = nodeIter.nextNode();
       if (ignoreProps.contains(childNode.getName())) {
         continue;
@@ -235,39 +258,44 @@ public class MigrateJcr {
       QueryResult result = q.execute();
       NodeIterator resultNodes = result.getNodes();
       String folderWord = resultNodes.getSize() == 1 ? "folder" : "folders";
-      LOGGER.info("found {} user home {} in Jackrabbit.", resultNodes.getSize(), folderWord);
-      while(resultNodes.hasNext()) {
+      LOGGER.info("found {} user home {} in Jackrabbit.", resultNodes.getSize(),
+          folderWord);
+      while (resultNodes.hasNext()) {
         Node authHomeNode = resultNodes.nextNode();
         LOGGER.info(authHomeNode.getPath());
-        moveAuthorizableToSparse(authHomeNode, AccessControlUtil.getUserManager(jcrSession));
+        moveAuthorizableToSparse(authHomeNode,
+            AccessControlUtil.getUserManager(jcrSession));
       }
-      
+
       String groupsQuery = "//*[@sling:resourceType='sakai/group-home'] order by @jcr:score descending";
       q = qm.createQuery(groupsQuery, Query.XPATH);
       result = q.execute();
       resultNodes = result.getNodes();
       folderWord = resultNodes.getSize() == 1 ? "folder" : "folders";
-      LOGGER.info("found {} group home {} in Jackrabbit.", resultNodes.getSize(), folderWord);
-      while(resultNodes.hasNext()) {
+      LOGGER.info("found {} group home {} in Jackrabbit.", resultNodes.getSize(),
+          folderWord);
+      while (resultNodes.hasNext()) {
         Node groupHomeNode = resultNodes.nextNode();
         LOGGER.info(groupHomeNode.getPath());
-        moveAuthorizableToSparse(groupHomeNode, AccessControlUtil.getUserManager(jcrSession));
+        moveAuthorizableToSparse(groupHomeNode,
+            AccessControlUtil.getUserManager(jcrSession));
       }
     } finally {
       if (jcrSession != null) {
         jcrSession.logout();
       }
     }
-    
-    
+
   }
 
-  private void moveAuthorizableToSparse(Node authHomeNode, UserManager userManager) throws Exception {
+  private void moveAuthorizableToSparse(Node authHomeNode, UserManager userManager)
+      throws Exception {
     Session sparseSession = null;
     try {
       sparseSession = sparseRepository.loginAdministrative();
       AuthorizableManager authManager = sparseSession.getAuthorizableManager();
-      boolean isUser = "sakai/user-home".equals(authHomeNode.getProperty("sling:resourceType").getString());
+      boolean isUser = "sakai/user-home".equals(authHomeNode.getProperty(
+          "sling:resourceType").getString());
       Node profileNode = authHomeNode.getNode("public/authprofile");
       if (isUser) {
         String userId = profileNode.getProperty("rep:userId").getString();
@@ -278,33 +306,31 @@ public class MigrateJcr {
         propNode = profileNode.getNode("basic/elements/email");
         String email = propNode.getProperty("value").getString();
         if (authManager.createUser(userId, userId, "testuser", ImmutableMap.of(
-            "firstName", (Object)firstName,
-            "lastName", (Object)lastName,
-            "email", (Object)email))){
+            "firstName", (Object) firstName, "lastName", (Object) lastName, "email",
+            (Object) email))) {
           LOGGER.info("Adding user home folder for " + userId);
-          copyNodeToSparse(authHomeNode, "a:"+userId, sparseSession);
-          //TODO do we care about the password?
+          copyNodeToSparse(authHomeNode, "a:" + userId, sparseSession);
+          // TODO do we care about the password?
           LOGGER.info(userId + " " + firstName + " " + lastName + " " + email);
         } else {
           LOGGER.info("User {} exists in sparse. Skipping it.", userId);
         }
-        //userManager.getAuthorizable(id).remove();
+        // userManager.getAuthorizable(id).remove();
       } else {
-        //handling a group home
+        // handling a group home
         String groupId = profileNode.getProperty("sakai:group-title").getString();
         LOGGER.info("Adding group home folder for " + groupId);
-        copyNodeToSparse(authHomeNode, "a:"+groupId, sparseSession);
+        copyNodeToSparse(authHomeNode, "a:" + groupId, sparseSession);
       }
     } catch (Exception e) {
-    	LOGGER.error("Failed getting basic profile information from " + authHomeNode.getPath());
+      LOGGER.error("Failed getting basic profile information from "
+          + authHomeNode.getPath());
     } finally {
       if (sparseSession != null) {
         sparseSession.logout();
       }
     }
-    
-    
-    
+
   }
 
   @SuppressWarnings("unchecked")
