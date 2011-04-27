@@ -86,7 +86,7 @@ public class MigrateJcr {
 
   private Logger LOGGER = LoggerFactory.getLogger(MigrateJcr.class);
 
-//  @Reference(target="(name=presparse)")
+  @Reference(target="(name=presparse)")
   private SlingRepository slingRepository;
 
   private SlingRepository newSlingRepository;
@@ -110,10 +110,9 @@ public class MigrateJcr {
     if (shouldMigrate(componentProps)) {
       try {
         for (Entry<SlingRepository, SlingRepository> repo : repositories.entrySet()) {
-          if (repo.getValue().loginAdministrative("default").itemExists("/mig")) {
+          if (!repo.equals(slingRepository)) {
             newSlingRepository = repo.getValue();
-          } else {
-            slingRepository = repo.getValue();
+            break;
           }
         }
         migrateAuthorizables();
@@ -371,20 +370,33 @@ public class MigrateJcr {
           SLING_RESOURCE_TYPE).getString());
       Node profileNode = authHomeNode.getNode("public/authprofile");
       if (isUser) {
-        String userId = profileNode.getProperty("rep:userId").getString();
-        Node propNode = profileNode.getNode("basic/elements/firstName");
-        String firstName = propNode.getProperty("value").getString();
-        propNode = profileNode.getNode("basic/elements/lastName");
-        String lastName = propNode.getProperty("value").getString();
-        propNode = profileNode.getNode("basic/elements/email");
-        String email = propNode.getProperty("value").getString();
-        Value[] tagUuids = profileNode.getProperty("sakai:tag-uuid").getValues();
-        List<String> tagList = new ArrayList<String>();
-        for (Value tagUuid : tagUuids) {
-          tagList.add(tagUuid.getString());
+        String userId;
+        String firstName;
+        String lastName;
+        String email;
+        List<String> tagList;
+        try {
+          userId = profileNode.getProperty("rep:userId").getString();
+          Node propNode = profileNode.getNode("basic/elements/firstName");
+          firstName = propNode.getProperty("value").getString();
+          propNode = profileNode.getNode("basic/elements/lastName");
+          lastName = propNode.getProperty("value").getString();
+          propNode = profileNode.getNode("basic/elements/email");
+          email = propNode.getProperty("value").getString();
+          tagList = new ArrayList<String>();
+          if (profileNode.hasProperty("sakai:tag-uuid")) {
+            Value[] tagUuids = profileNode.getProperty("sakai:tag-uuid").getValues();
+            for (Value tagUuid : tagUuids) {
+              tagList.add(tagUuid.getString());
+            }
+          }
+        } catch (Exception e) {
+          LOGGER.error("Failed getting basic profile information for profile {}. Won't create this user.", authHomeNode.getPath());
+          return;
         }
         if (authManager.createUser(userId, userId, "testuser", ImmutableMap.of(
             "firstName", (Object) firstName, "lastName", lastName, "email", email, "sakai:tag-uuid", tagList.toArray(new String[tagList.size()])))) {
+          LOGGER.info("Created user {}", userId);
           LOGGER.info("Adding user home folder for " + userId);
           copyNodeToSparse(authHomeNode, "a:" + userId, sparseSession);
           // TODO do we care about the password?
@@ -394,20 +406,33 @@ public class MigrateJcr {
         }
       } else {
         // handling a group
-        String groupTitle = profileNode.getProperty("sakai:group-title").getString();
-        String groupId = profileNode.getProperty("sakai:group-id").getString();
-        String groupDescription = profileNode.getProperty("sakai:group-description").getString();
-        Value[] tagUuids = profileNode.getProperty("sakai:tag-uuid").getValues();
-        List<String> tagList = new ArrayList<String>();
-        for (Value tagUuid : tagUuids) {
-          tagList.add(tagUuid.getString());
+        String groupTitle;
+        String groupId;
+        String groupDescription;
+        List<String> tagList;
+        try {
+          groupTitle = profileNode.getProperty("sakai:group-title").getString();
+          groupId = profileNode.getProperty("sakai:group-id").getString();
+          groupDescription = profileNode.getProperty("sakai:group-description").getString();
+          tagList = new ArrayList<String>();
+          if (profileNode.hasProperty("sakai:tag-uuid")) {
+            Value[] tagUuids = profileNode.getProperty("sakai:tag-uuid").getValues();
+            for (Value tagUuid : tagUuids) {
+              tagList.add(tagUuid.getString());
+            }
+          }
+        } catch (Exception e) {
+          LOGGER.error("Failed getting basic profile information for profile {}. Won't create this group.", authHomeNode.getPath());
+          return;
         }
         if (authManager.createGroup(groupId, groupTitle, ImmutableMap.of("sakai:group-title", (Object) groupTitle,
             "sakai:group-description", groupDescription, "sakai:tag-uuid", tagList.toArray(new String[tagList.size()])))) {
+          LOGGER.info("Created group {}", groupId);
           Authorizable sparseGroup = authManager.findAuthorizable(groupId);
           org.apache.jackrabbit.api.security.user.Authorizable group = userManager.getAuthorizable(groupId);
           if (group instanceof Group) {
             // add all memberships
+            LOGGER.info("Adding members for group {}", groupId);
             Iterator<org.apache.jackrabbit.api.security.user.Authorizable> members = ((Group)group).getMembers();
             while (members.hasNext()) {
               org.apache.jackrabbit.api.security.user.Authorizable member = members.next();
@@ -415,15 +440,15 @@ public class MigrateJcr {
             }
             authManager.updateAuthorizable(sparseGroup);
           }
-          LOGGER.info("Adding group home folder for " + groupId);
+          LOGGER.info("Adding group home folder for group {}", groupId);
           copyNodeToSparse(authHomeNode, "a:" + groupId, sparseSession);
         } else {
           LOGGER.info("Group {} exists in sparse. Skipping it.", groupId);
         }
       }
     } catch (Exception e) {
-      LOGGER.error("Failed getting basic profile information from "
-          + authHomeNode.getPath());
+      LOGGER.error("Failure moving authorizable to sparsemap: {}",
+          authHomeNode.getPath(), e);
     } finally {
       if (sparseSession != null) {
         sparseSession.logout();
