@@ -24,6 +24,8 @@ import com.google.common.collect.ImmutableMap.Builder;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.api.SlingRepository;
@@ -45,13 +47,19 @@ import org.slf4j.LoggerFactory;
 import org.osgi.service.component.ComponentContext;
 
 import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jcr.Binary;
+import javax.jcr.ImportUUIDBehavior;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.Property;
@@ -70,17 +78,28 @@ import javax.jcr.security.Privilege;
  *
  */
 @Component
+//@Reference(name = "SlingRepository", referenceInterface = SlingRepository.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, bind = "addRepo", unbind = "removeRepo")
 public class MigrateJcr {
+  private static final String SLING_RESOURCE_TYPE = "sling:resourceType";
+
   private Logger LOGGER = LoggerFactory.getLogger(MigrateJcr.class);
 
-  @Reference(target = "(name=presparse)")
+  @Reference(target="(name=presparse)")
   private SlingRepository slingRepository;
+
+  private SlingRepository newSlingRepository;
 
   @Reference
   private Repository sparseRepository;
+  
+  /**
+   * This will contain Sling repositories.
+   */
+  private Map<SlingRepository, SlingRepository> repositories =
+      new ConcurrentHashMap<SlingRepository, SlingRepository>();
 
   private Set<String> ignoreProps = ImmutableSet.of("jcr:content", "jcr:data",
-      "jcr:mixinTypes", "rep:policy");
+      "jcr:mixinTypes", "rep:policy", "jcr:created", "jcr:primaryType");
 
   @Activate
   protected void activate(ComponentContext componentContext) {
@@ -88,13 +107,44 @@ public class MigrateJcr {
     Dictionary componentProps = componentContext.getProperties();
     if (shouldMigrate(componentProps)) {
       try {
+//        for (Entry<SlingRepository, SlingRepository> repo : repositories.entrySet()) {
+//          if (repo.getValue().loginAdministrative("default").itemExists("/mig")) {
+//            newSlingRepository = repo.getValue();
+//          } else {
+//            slingRepository = repo.getValue();
+//          }
+//        }
         migrateAuthorizables();
         migrateContentPool();
+//        migrateTags();
         cleanup();
       } catch (Exception e) {
         LOGGER.error("Failed data migration from JCR to Sparse.", e);
       }
     }
+  }
+
+  private void migrateTags() throws Exception {
+    javax.jcr.Session preSparseSession = null;
+    javax.jcr.Session newJackrabbitSession = null;
+    try {
+      final PipedInputStream pin = new PipedInputStream();
+      final PipedOutputStream pout = new PipedOutputStream(pin);
+      preSparseSession = slingRepository.loginAdministrative("default");
+      newJackrabbitSession = newSlingRepository.loginAdministrative("default");
+      LOGGER.info("Exporting /tags from jackrabbit.");
+      preSparseSession.exportSystemView("/tags", pout, false, false);
+      LOGGER.info("Importing /tags to nakamura");
+      newJackrabbitSession.importXML("/", pin, ImportUUIDBehavior.IMPORT_UUID_COLLISION_REPLACE_EXISTING);
+    } finally {
+      if (preSparseSession != null) {
+        preSparseSession.logout();
+      }
+      if (newJackrabbitSession != null) {
+        newJackrabbitSession.logout();
+      }
+    }
+    
   }
 
   private void cleanup() {
@@ -193,6 +243,7 @@ public class MigrateJcr {
       }
       propBuilder.put(prop.getName(), value);
     }
+    applyAdditionalProperties(propBuilder, contentNode, path);
     Content sparseContent = new Content(path, propBuilder.build());
     if (contentNode.hasNode("jcr:content")) {
       Node fileContentNode = contentNode.getNode("jcr:content");
@@ -249,6 +300,23 @@ public class MigrateJcr {
 
   }
 
+  private void applyAdditionalProperties(Builder<String, Object> propBuilder,
+      Node contentNode, String path) throws Exception {
+    if (contentNode.hasProperty(SLING_RESOURCE_TYPE) && "sakai/contact".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
+      // sparse searches for contacts rely on the sakai:contactstorepath property
+      String contactStorePath = "a:" + contentNode.getPath().substring(12, contentNode.getPath().indexOf("/", 12)) + "/contacts";
+      propBuilder.put("sakai:contactstorepath", contactStorePath);
+    } else {
+      if (contentNode.hasProperty(SLING_RESOURCE_TYPE) && "sakai/message".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
+        String messageStorePath = "a:" + contentNode.getPath().substring(12, contentNode.getPath().indexOf("/", 12)) + "/message";
+        propBuilder.put("sakai:messagestore", messageStorePath);
+        // we want to flatten the message boxes. No more sharding required.
+        path = messageStorePath + "/" + contentNode.getProperty("sakai:messagebox").getString() + "/" + contentNode.getName();
+      }
+    }
+    
+  }
+
   @SuppressWarnings("deprecation")
   private void migrateAuthorizables() throws Exception {
     LOGGER.info("beginning users and groups migration.");
@@ -298,7 +366,7 @@ public class MigrateJcr {
       sparseSession = sparseRepository.loginAdministrative();
       AuthorizableManager authManager = sparseSession.getAuthorizableManager();
       boolean isUser = "sakai/user-home".equals(authHomeNode.getProperty(
-          "sling:resourceType").getString());
+          SLING_RESOURCE_TYPE).getString());
       Node profileNode = authHomeNode.getNode("public/authprofile");
       if (isUser) {
         String userId = profileNode.getProperty("rep:userId").getString();
@@ -308,9 +376,13 @@ public class MigrateJcr {
         String lastName = propNode.getProperty("value").getString();
         propNode = profileNode.getNode("basic/elements/email");
         String email = propNode.getProperty("value").getString();
+        Value[] tagUuids = profileNode.getProperty("sakai:tag-uuid").getValues();
+        List<String> tagList = new ArrayList<String>();
+        for (Value tagUuid : tagUuids) {
+          tagList.add(tagUuid.getString());
+        }
         if (authManager.createUser(userId, userId, "testuser", ImmutableMap.of(
-            "firstName", (Object) firstName, "lastName", (Object) lastName, "email",
-            (Object) email))) {
+            "firstName", (Object) firstName, "lastName", lastName, "email", email, "sakai:tag-uuid", tagList.toArray(new String[tagList.size()])))) {
           LOGGER.info("Adding user home folder for " + userId);
           copyNodeToSparse(authHomeNode, "a:" + userId, sparseSession);
           // TODO do we care about the password?
@@ -322,7 +394,14 @@ public class MigrateJcr {
         // handling a group
         String groupTitle = profileNode.getProperty("sakai:group-title").getString();
         String groupId = profileNode.getProperty("sakai:group-id").getString();
-        if (authManager.createGroup(groupId, groupTitle, null)) {
+        String groupDescription = profileNode.getProperty("sakai:group-description").getString();
+        Value[] tagUuids = profileNode.getProperty("sakai:tag-uuid").getValues();
+        List<String> tagList = new ArrayList<String>();
+        for (Value tagUuid : tagUuids) {
+          tagList.add(tagUuid.getString());
+        }
+        if (authManager.createGroup(groupId, groupTitle, ImmutableMap.of("sakai:group-title", (Object) groupTitle,
+            "sakai:group-description", groupDescription, "sakai:tag-uuid", tagList.toArray(new String[tagList.size()])))) {
           Authorizable sparseGroup = authManager.findAuthorizable(groupId);
           org.apache.jackrabbit.api.security.user.Authorizable group = userManager.getAuthorizable(groupId);
           if (group instanceof Group) {
@@ -334,8 +413,6 @@ public class MigrateJcr {
             }
             authManager.updateAuthorizable(sparseGroup);
           }
-          // TODO find out if the DefaultPostProcessor is being applied
-          // to set managers, etc. on the new group
           LOGGER.info("Adding group home folder for " + groupId);
           copyNodeToSparse(authHomeNode, "a:" + groupId, sparseSession);
         } else {
@@ -357,6 +434,20 @@ public class MigrateJcr {
   private boolean shouldMigrate(Dictionary componentProps) {
     // TODO determine whether there is any migrating to do
     return true;
+  }
+  
+  /**
+   * @param transport
+   */
+  protected void removeRepo(SlingRepository repository) {
+    repositories.remove(repository);
+  }
+
+  /**
+   * @param transport
+   */
+  protected void addRepo(SlingRepository repository) {
+    repositories.put(repository,repository);
   }
 
 }
