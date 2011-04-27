@@ -49,10 +49,10 @@ import org.osgi.service.component.ComponentContext;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Dictionary;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -244,7 +244,7 @@ public class MigrateJcr {
       }
       propBuilder.put(prop.getName(), value);
     }
-    applyAdditionalProperties(propBuilder, contentNode, path);
+    path = applyAdditionalProperties(propBuilder, contentNode, path);
     Content sparseContent = new Content(path, propBuilder.build());
     if (contentNode.hasNode("jcr:content")) {
       Node fileContentNode = contentNode.getNode("jcr:content");
@@ -301,8 +301,9 @@ public class MigrateJcr {
 
   }
 
-  private void applyAdditionalProperties(Builder<String, Object> propBuilder,
+  private String applyAdditionalProperties(Builder<String, Object> propBuilder,
       Node contentNode, String path) throws Exception {
+    String contentPath = path;
     if (contentNode.hasProperty(SLING_RESOURCE_TYPE) && "sakai/contact".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
       // sparse searches for contacts rely on the sakai:contactstorepath property
       String contactStorePath = "a:" + contentNode.getPath().substring(12, contentNode.getPath().indexOf("/", 12)) + "/contacts";
@@ -312,10 +313,19 @@ public class MigrateJcr {
         String messageStorePath = "a:" + contentNode.getPath().substring(12, contentNode.getPath().indexOf("/", 12)) + "/message";
         propBuilder.put("sakai:messagestore", messageStorePath);
         // we want to flatten the message boxes. No more sharding required.
-        path = messageStorePath + "/" + contentNode.getProperty("sakai:messagebox").getString() + "/" + contentNode.getName();
+        contentPath = messageStorePath + "/" + contentNode.getProperty("sakai:messagebox").getString() + "/" + contentNode.getName();
+      } else {
+        if (contentNode.hasProperty(SLING_RESOURCE_TYPE) && "sakai/resource-update".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
+          // the resource-update indexer _really_ wants there to be a timestamp property
+          Calendar timestamp = new GregorianCalendar();
+          if (contentNode.hasNode("jcr:content") && contentNode.getNode("jcr:content").hasProperty("jcr:lastModified")) {
+            timestamp = contentNode.getNode("jcr:content").getProperty("jcr:lastModified").getDate();
+          }
+          propBuilder.put("timestamp", timestamp);
+        }
       }
     }
-    
+    return contentPath;
   }
 
   @SuppressWarnings("deprecation")
