@@ -394,13 +394,12 @@ public class MigrateJcr {
           LOGGER.error("Failed getting basic profile information for profile {}. Won't create this user.", authHomeNode.getPath());
           return;
         }
+        // TODO do we care about the password?
         if (authManager.createUser(userId, userId, "testuser", ImmutableMap.of(
             "firstName", (Object) firstName, "lastName", lastName, "email", email, "sakai:tag-uuid", tagList.toArray(new String[tagList.size()])))) {
-          LOGGER.info("Created user {}", userId);
+          LOGGER.info("Created user {} {} {} {}", new String[]{userId, firstName, lastName, email});
           LOGGER.info("Adding user home folder for " + userId);
           copyNodeToSparse(authHomeNode, "a:" + userId, sparseSession);
-          // TODO do we care about the password?
-          LOGGER.info(userId + " " + firstName + " " + lastName + " " + email);
         } else {
           LOGGER.info("User {} exists in sparse. Skipping it.", userId);
         }
@@ -408,12 +407,14 @@ public class MigrateJcr {
         // handling a group
         String groupTitle;
         String groupId;
-        String groupDescription;
+        String groupDescription = "";
         List<String> tagList;
         try {
           groupTitle = profileNode.getProperty("sakai:group-title").getString();
           groupId = profileNode.getProperty("sakai:group-id").getString();
-          groupDescription = profileNode.getProperty("sakai:group-description").getString();
+          if (profileNode.hasProperty("sakai:group-description")) {
+            groupDescription = profileNode.getProperty("sakai:group-description").getString();
+          }
           tagList = new ArrayList<String>();
           if (profileNode.hasProperty("sakai:tag-uuid")) {
             Value[] tagUuids = profileNode.getProperty("sakai:tag-uuid").getValues();
