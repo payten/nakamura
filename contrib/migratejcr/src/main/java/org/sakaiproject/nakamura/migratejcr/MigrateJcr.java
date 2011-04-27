@@ -46,6 +46,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.osgi.service.component.ComponentContext;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -78,13 +80,13 @@ import javax.jcr.security.Privilege;
  *
  */
 @Component
-//@Reference(name = "SlingRepository", referenceInterface = SlingRepository.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, bind = "addRepo", unbind = "removeRepo")
+@Reference(name = "SlingRepository", referenceInterface = SlingRepository.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, bind = "addRepo", unbind = "removeRepo")
 public class MigrateJcr {
   private static final String SLING_RESOURCE_TYPE = "sling:resourceType";
 
   private Logger LOGGER = LoggerFactory.getLogger(MigrateJcr.class);
 
-  @Reference(target="(name=presparse)")
+//  @Reference(target="(name=presparse)")
   private SlingRepository slingRepository;
 
   private SlingRepository newSlingRepository;
@@ -107,16 +109,16 @@ public class MigrateJcr {
     Dictionary componentProps = componentContext.getProperties();
     if (shouldMigrate(componentProps)) {
       try {
-//        for (Entry<SlingRepository, SlingRepository> repo : repositories.entrySet()) {
-//          if (repo.getValue().loginAdministrative("default").itemExists("/mig")) {
-//            newSlingRepository = repo.getValue();
-//          } else {
-//            slingRepository = repo.getValue();
-//          }
-//        }
+        for (Entry<SlingRepository, SlingRepository> repo : repositories.entrySet()) {
+          if (repo.getValue().loginAdministrative("default").itemExists("/mig")) {
+            newSlingRepository = repo.getValue();
+          } else {
+            slingRepository = repo.getValue();
+          }
+        }
         migrateAuthorizables();
         migrateContentPool();
-//        migrateTags();
+        migrateTags();
         cleanup();
       } catch (Exception e) {
         LOGGER.error("Failed data migration from JCR to Sparse.", e);
@@ -127,15 +129,14 @@ public class MigrateJcr {
   private void migrateTags() throws Exception {
     javax.jcr.Session preSparseSession = null;
     javax.jcr.Session newJackrabbitSession = null;
+    final ByteArrayOutputStream output = new ByteArrayOutputStream();
     try {
-      final PipedInputStream pin = new PipedInputStream();
-      final PipedOutputStream pout = new PipedOutputStream(pin);
       preSparseSession = slingRepository.loginAdministrative("default");
       newJackrabbitSession = newSlingRepository.loginAdministrative("default");
       LOGGER.info("Exporting /tags from jackrabbit.");
-      preSparseSession.exportSystemView("/tags", pout, false, false);
+      preSparseSession.exportSystemView("/tags", output, false, false);
       LOGGER.info("Importing /tags to nakamura");
-      newJackrabbitSession.importXML("/", pin, ImportUUIDBehavior.IMPORT_UUID_COLLISION_REPLACE_EXISTING);
+      newJackrabbitSession.importXML("/tags", new ByteArrayInputStream(output.toByteArray()), ImportUUIDBehavior.IMPORT_UUID_COLLISION_REPLACE_EXISTING);
     } finally {
       if (preSparseSession != null) {
         preSparseSession.logout();
@@ -143,6 +144,7 @@ public class MigrateJcr {
       if (newJackrabbitSession != null) {
         newJackrabbitSession.logout();
       }
+      output.close();
     }
     
   }
