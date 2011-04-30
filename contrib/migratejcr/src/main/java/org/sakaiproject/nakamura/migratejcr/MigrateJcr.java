@@ -86,6 +86,8 @@ import javax.jcr.security.Privilege;
 @Component
 @Reference(name = "SlingRepository", referenceInterface = SlingRepository.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, bind = "addRepo", unbind = "removeRepo")
 public class MigrateJcr {
+  private static final String SAKAI_POOLED_CONTENT_VIEWER = "sakai:pooled-content-viewer";
+  private static final String SAKAI_POOLED_CONTENT_MANAGER = "sakai:pooled-content-manager";
   private static final String SLING_RESOURCE_TYPE = "sling:resourceType";
   public static final String PROP_MANAGERS_GROUP = "sakai:managers-group";
   public static final String PROP_MANAGED_GROUP = "sakai:managed-group";
@@ -178,7 +180,7 @@ public class MigrateJcr {
       QueryResult result = q.execute();
       NodeIterator resultNodes = result.getNodes();
       String nodeWord = resultNodes.getSize() == 1 ? "node" : "nodes";
-      LOGGER.info("Found {} pooled content {} in Jackrabbit.", resultNodes.getSize(),
+      LOGGER.info("found {} pooled content {} in Jackrabbit.", resultNodes.getSize(),
           nodeWord);
       while (resultNodes.hasNext()) {
         Node contentNode = resultNodes.nextNode();
@@ -274,7 +276,7 @@ public class MigrateJcr {
     try {
       AccessControlManager sparseAccessControl = session.getAccessControlManager();
       List<AclModification> aclModifications = new ArrayList<AclModification>();
-      LOGGER.info("Reading access control policies for " + contentNode.getPath());
+      LOGGER.debug("Reading access control policies for " + contentNode.getPath());
 //      AccessControlPolicy[] accessPolicies = accessManager.getEffectivePolicies(contentNode
 //          .getPath());
 //      for (AccessControlPolicy policy : accessPolicies) {
@@ -317,26 +319,54 @@ public class MigrateJcr {
   private String applyAdditionalProperties(Builder<String, Object> propBuilder,
       Node contentNode, String path) throws Exception {
     String contentPath = path;
-    if (contentNode.hasProperty(SLING_RESOURCE_TYPE) && "sakai/contact".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
+    if (contentNode.hasProperty(SLING_RESOURCE_TYPE) 
+        && "sakai/contact".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
       // sparse searches for contacts rely on the sakai:contactstorepath property
       String contactStorePath = "a:" + contentNode.getPath().substring(12, contentNode.getPath().indexOf("/", 12)) + "/contacts";
       propBuilder.put("sakai:contactstorepath", contactStorePath);
-    } else {
-      if (contentNode.hasProperty(SLING_RESOURCE_TYPE) && "sakai/message".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
-        String messageStorePath = "a:" + contentNode.getPath().substring(12, contentNode.getPath().indexOf("/", 12)) + "/message/";
-        propBuilder.put("sakai:messagestore", messageStorePath);
-        // we want to flatten the message boxes. No more sharding required.
-        contentPath = messageStorePath + "/" + contentNode.getProperty("sakai:messagebox").getString() + "/" + contentNode.getName();
-      } else {
-        if (contentNode.hasProperty(SLING_RESOURCE_TYPE) && "sakai/resource-update".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
-          // the resource-update indexer _really_ wants there to be a timestamp property
-          Calendar timestamp = new GregorianCalendar();
-          if (contentNode.hasNode("jcr:content") && contentNode.getNode("jcr:content").hasProperty("jcr:lastModified")) {
-            timestamp = contentNode.getNode("jcr:content").getProperty("jcr:lastModified").getDate();
+    } else if (contentNode.hasProperty(SLING_RESOURCE_TYPE) 
+        && "sakai/message".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
+      String messageStorePath = "a:" + contentNode.getPath().substring(12, contentNode.getPath().indexOf("/", 12)) + "/message/";
+      propBuilder.put("sakai:messagestore", messageStorePath);
+      // we want to flatten the message boxes. No more sharding required.
+      contentPath = messageStorePath + contentNode.getProperty("sakai:messagebox").getString() + "/" + contentNode.getName();
+    } else if (contentNode.hasProperty(SLING_RESOURCE_TYPE) 
+        && "sakai/resource-update".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
+      // the resource-update indexer _really_ wants there to be a timestamp property
+      Calendar timestamp = new GregorianCalendar();
+      if (contentNode.hasNode("jcr:content") 
+          && contentNode.getNode("jcr:content").hasProperty("jcr:lastModified")) {
+        timestamp = contentNode.getNode("jcr:content").getProperty("jcr:lastModified").getDate();
+      }
+      propBuilder.put("timestamp", timestamp);
+    } else if (contentNode.hasProperty(SLING_RESOURCE_TYPE) 
+        && "sakai/pooled-content".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
+      // since we introduced sparsemap, we also flattened the 
+      // tree of content members into two properties on the content
+      List<String> contentViewers = new ArrayList<String>();
+      List<String> contentManagers = new ArrayList<String>();
+      Node membersNode = contentNode.getNode("members");
+      NodeIterator nodeIter = membersNode.getNodes();
+      // traverse the sharded paths used in jackrabbit
+      while (nodeIter.hasNext()) {
+        NodeIterator firstShardIter = nodeIter.nextNode().getNodes();
+        while (firstShardIter.hasNext()) {
+          NodeIterator secondShardIter = firstShardIter.nextNode().getNodes();
+          while (secondShardIter.hasNext()) {
+            Node contentMemberNode = secondShardIter.nextNode();
+            if (contentMemberNode.hasProperty(SAKAI_POOLED_CONTENT_MANAGER)) {
+              Value[] managerValues = contentMemberNode.getProperty(SAKAI_POOLED_CONTENT_MANAGER).getValues();
+              contentManagers.add(managerValues[0].getString());
+            }
+            if (contentMemberNode.hasProperty(SAKAI_POOLED_CONTENT_VIEWER)) {
+              Value[] viewerValues = contentMemberNode.getProperty(SAKAI_POOLED_CONTENT_VIEWER).getValues();
+              contentViewers.add(viewerValues[0].getString());
+            }
           }
-          propBuilder.put("timestamp", timestamp);
         }
       }
+      propBuilder.put(SAKAI_POOLED_CONTENT_VIEWER, contentViewers.toArray(new String[contentViewers.size()]));
+      propBuilder.put(SAKAI_POOLED_CONTENT_MANAGER, contentManagers.toArray(new String[contentManagers.size()]));
     }
     return contentPath;
   }
@@ -357,7 +387,7 @@ public class MigrateJcr {
           folderWord);
       while (resultNodes.hasNext()) {
         Node authHomeNode = resultNodes.nextNode();
-        LOGGER.info(authHomeNode.getPath());
+        LOGGER.debug(authHomeNode.getPath());
         moveAuthorizableToSparse(authHomeNode,
             AccessControlUtil.getUserManager(jcrSession));
       }
@@ -371,7 +401,7 @@ public class MigrateJcr {
           folderWord);
       while (resultNodes.hasNext()) {
         Node groupHomeNode = resultNodes.nextNode();
-        LOGGER.info(groupHomeNode.getPath());
+        LOGGER.debug(groupHomeNode.getPath());
         moveAuthorizableToSparse(groupHomeNode,
             AccessControlUtil.getUserManager(jcrSession));
       }
@@ -425,7 +455,7 @@ public class MigrateJcr {
         if (authManager.createUser(userId, userId, "testuser", ImmutableMap.of(
             "firstName", (Object) firstName, "lastName", lastName, "email", email, "sakai:tag-uuid", tagList.toArray(new String[tagList.size()])))) {
           LOGGER.info("Created user {} {} {} {}", new String[]{userId, firstName, lastName, email});
-          LOGGER.info("Adding user home folder for " + userId);
+          LOGGER.debug("Adding user home folder for " + userId);
           copyNodeToSparse(authHomeNode, "a:" + userId, sparseSession, accessManager);
         } else {
           LOGGER.info("User {} exists in sparse. Skipping it.", userId);
@@ -440,13 +470,14 @@ public class MigrateJcr {
         group = userManager.getAuthorizable(groupId);
         Builder<String,Object> propBuilder = getPropsFromGroup(group, userManager);
         if (authManager.createGroup(groupId, groupTitle, propBuilder.build())) {
+          LOGGER.info("Created group {} {}", groupId, groupTitle);
           Authorizable sparseGroup = authManager.findAuthorizable(groupId);
           portManagersGroup(sparseGroup, authManager, sparseAccessManager, userManager);
           if (group instanceof Group) {
             // add all memberships
             copyGroupMembers(authManager, group, sparseGroup);
           }
-          LOGGER.info("Adding group home folder for group {}", groupId);
+          LOGGER.debug("Adding group home folder for group {}", groupId);
           copyNodeToSparse(authHomeNode, "a:" + groupId, sparseSession, accessManager);
         } else {
           LOGGER.info("Group {} exists in sparse. Skipping it.", groupId);
@@ -464,11 +495,11 @@ public class MigrateJcr {
   }
 
   private void copyGroupMembers(AuthorizableManager authManager,
-      org.apache.jackrabbit.api.security.user.Authorizable group,
+      org.apache.jackrabbit.api.security.user.Authorizable jcrGroup,
       Authorizable sparseGroup) throws RepositoryException, AccessDeniedException,
       StorageClientException {
     LOGGER.info("Adding members for group {}", sparseGroup.getId());
-    Iterator<org.apache.jackrabbit.api.security.user.Authorizable> members = ((Group)group).getMembers();
+    Iterator<org.apache.jackrabbit.api.security.user.Authorizable> members = ((Group)jcrGroup).getMembers();
     while (members.hasNext()) {
       org.apache.jackrabbit.api.security.user.Authorizable member = members.next();
       Authorizable sparseMember = authManager.findAuthorizable(member.getID());
@@ -520,38 +551,38 @@ public class MigrateJcr {
     repositories.put(repository,repository);
   }
   
-  private void portManagersGroup (Authorizable authorizable,
-      AuthorizableManager authorizableManager, AccessControlManager accessControlManager, UserManager userManager) throws AccessDeniedException,
+  private void portManagersGroup (Authorizable managedGroup,
+      AuthorizableManager sparseAuthorizableManager, AccessControlManager sparseAccessControlManager, UserManager jcrUserManager) throws AccessDeniedException,
       StorageClientException, ValueFormatException, IllegalStateException, RepositoryException {
-    if (authorizable.hasProperty(PROP_MANAGERS_GROUP)) {
+    if (managedGroup.hasProperty(PROP_MANAGERS_GROUP)) {
       boolean isUpdateNeeded = false;
-      String managersGroupId = (String) authorizable.getProperty(PROP_MANAGERS_GROUP);
-      Group managersGroup = (Group) userManager.getAuthorizable(managersGroupId);
+      String managersGroupId = (String) managedGroup.getProperty(PROP_MANAGERS_GROUP);
+      Group jcrManagersGroup = (Group) jcrUserManager.getAuthorizable(managersGroupId);
       
       // create the sparse equivalent of the managers group
-      Builder<String, Object> propBuilder = getPropsFromGroup(managersGroup, userManager);
-      authorizableManager.createGroup(managersGroupId, managersGroupId, propBuilder.build());
-      Authorizable sparseManagerGroup = authorizableManager.findAuthorizable(managersGroupId);
+      Builder<String, Object> propBuilder = getPropsFromGroup(jcrManagersGroup, jcrUserManager);
+      sparseAuthorizableManager.createGroup(managersGroupId, managersGroupId, propBuilder.build());
+      Authorizable sparseManagersGroup = sparseAuthorizableManager.findAuthorizable(managersGroupId);
       
       // copy the managers group members
-      copyGroupMembers(authorizableManager, managersGroup, authorizable);
+      copyGroupMembers(sparseAuthorizableManager, jcrManagersGroup, sparseManagersGroup);
       
       // grant the mangers group management over this group
-      accessControlManager.setAcl(
+      sparseAccessControlManager.setAcl(
           Security.ZONE_AUTHORIZABLES,
-          authorizable.getId(),
+          managedGroup.getId(),
           new AclModification[] { new AclModification(AclModification
               .grantKey(managersGroupId), Permissions.CAN_MANAGE.getPermission(),
               Operation.OP_REPLACE) });
       // and over itself
-      accessControlManager.setAcl(
+      sparseAccessControlManager.setAcl(
           Security.ZONE_AUTHORIZABLES,
           managersGroupId,
           new AclModification[] { new AclModification(AclModification
               .grantKey(managersGroupId), Permissions.CAN_MANAGE.getPermission(),
               Operation.OP_REPLACE) });
       if (isUpdateNeeded) {
-        authorizableManager.updateAuthorizable(sparseManagerGroup);
+        sparseAuthorizableManager.updateAuthorizable(sparseManagersGroup);
       }
     }
   }
