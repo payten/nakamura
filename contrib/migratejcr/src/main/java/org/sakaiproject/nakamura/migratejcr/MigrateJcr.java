@@ -499,7 +499,7 @@ public class MigrateJcr {
       Authorizable sparseGroup) throws RepositoryException, AccessDeniedException,
       StorageClientException {
     LOGGER.info("Adding members for group {}", sparseGroup.getId());
-    Iterator<org.apache.jackrabbit.api.security.user.Authorizable> members = ((Group)jcrGroup).getMembers();
+    Iterator<org.apache.jackrabbit.api.security.user.Authorizable> members = ((Group)jcrGroup).getDeclaredMembers();
     while (members.hasNext()) {
       org.apache.jackrabbit.api.security.user.Authorizable member = members.next();
       Authorizable sparseMember = authManager.findAuthorizable(member.getID());
