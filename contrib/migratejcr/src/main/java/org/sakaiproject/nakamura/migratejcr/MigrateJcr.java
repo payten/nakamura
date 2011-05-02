@@ -19,10 +19,12 @@ package org.sakaiproject.nakamura.migratejcr;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.collect.ImmutableMap.Builder;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.PropertyOption;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
@@ -42,8 +44,10 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification.Operation;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.osgi.service.component.ComponentContext;
@@ -94,6 +98,11 @@ public class MigrateJcr {
   public static final String PARAM_ADD_TO_MANAGERS_GROUP = ":sakai:manager";
   public static final String PARAM_REMOVE_FROM_MANAGERS_GROUP = PARAM_ADD_TO_MANAGERS_GROUP
       + "@Delete";
+  
+  /**
+   * Principals that don't manage, Admin has permissions everywhere already. 
+   */
+  private static final Set<String> NO_MANAGE = ImmutableSet.of(org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE, User.ANON_USER, User.ADMIN_USER);
 
   private Logger LOGGER = LoggerFactory.getLogger(MigrateJcr.class);
 
@@ -113,6 +122,16 @@ public class MigrateJcr {
 
   private Set<String> ignoreProps = ImmutableSet.of("jcr:content", "jcr:data",
       "jcr:mixinTypes", "rep:policy", "jcr:created", "jcr:primaryType");
+  private Object visibilityPreference;
+  
+  private static final String VISIBILITY_PRIVATE = "private";
+  private static final String VISIBILITY_LOGGED_IN = "logged_in";
+  private static final String VISIBILITY_PUBLIC = "public";
+  @org.apache.felix.scr.annotations.Property(description = "The default access settings for the home of a new user or group.", value = VISIBILITY_PUBLIC, options = {
+      @PropertyOption(name = VISIBILITY_PRIVATE, value = "The home is private."),
+      @PropertyOption(name = VISIBILITY_LOGGED_IN, value = "The home is blocked to anonymous users; all logged-in users can see it."),
+      @PropertyOption(name = VISIBILITY_PUBLIC, value = "The home is completely public.") })
+  static final String VISIBILITY_PREFERENCE = "visibility.preference";
 
   @Activate
   protected void activate(ComponentContext componentContext) {
@@ -185,7 +204,7 @@ public class MigrateJcr {
       while (resultNodes.hasNext()) {
         Node contentNode = resultNodes.nextNode();
         LOGGER.info(contentNode.getPath());
-        copyNodeToSparse(contentNode, contentNode.getName(), sparseSession, accessManager);
+        copyNodeToSparse(contentNode, contentNode.getName(), sparseSession, accessManager, true);
       }
     } finally {
       if (jcrSession != null) {
@@ -198,7 +217,7 @@ public class MigrateJcr {
 
   }
 
-  private void copyNodeToSparse(Node contentNode, String path, Session session, javax.jcr.security.AccessControlManager accessManager)
+  private void copyNodeToSparse(Node contentNode, String path, Session session, javax.jcr.security.AccessControlManager accessManager, boolean shouldProcessACLs)
       throws Exception {
     ContentManager contentManager = session.getContentManager();
     if (contentManager.exists(path)) {
@@ -273,35 +292,37 @@ public class MigrateJcr {
     } else {
       contentManager.update(sparseContent);
     }
-    try {
-      AccessControlManager sparseAccessControl = session.getAccessControlManager();
-      List<AclModification> aclModifications = new ArrayList<AclModification>();
-      LOGGER.debug("Reading access control policies for " + contentNode.getPath());
-//      AccessControlPolicy[] accessPolicies = accessManager.getEffectivePolicies(contentNode
-//          .getPath());
-//      for (AccessControlPolicy policy : accessPolicies) {
-//        if (policy instanceof AccessControlList) {
-//          for (AccessControlEntry ace : ((AccessControlList) policy)
-//              .getAccessControlEntries()) {
-//            String principal = ace.getPrincipal().getName();
-//            String permission = AccessControlUtil.isAllow(ace) ? AclModification
-//                .grantKey(principal) : AclModification.denyKey(principal);
-//            for (Privilege priv : ace.getPrivileges()) {
-//              Permission sparsePermission = Permissions.parse(priv.getName());
-//              if (sparsePermission != null) {
-//                aclModifications.add(new AclModification(permission, sparsePermission
-//                    .getPermission(), Operation.OP_AND));
-//                LOGGER.debug("translating jcr permission to sparse: " + permission + " -- "
-//                    + priv.getName());
-//              }
-//            }
-//          }
-//        }
-//      }
-      sparseAccessControl.setAcl(Security.ZONE_CONTENT, path,
-          aclModifications.toArray(new AclModification[aclModifications.size()]));
-    } catch (Exception e) {
-      LOGGER.error("Failed to set sparse access control on " + path, e);
+    if (shouldProcessACLs) {
+      try {
+        AccessControlManager sparseAccessControl = session.getAccessControlManager();
+        List<AclModification> aclModifications = new ArrayList<AclModification>();
+        LOGGER.debug("Reading access control policies for " + contentNode.getPath());
+        AccessControlPolicy[] accessPolicies = accessManager
+            .getEffectivePolicies(contentNode.getPath());
+        for (AccessControlPolicy policy : accessPolicies) {
+          if (policy instanceof AccessControlList) {
+            for (AccessControlEntry ace : ((AccessControlList) policy)
+                .getAccessControlEntries()) {
+              String principal = ace.getPrincipal().getName();
+              String permission = AccessControlUtil.isAllow(ace) ? AclModification
+                  .grantKey(principal) : AclModification.denyKey(principal);
+              for (Privilege priv : ace.getPrivileges()) {
+                Permission sparsePermission = Permissions.parse(priv.getName());
+                if (sparsePermission != null) {
+                  aclModifications.add(new AclModification(permission, sparsePermission
+                      .getPermission(), Operation.OP_AND));
+                  LOGGER.debug("translating jcr permission to sparse: " + permission
+                      + " -- " + priv.getName());
+                }
+              }
+            }
+          }
+        }
+        sparseAccessControl.setAcl(Security.ZONE_CONTENT, path,
+            aclModifications.toArray(new AclModification[aclModifications.size()]));
+      } catch (Exception e) {
+        LOGGER.error("Failed to set sparse access control on " + path, e);
+      }
     }
     // make recursive call for child nodes
     // depth-first traversal
@@ -311,7 +332,7 @@ public class MigrateJcr {
       if (ignoreProps.contains(childNode.getName())) {
         continue;
       }
-      copyNodeToSparse(childNode, path + "/" + childNode.getName(), session, accessManager);
+      copyNodeToSparse(childNode, path + "/" + childNode.getName(), session, accessManager, shouldProcessACLs);
     }
 
   }
@@ -462,7 +483,9 @@ public class MigrateJcr {
             "firstName", (Object) firstName, "lastName", lastName, "email", email, "sakai:tag-uuid", tagList.toArray(new String[tagList.size()])))) {
           LOGGER.info("Created user {} {} {} {}", new String[]{userId, firstName, lastName, email});
           LOGGER.debug("Adding user home folder for " + userId);
-          copyNodeToSparse(authHomeNode, "a:" + userId, sparseSession, accessManager);
+          copyNodeToSparse(authHomeNode, "a:" + userId, sparseSession, accessManager, false);
+          LOGGER.debug("Applying access rights to user {}", userId);
+          applyAuthorizableAccessRights(authManager.findAuthorizable(userId), sparseAccessManager);
         } else {
           LOGGER.info("User {} exists in sparse. Skipping it.", userId);
         }
@@ -484,7 +507,9 @@ public class MigrateJcr {
             copyGroupMembers(authManager, group, sparseGroup);
           }
           LOGGER.debug("Adding group home folder for group {}", groupId);
-          copyNodeToSparse(authHomeNode, "a:" + groupId, sparseSession, accessManager);
+          copyNodeToSparse(authHomeNode, "a:" + groupId, sparseSession, accessManager, false);
+          LOGGER.debug("Applying access rights to group {}", groupId);
+          applyAuthorizableAccessRights(sparseGroup, sparseAccessManager);
         } else {
           LOGGER.info("Group {} exists in sparse. Skipping it.", groupId);
         }
@@ -496,6 +521,135 @@ public class MigrateJcr {
       if (sparseSession != null) {
         sparseSession.logout();
       }
+    }
+
+  }
+
+  private void applyAuthorizableAccessRights(Authorizable authorizable,
+      AccessControlManager sparseAccessManager) throws StorageClientException, AccessDeniedException {
+    String authId = authorizable.getId();
+    String homePath = LitePersonalUtils.getHomePath(authId);
+    List<AclModification> aclModifications = new ArrayList<AclModification>();
+    // KERN-886 : Depending on the profile preference we set some ACL's on the profile.
+    if (User.ANON_USER.equals(authId)) {
+      AclModification.addAcl(true, Permissions.CAN_READ, User.ANON_USER,
+          aclModifications);
+      AclModification.addAcl(true, Permissions.CAN_READ, org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE,
+          aclModifications);
+    } else if (VISIBILITY_PUBLIC.equals(visibilityPreference)) {
+      AclModification.addAcl(true, Permissions.CAN_READ, User.ANON_USER,
+          aclModifications);
+      AclModification.addAcl(true, Permissions.CAN_READ, org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE,
+          aclModifications);
+    } else if (VISIBILITY_LOGGED_IN.equals(visibilityPreference)) {
+      AclModification.addAcl(false, Permissions.CAN_READ, User.ANON_USER,
+          aclModifications);
+      AclModification.addAcl(true, Permissions.CAN_READ, org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE,
+          aclModifications);
+    } else if (VISIBILITY_PRIVATE.equals(visibilityPreference)) {
+      AclModification.addAcl(false, Permissions.CAN_READ, User.ANON_USER,
+          aclModifications);
+      AclModification.addAcl(false, Permissions.CAN_READ, org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE,
+          aclModifications);
+    }
+
+    Map<String, Object> acl = Maps.newHashMap();
+    syncOwnership(authorizable, acl, aclModifications);
+
+    AclModification[] aclMods = aclModifications
+        .toArray(new AclModification[aclModifications.size()]);
+    sparseAccessManager.setAcl(Security.ZONE_CONTENT, homePath, aclMods);
+
+    sparseAccessManager.setAcl(Security.ZONE_AUTHORIZABLES, authorizable.getId(),
+        aclMods);
+    
+  }
+
+  private void syncOwnership(Authorizable authorizable, Map<String, Object> acl,
+      List<AclModification> aclModifications) {
+    // remove all acls we are not concerned with from the copy of the current state
+
+    // make sure the owner has permission on their home
+    if (authorizable instanceof User && !User.ANON_USER.equals(authorizable.getId())) {
+      AclModification.addAcl(true, Permissions.ALL, authorizable.getId(),
+          aclModifications);
+    }
+
+    Set<String> managerSettings = null;
+    if (authorizable.hasProperty("rep:group-managers")) {
+      managerSettings = ImmutableSet.of((String[]) authorizable
+          .getProperty("rep:group-managers"));
+    } else {
+      managerSettings = ImmutableSet.of();
+    }
+    Set<String> viewerSettings = null;
+    if (authorizable.hasProperty("rep:group-viewers")) {
+      viewerSettings = ImmutableSet.of((String[]) authorizable
+          .getProperty("rep:group-viewers"));
+    } else {
+      viewerSettings = ImmutableSet.of();
+    }
+
+    for (String key : acl.keySet()) {
+      if (AclModification.isGrant(key)) {
+        String principal = AclModification.getPrincipal(key);
+        if (!NO_MANAGE.contains(principal) && !managerSettings.contains(principal)) {
+          // grant permission is present, but not present in managerSettings, manage
+          // ability (which include read ability must be removed)
+          if (viewerSettings.contains(principal)) {
+            aclModifications.add(new AclModification(key, Permissions.CAN_READ
+                .getPermission(), Operation.OP_REPLACE));
+          } else {
+            aclModifications.add(new AclModification(key, Permissions.CAN_MANAGE
+                .getPermission(), Operation.OP_XOR));
+          }
+        }
+      }
+    }
+    for (String manager : managerSettings) {
+      if (!acl.containsKey(AclModification.grantKey(manager))) {
+        AclModification.addAcl(true, Permissions.CAN_MANAGE, manager, aclModifications);
+      }
+    }
+    for (String viewer : viewerSettings) {
+      if (!acl.containsKey(AclModification.grantKey(viewer))) {
+        AclModification.addAcl(true, Permissions.CAN_READ, viewer, aclModifications);
+      }
+    }
+    if (viewerSettings.size() > 0) {
+      // ensure its private
+      aclModifications.add(new AclModification(AclModification.grantKey(User.ANON_USER),
+          Permissions.ALL.getPermission(), Operation.OP_DEL));
+      if (!viewerSettings.contains(org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE)) {
+        // only deny everyone if not in the list of viewers
+        aclModifications.add(new AclModification(
+            AclModification.grantKey(org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE), Permissions.ALL.getPermission(),
+            Operation.OP_DEL));
+      }
+      aclModifications.add(new AclModification(AclModification.denyKey(User.ANON_USER),
+          Permissions.ALL.getPermission(), Operation.OP_REPLACE));
+      if (!viewerSettings.contains(org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE)) {
+        // only deny everyone if not in the list of viewers
+        aclModifications.add(new AclModification(AclModification.denyKey(org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE),
+            Permissions.ALL.getPermission(), Operation.OP_REPLACE));
+      }
+    } else {
+      // anon and everyone can read
+      aclModifications.add(new AclModification(AclModification.denyKey(User.ANON_USER),
+          Permissions.ALL.getPermission(), Operation.OP_DEL));
+      aclModifications.add(new AclModification(AclModification.denyKey(org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE),
+          Permissions.ALL.getPermission(), Operation.OP_DEL));
+      aclModifications.add(new AclModification(AclModification.grantKey(User.ANON_USER),
+          Permissions.CAN_READ.getPermission(), Operation.OP_REPLACE));
+      aclModifications.add(new AclModification(AclModification.grantKey(org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE),
+          Permissions.CAN_READ.getPermission(), Operation.OP_REPLACE));
+
+    }
+
+    LOGGER.debug("Viewer Settings {}", viewerSettings);
+    LOGGER.debug("Manager Settings {}", managerSettings);
+    for (AclModification a : aclModifications) {
+      LOGGER.debug("     Change {} ", a);
     }
 
   }
