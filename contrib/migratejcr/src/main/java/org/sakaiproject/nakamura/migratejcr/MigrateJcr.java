@@ -367,6 +367,12 @@ public class MigrateJcr {
       }
       propBuilder.put(SAKAI_POOLED_CONTENT_VIEWER, contentViewers.toArray(new String[contentViewers.size()]));
       propBuilder.put(SAKAI_POOLED_CONTENT_MANAGER, contentManagers.toArray(new String[contentManagers.size()]));
+    } else if (contentNode.hasProperty(SLING_RESOURCE_TYPE)
+        && "sakai/user-profile".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
+      propBuilder.put("homePath", "/~" + contentNode.getProperty("rep:userId").getString());
+    } else if (contentNode.hasProperty(SLING_RESOURCE_TYPE)
+        && "sakai/group-profile".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
+      propBuilder.put("homePath", "/~" + contentNode.getProperty("sakai:group-id").getString());
     }
     return contentPath;
   }
