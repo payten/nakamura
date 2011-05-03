@@ -289,8 +289,10 @@ public class MigrateJcr {
         contentManager.update(sparseContent);
         contentManager.writeBody(sparseContent.getPath(), binaryStream);
       } catch (Exception e) {
+        contentManager.delete(sparseContent.getPath());
         LOGGER.error("Unable to write binary content from JCR path {} to sparse path {}"
             + fileContentNode.getPath(), sparseContent.getPath(), e);
+        return;
       }
     } else {
       contentManager.update(sparseContent);
@@ -324,7 +326,9 @@ public class MigrateJcr {
         sparseAccessControl.setAcl(Security.ZONE_CONTENT, path,
             aclModifications.toArray(new AclModification[aclModifications.size()]));
       } catch (Exception e) {
-        LOGGER.error("Failed to set sparse access control on " + path, e);
+        LOGGER.error("Failed to set sparse access control on {}", path, e);
+        contentManager.delete(sparseContent.getPath());
+        return;
       }
     }
     // make recursive call for child nodes
