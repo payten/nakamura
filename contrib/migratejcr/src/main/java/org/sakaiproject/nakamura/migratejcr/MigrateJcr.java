@@ -280,14 +280,17 @@ public class MigrateJcr {
     Content sparseContent = new Content(path, propBuilder.build());
     if (contentNode.hasNode("jcr:content")) {
       Node fileContentNode = contentNode.getNode("jcr:content");
+      if (fileContentNode.hasProperty("jcr:mimeType")) {
+        sparseContent.setProperty("_mimeType", fileContentNode.getProperty("jcr:mimeType").getString());
+      }
       Binary binaryData = fileContentNode.getProperty("jcr:data").getBinary();
       try {
         InputStream binaryStream = binaryData.getStream();
         contentManager.update(sparseContent);
         contentManager.writeBody(sparseContent.getPath(), binaryStream);
       } catch (Exception e) {
-        LOGGER.error("Unable to write binary content for JCR path: "
-            + fileContentNode.getPath());
+        LOGGER.error("Unable to write binary content from JCR path {} to sparse path {}"
+            + fileContentNode.getPath(), sparseContent.getPath(), e);
       }
     } else {
       contentManager.update(sparseContent);
