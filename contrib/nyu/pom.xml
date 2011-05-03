@@ -13,7 +13,7 @@
   <version>1.0-SNAPSHOT</version>
   <properties>
     <nakamura.version>0.10</nakamura.version>
-    <ux.version>0.6.0-SNAPSHOT</ux.version>
+    <ux.version>0.6</ux.version>
   </properties>
   <packaging>jar</packaging>
   <build>
