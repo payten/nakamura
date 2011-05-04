@@ -522,8 +522,8 @@ public class MigrateJcr {
         }
       }
     } catch (Exception e) {
-      LOGGER.error("Failure moving authorizable to sparsemap: {}",
-          authHomeNode.getPath(), e);
+      LOGGER.error("Failure moving authorizable {} to sparsemap: {}",
+          authHomeNode.getPath(), e.getLocalizedMessage());
     } finally {
       if (sparseSession != null) {
         sparseSession.logout();
@@ -533,7 +533,7 @@ public class MigrateJcr {
   }
 
   private void applyAuthorizableAccessRights(Authorizable authorizable,
-      AccessControlManager sparseAccessManager) throws StorageClientException, AccessDeniedException {
+      AccessControlManager sparseAccessManager) {
     String authId = authorizable.getId();
     String homePath = LitePersonalUtils.getHomePath(authId);
     List<AclModification> aclModifications = new ArrayList<AclModification>();
@@ -565,10 +565,18 @@ public class MigrateJcr {
 
     AclModification[] aclMods = aclModifications
         .toArray(new AclModification[aclModifications.size()]);
-    sparseAccessManager.setAcl(Security.ZONE_CONTENT, homePath, aclMods);
+    try {
+      sparseAccessManager.setAcl(Security.ZONE_CONTENT, homePath, aclMods);
+    } catch (Exception e) {
+      LOGGER.error("Failed setting ACLs on content path {} : {}", homePath, e.getLocalizedMessage());
+    }
 
-    sparseAccessManager.setAcl(Security.ZONE_AUTHORIZABLES, authorizable.getId(),
-        aclMods);
+    try {
+      sparseAccessManager.setAcl(Security.ZONE_AUTHORIZABLES, authorizable.getId(),
+          aclMods);
+    } catch (Exception e) {
+      LOGGER.error("Failed setting ACLs on authorizable {} : {}", authorizable.getId(), e.getLocalizedMessage());
+    }
     
   }
 
@@ -663,20 +671,40 @@ public class MigrateJcr {
 
   private void copyGroupMembers(AuthorizableManager authManager,
       org.apache.jackrabbit.api.security.user.Authorizable jcrGroup,
-      Authorizable sparseGroup) throws RepositoryException, AccessDeniedException,
-      StorageClientException {
+      Authorizable sparseGroup) {
     LOGGER.info("Adding members for group {}", sparseGroup.getId());
-    Iterator<org.apache.jackrabbit.api.security.user.Authorizable> members = ((Group)jcrGroup).getDeclaredMembers();
+    Iterator<org.apache.jackrabbit.api.security.user.Authorizable> members;
+    try {
+      members = ((Group)jcrGroup).getDeclaredMembers();
+    } catch (RepositoryException e1) {
+      LOGGER.error("Could not get a list of members for group {} in Jackrabbit.", sparseGroup.getId());
+      return;
+    }
     while (members.hasNext()) {
       org.apache.jackrabbit.api.security.user.Authorizable member = members.next();
-      Authorizable sparseMember = authManager.findAuthorizable(member.getID());
+      String jcrMemberId = "";
+      Authorizable sparseMember = null;
+      try {
+        jcrMemberId = member.getID();
+        sparseMember = authManager.findAuthorizable(jcrMemberId);
+      } catch (Exception e) {
+        if ( "".equals(jcrMemberId)) {
+          LOGGER.warn("This Jackrabbit member has no ID. Continuing with the rest.");
+        }
+        LOGGER.warn("Problem finding a sparsemap member {} to add to group {}. Continuing with the rest of the group members.", jcrMemberId, sparseGroup.getId());
+        continue;
+      }
       if (sparseMember != null) {
         ((org.sakaiproject.nakamura.api.lite.authorizable.Group)sparseGroup).addMember(sparseMember.getId());
       } else {
-        LOGGER.warn("Wanted to add user {} to group {} but couldn't find user in sparse.", member.getID(), sparseGroup.getId());
+        LOGGER.warn("Wanted to add user {} to group {} but couldn't find user in sparse.", jcrMemberId, sparseGroup.getId());
       }
     }
-    authManager.updateAuthorizable(sparseGroup);
+    try {
+      authManager.updateAuthorizable(sparseGroup);
+    } catch (Exception e) {
+      LOGGER.error("Failed to save membership information in sparsemap.", e);
+    }
   }
 
   private Builder<String, Object> getPropsFromGroup(
