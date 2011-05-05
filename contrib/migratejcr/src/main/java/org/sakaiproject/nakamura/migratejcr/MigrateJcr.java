@@ -58,6 +58,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -112,6 +113,8 @@ public class MigrateJcr {
 
   @Reference
   private Repository sparseRepository;
+  
+  private Map<String, Set<String>> groupMemberRetries = new ConcurrentHashMap<String, Set<String>>();
   
   /**
    * This will contain Sling repositories.
@@ -404,7 +407,9 @@ public class MigrateJcr {
   private void migrateAuthorizables() throws Exception {
     LOGGER.info("beginning users and groups migration.");
     javax.jcr.Session jcrSession = null;
+    Session sparseSession = null;
     try {
+      sparseSession = sparseRepository.loginAdministrative();
       jcrSession = slingRepository.loginAdministrative("default");
       String usersQuery = "//*[@sling:resourceType='sakai/user-home'] order by @jcr:score descending";
       QueryManager qm = jcrSession.getWorkspace().getQueryManager();
@@ -420,6 +425,7 @@ public class MigrateJcr {
         moveAuthorizableToSparse(authHomeNode,
             AccessControlUtil.getUserManager(jcrSession));
       }
+      
 
       String groupsQuery = "//*[@sling:resourceType='sakai/group-home'] order by @jcr:score descending";
       q = qm.createQuery(groupsQuery, Query.XPATH);
@@ -434,9 +440,30 @@ public class MigrateJcr {
         moveAuthorizableToSparse(groupHomeNode,
             AccessControlUtil.getUserManager(jcrSession));
       }
+      
+      AuthorizableManager sparseAuthManager = sparseSession.getAuthorizableManager();
+      for (String sparseGroupId : groupMemberRetries.keySet()) {
+        Authorizable group = sparseAuthManager.findAuthorizable(sparseGroupId);
+        if (group != null) {
+          for (Iterator<String> it = groupMemberRetries.get(sparseGroupId).iterator(); it.hasNext();) {
+            String memberId = it.next();
+            Authorizable member = sparseAuthManager.findAuthorizable(memberId);
+            if (member != null) {
+              ((org.sakaiproject.nakamura.api.lite.authorizable.Group)group).addMember(memberId);
+              LOGGER.info("Succeeded upon retry adding member {} to group {}", memberId, sparseGroupId);
+            } else {
+              LOGGER.warn("Tried again to add member {} to group {}, but member still couldn't be found in sparsemap.", memberId, sparseGroupId);
+            }
+          }
+          sparseAuthManager.updateAuthorizable(group);
+        }
+      }
     } finally {
       if (jcrSession != null) {
         jcrSession.logout();
+      }
+      if (sparseSession != null) {
+        sparseSession.logout();
       }
     }
 
@@ -704,7 +731,11 @@ public class MigrateJcr {
       if (sparseMember != null) {
         ((org.sakaiproject.nakamura.api.lite.authorizable.Group)sparseGroup).addMember(sparseMember.getId());
       } else {
-        LOGGER.warn("Wanted to add user {} to group {} but couldn't find user in sparse.", jcrMemberId, sparseGroup.getId());
+        LOGGER.warn("Wanted to add member {} to group {} but couldn't find member in sparse.", jcrMemberId, sparseGroup.getId());
+        if (!groupMemberRetries.containsKey(sparseGroup.getId())) {
+          groupMemberRetries.put(sparseGroup.getId(), new HashSet<String>());
+        }
+        groupMemberRetries.get(sparseGroup.getId()).add(jcrMemberId);
       }
     }
     try {
