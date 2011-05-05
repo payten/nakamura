@@ -57,7 +57,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Dictionary;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
@@ -135,23 +134,19 @@ public class MigrateJcr {
 
   @Activate
   protected void activate(ComponentContext componentContext) {
-    @SuppressWarnings("rawtypes")
-    Dictionary componentProps = componentContext.getProperties();
-    if (shouldMigrate(componentProps)) {
-      try {
-        for (Entry<SlingRepository, SlingRepository> repo : repositories.entrySet()) {
-          if (!repo.equals(slingRepository)) {
-            newSlingRepository = repo.getValue();
-            break;
-          }
+    try {
+      for (Entry<SlingRepository, SlingRepository> repo : repositories.entrySet()) {
+        if (!repo.equals(slingRepository)) {
+          newSlingRepository = repo.getValue();
+          break;
         }
-        migrateAuthorizables();
-        migrateContentPool();
-        migrateTags();
-        cleanup();
-      } catch (Exception e) {
-        LOGGER.error("Failed data migration from JCR to Sparse.", e);
       }
+      migrateAuthorizables();
+      migrateContentPool();
+      migrateTags();
+      cleanup();
+    } catch (Exception e) {
+      LOGGER.error("Failed data migration from JCR to Sparse.", e);
     }
   }
 
@@ -354,7 +349,7 @@ public class MigrateJcr {
       propBuilder.put("sakai:contactstorepath", contactStorePath);
     } else if (contentNode.hasProperty(SLING_RESOURCE_TYPE) 
         && "sakai/message".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
-      String messageStorePath = "a:" + contentNode.getPath().substring(12, contentNode.getPath().indexOf("/", 12)) + "/message/";
+      String messageStorePath = "a:" + contentNode.getPath().substring(12, contentNode.getPath().lastIndexOf("/message/") + 9);
       propBuilder.put("sakai:messagestore", messageStorePath);
       // we want to flatten the message boxes. No more sharding required.
       contentPath = messageStorePath + contentNode.getProperty("sakai:messagebox").getString() + "/" + contentNode.getName();
@@ -592,15 +587,27 @@ public class MigrateJcr {
 
     Set<String> managerSettings = null;
     if (authorizable.hasProperty("rep:group-managers")) {
-      managerSettings = ImmutableSet.of((String[]) authorizable
-          .getProperty("rep:group-managers"));
+      String[] managersArray;
+      Object managers = authorizable.getProperty("rep:group-managers");
+      if (managers instanceof String) {
+        managersArray = new String[]{(String) managers};
+      } else {
+        managersArray = (String[]) managers;
+      }
+      managerSettings = ImmutableSet.of(managersArray);
     } else {
       managerSettings = ImmutableSet.of();
     }
     Set<String> viewerSettings = null;
     if (authorizable.hasProperty("rep:group-viewers")) {
-      viewerSettings = ImmutableSet.of((String[]) authorizable
-          .getProperty("rep:group-viewers"));
+      String[] viewersArray;
+      Object viewers = authorizable.getProperty("rep:group-viewers");
+      if (viewers instanceof String) {
+        viewersArray = new String[]{(String) viewers};
+      } else {
+        viewersArray = (String[]) viewers;
+      }
+      viewerSettings = ImmutableSet.of(viewersArray);
     } else {
       viewerSettings = ImmutableSet.of();
     }
@@ -724,12 +731,6 @@ public class MigrateJcr {
       }
     }
     return propBuilder;
-  }
-
-  @SuppressWarnings("unchecked")
-  private boolean shouldMigrate(Dictionary componentProps) {
-    // TODO determine whether there is any migrating to do
-    return true;
   }
   
   /**
