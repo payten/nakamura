@@ -35,6 +35,7 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
@@ -345,6 +346,7 @@ public class MigrateJcr {
   private String applyAdditionalProperties(Builder<String, Object> propBuilder,
       Node contentNode, String path) throws Exception {
     String contentPath = path;
+    propBuilder.put("sling:resourceSuperType", "sparse/Content");
     if (contentNode.hasProperty(SLING_RESOURCE_TYPE) 
         && "sakai/contact".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
       // sparse searches for contacts rely on the sakai:contactstorepath property
@@ -353,7 +355,11 @@ public class MigrateJcr {
     } else if (contentNode.hasProperty(SLING_RESOURCE_TYPE) 
         && "sakai/message".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
       String messageStorePath = "a:" + contentNode.getPath().substring(12, contentNode.getPath().lastIndexOf("/message/") + 9);
-      propBuilder.put("sakai:messagestore", messageStorePath);
+      String messageStoreProp = messageStorePath;
+      if (contentNode.hasProperty("sakai:type") && "discussion".equals(contentNode.getProperty("sakai:type").getString())) {
+        messageStoreProp = StorageClientUtils.insecureHash(messageStorePath);
+      }
+      propBuilder.put("sakai:messagestore", messageStoreProp);
       // we want to flatten the message boxes. No more sharding required.
       contentPath = messageStorePath + contentNode.getProperty("sakai:messagebox").getString() + "/" + contentNode.getName();
     } else if (contentNode.hasProperty(SLING_RESOURCE_TYPE) 
