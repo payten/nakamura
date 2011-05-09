@@ -384,7 +384,11 @@ public class MigrateJcr {
       propBuilder.put("sakai:contactstorepath", contactStorePath);
     } else if (contentNode.hasProperty(SLING_RESOURCE_TYPE) 
         && "sakai/message".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
-      String messageStorePath = "a:" + contentNode.getPath().substring(12, contentNode.getPath().lastIndexOf("/message/") + 9);
+      int trimLength = 12;
+      if (contentNode.getPath().startsWith("/_group")) {
+        trimLength = 13;
+      }
+      String messageStorePath = "a:" + contentNode.getPath().substring(trimLength, contentNode.getPath().lastIndexOf("/message/") + 9);
       String messageStoreProp = messageStorePath;
       if (contentNode.hasProperty("sakai:type") && "discussion".equals(contentNode.getProperty("sakai:type").getString())) {
         messageStoreProp = StorageClientUtils.insecureHash(messageStorePath);
