@@ -282,11 +282,11 @@ public class MigrateJcr {
       if (fileContentNode.hasProperty("jcr:mimeType")) {
         sparseContent.setProperty("_mimeType", fileContentNode.getProperty("jcr:mimeType").getString());
       }
-      if (fileContentNode.hasProperty("jcr:created")) {
-        sparseContent.setProperty("_created", fileContentNode.getProperty("jcr:created").getDate());
+      if (fileContentNode.hasProperty("jcr:created") && !sparseContent.hasProperty("_created")) {
+        sparseContent.setProperty("_created", fileContentNode.getProperty("jcr:created").getDate().getTimeInMillis());
       }
-      if (fileContentNode.hasProperty("sakai:created")) {
-        sparseContent.setProperty("_created", fileContentNode.getProperty("sakai:created").getDate());
+      if (fileContentNode.hasProperty("sakai:created") && !sparseContent.hasProperty("_created")) {
+        sparseContent.setProperty("_created", fileContentNode.getProperty("sakai:created").getDate().getTimeInMillis());
       }
       if (fileContentNode.hasProperty("jcr:createdBy")) {
         sparseContent.setProperty("_createdBy", fileContentNode.getProperty("jcr:createdBy").getString());
@@ -363,10 +363,11 @@ public class MigrateJcr {
     String contentPath = path;
     propBuilder.put("sling:resourceSuperType", "sparse/Content");
     if (contentNode.hasProperty("jcr:created")) {
-      propBuilder.put("_created", contentNode.getProperty("jcr:created").getDate());
-    }
-    if (contentNode.hasProperty("sakai:created")) {
-      propBuilder.put("_created", contentNode.getProperty("sakai:created").getDate());
+      propBuilder.put("_created", contentNode.getProperty("jcr:created").getDate().getTimeInMillis());
+    } else {
+      if (contentNode.hasProperty("sakai:created")) {
+        propBuilder.put("_created", contentNode.getProperty("sakai:created").getDate().getTimeInMillis());
+      }
     }
     if (contentNode.hasProperty("jcr:createdBy")) {
       propBuilder.put("_createdBy", contentNode.getProperty("jcr:createdBy").getString());
