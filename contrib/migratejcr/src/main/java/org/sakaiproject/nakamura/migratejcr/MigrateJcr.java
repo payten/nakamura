@@ -282,6 +282,21 @@ public class MigrateJcr {
       if (fileContentNode.hasProperty("jcr:mimeType")) {
         sparseContent.setProperty("_mimeType", fileContentNode.getProperty("jcr:mimeType").getString());
       }
+      if (fileContentNode.hasProperty("jcr:created")) {
+        sparseContent.setProperty("_created", fileContentNode.getProperty("jcr:created").getDate());
+      }
+      if (fileContentNode.hasProperty("sakai:created")) {
+        sparseContent.setProperty("_created", fileContentNode.getProperty("sakai:created").getDate());
+      }
+      if (fileContentNode.hasProperty("jcr:createdBy")) {
+        sparseContent.setProperty("_createdBy", fileContentNode.getProperty("jcr:createdBy").getString());
+      }
+      if (fileContentNode.hasProperty("jcr:lastModifiedBy")) {
+        sparseContent.setProperty("_lastModifiedBy", fileContentNode.getProperty("jcr:lastModifiedBy").getString());
+      }
+      if (fileContentNode.hasProperty("jcr:lastModified")) {
+        sparseContent.setProperty("_lastModified", fileContentNode.getProperty("jcr:lastModified").getDate());
+      }
       Binary binaryData = fileContentNode.getProperty("jcr:data").getBinary();
       try {
         InputStream binaryStream = binaryData.getStream();
@@ -347,6 +362,21 @@ public class MigrateJcr {
       Node contentNode, String path) throws Exception {
     String contentPath = path;
     propBuilder.put("sling:resourceSuperType", "sparse/Content");
+    if (contentNode.hasProperty("jcr:created")) {
+      propBuilder.put("_created", contentNode.getProperty("jcr:created").getDate());
+    }
+    if (contentNode.hasProperty("sakai:created")) {
+      propBuilder.put("_created", contentNode.getProperty("sakai:created").getDate());
+    }
+    if (contentNode.hasProperty("jcr:createdBy")) {
+      propBuilder.put("_createdBy", contentNode.getProperty("jcr:createdBy").getString());
+    }
+    if (contentNode.hasProperty("jcr:lastModifiedBy")) {
+      propBuilder.put("_lastModifiedBy", contentNode.getProperty("jcr:lastModifiedBy").getString());
+    }
+    if (contentNode.hasProperty("jcr:lastModified")) {
+      propBuilder.put("_lastModified", contentNode.getProperty("jcr:lastModified").getDate());
+    }
     if (contentNode.hasProperty(SLING_RESOURCE_TYPE) 
         && "sakai/contact".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
       // sparse searches for contacts rely on the sakai:contactstorepath property
