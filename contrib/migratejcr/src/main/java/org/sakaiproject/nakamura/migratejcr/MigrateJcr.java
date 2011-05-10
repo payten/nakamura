@@ -295,7 +295,7 @@ public class MigrateJcr {
         sparseContent.setProperty("_lastModifiedBy", fileContentNode.getProperty("jcr:lastModifiedBy").getString());
       }
       if (fileContentNode.hasProperty("jcr:lastModified")) {
-        sparseContent.setProperty("_lastModified", fileContentNode.getProperty("jcr:lastModified").getDate());
+        sparseContent.setProperty("_lastModified", fileContentNode.getProperty("jcr:lastModified").getDate().getTimeInMillis());
       }
       Binary binaryData = fileContentNode.getProperty("jcr:data").getBinary();
       try {
@@ -376,7 +376,7 @@ public class MigrateJcr {
       propBuilder.put("_lastModifiedBy", contentNode.getProperty("jcr:lastModifiedBy").getString());
     }
     if (contentNode.hasProperty("jcr:lastModified")) {
-      propBuilder.put("_lastModified", contentNode.getProperty("jcr:lastModified").getDate());
+      propBuilder.put("_lastModified", contentNode.getProperty("jcr:lastModified").getDate().getTimeInMillis());
     }
     if (contentNode.hasProperty(SLING_RESOURCE_TYPE) 
         && "sakai/contact".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
