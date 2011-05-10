@@ -273,7 +273,9 @@ public class MigrateJcr {
           break;
         }
       }
-      propBuilder.put(prop.getName(), value);
+      if (!(contentNode.hasProperty(SLING_RESOURCE_TYPE) && "sakai/contactstore".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString()))) {
+        propBuilder.put(prop.getName(), value);
+      }
     }
     path = applyAdditionalProperties(propBuilder, contentNode, path);
     Content sparseContent = new Content(path, propBuilder.build());
@@ -440,6 +442,10 @@ public class MigrateJcr {
     } else if (contentNode.hasProperty(SLING_RESOURCE_TYPE)
         && "sakai/group-profile".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
       propBuilder.put("homePath", "/~" + contentNode.getProperty("sakai:group-id").getString());
+    } else if (contentNode.hasProperty(SLING_RESOURCE_TYPE) 
+        && "sakai/contactstore".equals(contentNode.getProperty(SLING_RESOURCE_TYPE).getString())) {
+      // this resource type was renamed after the introduction of sparse map.
+      propBuilder.put(SLING_RESOURCE_TYPE, "sparse/contactstore");
     }
     return contentPath;
   }
@@ -552,6 +558,15 @@ public class MigrateJcr {
         if (authManager.createUser(userId, userId, "testuser", ImmutableMap.of(
             "firstName", (Object) firstName, "lastName", lastName, "email", email, "sakai:tag-uuid", tagList.toArray(new String[tagList.size()])))) {
           LOGGER.info("Created user {} {} {} {}", new String[]{userId, firstName, lastName, email});
+          String contactsGroupName = "g-contacts-" + userId;
+          authManager.createGroup(contactsGroupName, contactsGroupName, null);
+          org.apache.jackrabbit.api.security.user.Authorizable contactGroup = userManager.getAuthorizable(contactsGroupName);
+          if (contactGroup != null) {
+            copyGroupMembers(authManager, (Group)contactGroup, authManager.findAuthorizable(contactsGroupName));
+            LOGGER.info("Added contacts to the contacts group.");
+          } else {
+            LOGGER.info("No contacts group for {} in Jackrabbit. Created empty group for contacts.", userId);
+          }
           LOGGER.debug("Adding user home folder for " + userId);
           copyNodeToSparse(authHomeNode, "a:" + userId, sparseSession, accessManager, false);
           LOGGER.debug("Applying access rights to user {}", userId);
