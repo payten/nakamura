@@ -39,7 +39,6 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.Permission;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification.Operation;
@@ -80,10 +79,6 @@ import javax.jcr.ValueFormatException;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
-import javax.jcr.security.AccessControlEntry;
-import javax.jcr.security.AccessControlList;
-import javax.jcr.security.AccessControlPolicy;
-import javax.jcr.security.Privilege;
 
 /**
  *
@@ -126,6 +121,7 @@ public class MigrateJcr {
   private Set<String> ignoreProps = ImmutableSet.of("jcr:content", "jcr:data",
       "jcr:mixinTypes", "rep:policy", "jcr:created", "jcr:primaryType");
   private Object visibilityPreference;
+  private boolean shouldAbort = false;
   
   private static final String VISIBILITY_PRIVATE = "private";
   private static final String VISIBILITY_LOGGED_IN = "logged_in";
@@ -200,10 +196,10 @@ public class MigrateJcr {
       String nodeWord = resultNodes.getSize() == 1 ? "node" : "nodes";
       LOGGER.info("found {} pooled content {} in Jackrabbit.", resultNodes.getSize(),
           nodeWord);
-      while (resultNodes.hasNext()) {
+      while (resultNodes.hasNext() && !shouldAbort) {
         Node contentNode = resultNodes.nextNode();
         LOGGER.info(contentNode.getPath());
-        copyNodeToSparse(contentNode, contentNode.getName(), sparseSession, accessManager, true);
+        copyNodeToSparse(contentNode, contentNode.getName(), sparseSession, accessManager, true, false);
       }
     } finally {
       if (jcrSession != null) {
@@ -216,7 +212,9 @@ public class MigrateJcr {
 
   }
 
-  private void copyNodeToSparse(Node contentNode, String path, Session session, javax.jcr.security.AccessControlManager accessManager, boolean shouldProcessACLs)
+  private void copyNodeToSparse(Node contentNode, String path, Session session, 
+      javax.jcr.security.AccessControlManager accessManager, 
+      boolean shouldProcessACLs, boolean shouldProcessChildren)
       throws Exception {
     ContentManager contentManager = session.getContentManager();
     if (contentManager.exists(path)) {
@@ -315,47 +313,110 @@ public class MigrateJcr {
     }
     if (shouldProcessACLs) {
       try {
-        AccessControlManager sparseAccessControl = session.getAccessControlManager();
+        // deny anon everything
+        // deny everyone everything
+        // grant the user everything.
+        boolean anonymousRead = false;
+        boolean everyoneRead = false;
+        boolean everyoneIsAViewer = false;
         List<AclModification> aclModifications = new ArrayList<AclModification>();
-        LOGGER.debug("Reading access control policies for " + contentNode.getPath());
-        AccessControlPolicy[] accessPolicies = accessManager
-            .getEffectivePolicies(contentNode.getPath());
-        for (AccessControlPolicy policy : accessPolicies) {
-          if (policy instanceof AccessControlList) {
-            for (AccessControlEntry ace : ((AccessControlList) policy)
-                .getAccessControlEntries()) {
-              String principal = ace.getPrincipal().getName();
-              String permission = AccessControlUtil.isAllow(ace) ? AclModification
-                  .grantKey(principal) : AclModification.denyKey(principal);
-              for (Privilege priv : ace.getPrivileges()) {
-                Permission sparsePermission = Permissions.parse(priv.getName());
-                if (sparsePermission != null) {
-                  aclModifications.add(new AclModification(permission, sparsePermission
-                      .getPermission(), Operation.OP_AND));
-                  LOGGER.debug("translating jcr permission to sparse: " + permission
-                      + " -- " + priv.getName());
-                }
-              }
-            }
+        String contentOwner = "";
+        if (contentNode.hasProperty("jcr:createdBy")) {
+          contentOwner = contentNode.getProperty("jcr:createdBy").getString();
+        }
+        if (contentNode.hasProperty("sakai:pool-content-created-for")) {
+          contentOwner = contentNode.getProperty("sakai:pool-content-created-for").getString();
+        }
+        AclModification.addAcl(true, Permissions.CAN_MANAGE, contentOwner, aclModifications);
+        if (sparseContent.hasProperty("sakai:pooled-content-manager")) {
+          String[] managers = StorageClientUtils.nonNullStringArray((String[]) sparseContent.getProperty("sakai:pooled-content-manager"));
+          for (String manager : managers) {
+            LOGGER.info("Adding {} as manager", manager);
+            AclModification.addAcl(true, Permissions.CAN_MANAGE, manager,
+                aclModifications);
           }
         }
-        sparseAccessControl.setAcl(Security.ZONE_CONTENT, path,
-            aclModifications.toArray(new AclModification[aclModifications.size()]));
+        if (sparseContent.hasProperty("sakai:pooled-content-viewer")) {
+          String[] viewers = StorageClientUtils.nonNullStringArray((String[]) sparseContent.getProperty("sakai:pooled-content-viewer"));
+          for (String viewer : viewers) {
+            if ("anonymous".equals(viewer)) {
+              anonymousRead = true;
+            } else if ("everyone".equals(viewer)) {
+              everyoneRead = true;
+              everyoneIsAViewer = true;
+            }
+            LOGGER.info("Adding {} as viewer", viewer);
+            AclModification.addAcl(true, Permissions.CAN_READ, viewer,
+                aclModifications);
+          }
+        }
+        if (sparseContent.hasProperty("sakai:permissions")) {
+          if ("everyone".equals(sparseContent.getProperty("sakai:permissions"))) {
+            everyoneRead = true;
+          }
+        }
+        if (everyoneRead && !everyoneIsAViewer) {
+          LOGGER.info("Applying 'everyone' permission to read.");
+          AclModification.addAcl(true, Permissions.CAN_READ, "everyone",
+              aclModifications);
+        }
+        if (! everyoneRead && !everyoneIsAViewer) {
+          LOGGER.info("Denying everything to 'everyone'");
+          aclModifications.add(new AclModification(AclModification.grantKey(org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE),
+              Permissions.ALL.getPermission(), Operation.OP_DEL));
+        }
+        if (! anonymousRead) {
+          LOGGER.info("Denying everything to 'anonymous'");
+          aclModifications.add(new AclModification(AclModification.grantKey(User.ANON_USER),
+              Permissions.ALL.getPermission(), Operation.OP_DEL));
+          
+        }
+        AccessControlManager sparseAccessControl = session.getAccessControlManager();
+        sparseAccessControl.setAcl(Security.ZONE_CONTENT, path, aclModifications.toArray(new AclModification[aclModifications.size()]));
+//        List<AclModification> aclModifications = new ArrayList<AclModification>();
+//        LOGGER.debug("Reading access control policies for " + contentNode.getPath());
+//        AccessControlPolicy[] accessPolicies = accessManager
+//            .getEffectivePolicies(contentNode.getPath());
+//        for (AccessControlPolicy policy : accessPolicies) {
+//          if (policy instanceof AccessControlList) {
+//            for (AccessControlEntry ace : ((AccessControlList) policy)
+//                .getAccessControlEntries()) {
+//              String principal = ace.getPrincipal().getName();
+//              String permission = AccessControlUtil.isAllow(ace) ? AclModification
+//                  .grantKey(principal) : AclModification.denyKey(principal);
+//              for (Privilege priv : ace.getPrivileges()) {
+//                Permission sparsePermission = Permissions.parse(priv.getName());
+//                if (sparsePermission != null) {
+//                  aclModifications.add(new AclModification(permission, sparsePermission
+//                      .getPermission(), Operation.OP_AND));
+//                  LOGGER.debug("translating jcr permission to sparse: " + permission
+//                      + " -- " + priv.getName());
+//                }
+//              }
+//            }
+//          }
+//        }
+//        sparseAccessControl.setAcl(Security.ZONE_CONTENT, path,
+//            aclModifications.toArray(new AclModification[aclModifications.size()]));
       } catch (Exception e) {
         LOGGER.error("Failed to set sparse access control on {}", path, e);
         contentManager.delete(sparseContent.getPath());
+        shouldAbort  = true;
         return;
       }
     }
-    // make recursive call for child nodes
-    // depth-first traversal
-    NodeIterator nodeIter = contentNode.getNodes();
-    while (nodeIter.hasNext()) {
-      Node childNode = nodeIter.nextNode();
-      if (ignoreProps.contains(childNode.getName())) {
-        continue;
+    if (shouldProcessChildren) {
+      // make recursive call for child nodes
+      // depth-first traversal
+      NodeIterator nodeIter = contentNode.getNodes();
+      while (nodeIter.hasNext()) {
+        Node childNode = nodeIter.nextNode();
+        if (ignoreProps.contains(childNode.getName())) {
+          continue;
+        }
+        copyNodeToSparse(childNode, path + "/" + childNode.getName(), session,
+            accessManager, shouldProcessACLs, shouldProcessChildren);
       }
-      copyNodeToSparse(childNode, path + "/" + childNode.getName(), session, accessManager, shouldProcessACLs);
     }
 
   }
@@ -568,7 +629,7 @@ public class MigrateJcr {
             LOGGER.info("No contacts group for {} in Jackrabbit. Created empty group for contacts.", userId);
           }
           LOGGER.debug("Adding user home folder for " + userId);
-          copyNodeToSparse(authHomeNode, "a:" + userId, sparseSession, accessManager, false);
+          copyNodeToSparse(authHomeNode, "a:" + userId, sparseSession, accessManager, false, true);
           LOGGER.debug("Applying access rights to user {}", userId);
           applyAuthorizableAccessRights(authManager.findAuthorizable(userId), sparseAccessManager);
         } else {
@@ -592,7 +653,7 @@ public class MigrateJcr {
             copyGroupMembers(authManager, group, sparseGroup);
           }
           LOGGER.debug("Adding group home folder for group {}", groupId);
-          copyNodeToSparse(authHomeNode, "a:" + groupId, sparseSession, accessManager, false);
+          copyNodeToSparse(authHomeNode, "a:" + groupId, sparseSession, accessManager, false, true);
           LOGGER.debug("Applying access rights to group {}", groupId);
           applyAuthorizableAccessRights(sparseGroup, sparseAccessManager);
         } else {
