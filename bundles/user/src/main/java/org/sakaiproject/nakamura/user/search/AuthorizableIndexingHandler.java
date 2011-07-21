@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.user.search;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
@@ -64,11 +65,29 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
       StoreListener.TOPIC_BASE + "authorizables/" + StoreListener.UPDATED_TOPIC };
 
   // list of properties to be indexed
-  private static final Map<String, String> USER_WHITELISTED_PROPS = ImmutableMap.of("firstName","firstName",
-      "lastName","lastName","email","email","type","type","sakai:tag-uuid","taguuid");
+  private static final Map<String, String> USER_WHITELISTED_PROPS;
+  static {
+    Builder<String,String> builder = ImmutableMap.builder();
+    builder.put("firstName","firstName");
+    builder.put("lastName","lastName");
+    builder.put("email","email");
+    builder.put("type","type");
+    builder.put("sakai:tag-uuid","taguuid");
+    builder.put("sakai:tags","tag");
+    USER_WHITELISTED_PROPS = builder.build();
+  }
 
-  private static final Map<String, String> GROUP_WHITELISTED_PROPS = ImmutableMap.of(
-      "name", "name", "type", "type", "sakai:group-title", "title", "sakai:group-description", "description","sakai:tag-uuid","taguuid");
+  private static final Map<String, String> GROUP_WHITELISTED_PROPS;
+  static {
+    Builder<String,String> builder = ImmutableMap.builder();
+    builder.put("name", "name");
+    builder.put("type", "type");
+    builder.put("sakai:group-title", "title");
+    builder.put("sakai:group-description", "description");
+    builder.put("sakai:tag-uuid","taguuid");
+    builder.put("sakai:tags","tag");
+    GROUP_WHITELISTED_PROPS = builder.build();
+  }
 
   // list of authorizables to not index
   private static final Set<String> BLACKLISTED_AUTHZ = ImmutableSet.of("admin",
