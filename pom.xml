@@ -95,6 +95,7 @@
         <module>contrib/ldapauth</module>
         <module>contrib/openssoauth</module>
         <module>contrib/ldap</module>
+	<module>contrib/grouper</module>
         <!-- <module>contrib/remotefiles</module> -->
         <!-- to build oracle you must download and install oracle.jar first  <module>contrib/oracle-jdbc</module> -->
         <!-- <module>contrib/sitejoin</module> -->
@@ -699,6 +700,19 @@
         <enabled>true</enabled>
       </snapshots>
     </repository>
+    <repository>
+      <id>hallwaytech-obr</id>
+      <name>HAllwayTech OBR</name>
+      <layout>default</layout>
+      <url>http://home.hallwaytech.com/obr/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+
   </repositories>
   <pluginRepositories>
     <pluginRepository>
