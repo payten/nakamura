@@ -702,9 +702,9 @@
     </repository>
     <repository>
       <id>hallwaytech-obr</id>
-      <name>HAllwayTech OBR</name>
+      <name>HallwayTech Maven</name>
       <layout>default</layout>
-      <url>http://home.hallwaytech.com/obr/</url>
+      <url>http://home.hallwaytech.com/maven2</url>
       <releases>
         <enabled>true</enabled>
       </releases>
