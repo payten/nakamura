@@ -36,11 +36,6 @@ public interface GrouperConfiguration {
 	public abstract boolean getDisableForTesting();
 
 	/**
-	 * @return the Grouper WS version number to use.
-	 */
-	public abstract String getWsVersion();
-
-	/**
 	 * @return the username in Grouper
 	 */
 	public abstract String getUsername();

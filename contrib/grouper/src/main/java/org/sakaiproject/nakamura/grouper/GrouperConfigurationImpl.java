@@ -51,13 +51,9 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 	@Property(boolValue = false)
 	public static final String PROP_DISABLE_TESTING = "grouper.disable.for.testing";
 
-	private static final String DEFAULT_URL = "http://localhost:9090/grouper-ws/servicesRest";
+	private static final String DEFAULT_URL = "http://localhost:9090/grouper-ws/servicesRest/1_7_000";
 	@Property(value = DEFAULT_URL)
 	public static final String PROP_URL = "grouper.url";
-
-	private static final String DEFAULT_WS_VERSION = "1_7_000";
-	@Property(value = DEFAULT_WS_VERSION)
-	public static final String PROP_WS_VERSION = "grouper.ws_version";
 
 	private static final String DEFAULT_USERNAME = "GrouperSystem";
 	@Property(value = DEFAULT_USERNAME)
@@ -120,7 +116,6 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 	private String coursesStem;
 
 	// GrouperWS
-	private String wsVersion;
 	private int httpTimeout;
 
 	// Ignore events caused by this user
@@ -165,7 +160,6 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 		simpleGroupsStem = cleanStem(OsgiUtil.toString(props.get(PROP_SIMPLEGROUPS_STEM),DEFAULT_SIMPLEGROUPS_STEM));
 		coursesStem = cleanStem(OsgiUtil.toString(props.get(PROP_COURSES_STEM),DEFAULT_COURSES_STEM));
 
-		wsVersion = OsgiUtil.toString(props.get(PROP_WS_VERSION), DEFAULT_WS_VERSION);
 		httpTimeout = OsgiUtil.toInteger(props.get(PROP_TIMEOUT), Integer.parseInt(DEFAULT_TIMEOUT));
 
 		ignoredUser = OsgiUtil.toString(props.get(PROP_IGNORED_USER),DEFAULT_IGNORED_USER);
@@ -204,10 +198,6 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 		return url;
 	}
 
-	public String getWsVersion() {
-		return wsVersion;
-	}
-
 	public String getUsername() {
 		return username;
 	}
@@ -217,7 +207,7 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 	}
 
 	public String getRestWsUrlString() {
-		return url + "/" + wsVersion;
+		return url.toString();
 	}
 
 	public int getHttpTimeout() {
