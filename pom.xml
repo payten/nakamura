@@ -702,9 +702,9 @@
     </repository>
     <repository>
       <id>hallwaytech-obr</id>
-      <name>HallwayTech Maven</name>
+      <name>HallwayTech Grouper Maven</name>
       <layout>default</layout>
-      <url>http://home.hallwaytech.com/maven2</url>
+      <url>http://home.hallwaytech.com/grouper/maven2</url>
       <releases>
         <enabled>true</enabled>
       </releases>
