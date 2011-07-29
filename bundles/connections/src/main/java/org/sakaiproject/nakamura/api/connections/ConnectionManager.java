@@ -19,7 +19,12 @@ package org.sakaiproject.nakamura.api.connections;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import java.util.List;
 import java.util.Map;
@@ -65,4 +70,30 @@ public interface ConnectionManager {
       Session session, String actor,
       ConnectionState accepted);
 
+  /**
+   * Get connection details to <code>otherUser</code> from <code>thisUser</code>
+   *
+   * @param request
+   * @param thisUser
+   * @param otherUser
+   * @return
+   * @throws StorageClientException
+   * @throws AccessDeniedException
+   */
+  Content getConnectionDetails(Session session, String thisUser, String otherUser)
+      throws StorageClientException, AccessDeniedException;
+
+  /**
+   * Writes out connection information between two users. If needed to be wrapped in an
+   * object, it is assumed that wrapping is done outside of this method.
+   *
+   * @param writer
+   * @param session
+   * @param thisUser The user that starts the connection
+   * @param otherUser The user that ends the connection
+   * @return true if a connection was found, false otherwise
+   */
+  boolean writeConnectionInfo(ExtendedJSONWriter writer, Session session,
+      String thisUser, String otherUser) throws AccessDeniedException,
+      StorageClientException, JSONException;
 }
