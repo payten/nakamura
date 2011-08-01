@@ -86,14 +86,16 @@
     <profile>
        <id>withContrib</id>
        <modules>
+        <module>contrib/ldap</module>
         <module>contrib/import</module>
         <module>contrib/filters</module>
         <module>contrib/mailman</module>
         <module>contrib/persondirectory</module>
         <module>contrib/casauth</module>
         <module>contrib/ldapauth</module>
-        <module>contrib/openssoauth</module>
+        <module>contrib/samlauth</module>
         <module>contrib/ldap</module>
+        <!-- <module>contrib/remotefiles</module> -->
         <!-- to build oracle you must download and install oracle.jar first  <module>contrib/oracle-jdbc</module> -->
         <module>contrib/foreignprincipal</module>
         <module>contrib/rootconfig</module>
