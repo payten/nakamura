@@ -119,13 +119,13 @@ public class SyncJMSMessageConsumer implements MessageListener {
 			String topic = message.getJMSType();
 			String groupId = (String) message.getStringProperty("path");
 
-			String operation = "UNKNOWN";
+			StringBuilder operation = new StringBuilder();
 
 			// A group was DELETED
 			if ("org/sakaiproject/nakamura/lite/authorizables/DELETE".equals(topic) && config.getDeletesEnabled()){
 				Map<String, Object> attributes = (Map<String,Object>)message.getObjectProperty(StoreListener.BEFORE_EVENT_PROPERTY);
 				grouperManager.deleteGroup(groupId, attributes);
-				operation = "DELETED";
+				operation.append("DELETED ");
 			}
 
 			// A new group was ADDED or an existing group was UPDATED
@@ -139,14 +139,14 @@ public class SyncJMSMessageConsumer implements MessageListener {
 					grouperManager.createGroup(groupId, config.getGroupTypes());
 					grouperManager.addMemberships(groupId,
 							Arrays.asList(StringUtils.split(membersAdded, ",")));
-					operation = "ADD_MEMBERS";
+					operation.append("ADD_MEMBERS ");
 				}
 
 				String membersRemoved = (String)message.getStringProperty(GrouperEventUtils.MEMBERS_REMOVED_PROP);
 				if (membersRemoved != null){
 					grouperManager.removeMemberships(groupId,
 							Arrays.asList(StringUtils.split(membersRemoved, ",")));
-					operation = "REMOVE_MEMBERS";
+					operation.append("REMOVE_MEMBERS ");
 				}
 
 				if (membersAdded == null && membersRemoved == null) {
@@ -159,11 +159,11 @@ public class SyncJMSMessageConsumer implements MessageListener {
 						// TODO Why are we not getting added and removed properties on the Message
 						grouperManager.createGroup(groupId, null);
 						grouperManager.addMemberships(groupId, Arrays.asList(group.getMembers()));
-						operation = "UPDATE CONTACTS";
+						operation.append("UPDATE CONTACTS ");
 					} else {
 						grouperManager.createGroup(groupId, config.getGroupTypes());
 						grouperManager.addMemberships(groupId, Arrays.asList(group.getMembers()));
-						operation = "CREATE";
+						operation.append("CREATE ");
 					}
 				}
 			}
@@ -173,11 +173,11 @@ public class SyncJMSMessageConsumer implements MessageListener {
 			message.acknowledge();
 
 			// We got a message that we didn't know what to do with.
-			if (operation.equals("UNKNOWN")){
+			if (operation.toString().equals("")){
 				log.error("I don't know what to do with this topic: {}. Turn on debug logs to see the message.", topic);
 				log.debug(message.toString());
 			} else {
-				log.info("Successfully processed and acknowledged. {}, {}", operation, groupId);
+				log.info("Successfully processed and acknowledged. {}, {}", operation.toString(), groupId);
 				log.debug(message.toString());
 			}
 
