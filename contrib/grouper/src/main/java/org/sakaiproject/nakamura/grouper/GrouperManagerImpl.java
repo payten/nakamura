@@ -169,7 +169,7 @@ public class GrouperManagerImpl implements GrouperManager {
 			authorizableManager.updateAuthorizable(authorizable);
 			session.logout();
 
-			log.debug("Success: Created a new Grouper Group = {} for sakai authorizableId = {}",
+			log.debug("Success: Finished creating Grouper Group = {} for sakai authorizableId = {}",
 					grouperName, groupId);
 		}
 		catch (StorageClientException sce) {
