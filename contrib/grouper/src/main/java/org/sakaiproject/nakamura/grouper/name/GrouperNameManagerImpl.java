@@ -71,6 +71,10 @@ public class GrouperNameManagerImpl extends AbstractOrderedService<GrouperNamePr
 			}
 		}
 
+		if(grouperName == null){
+			return null;
+		}
+
 		try {
 			Session session = repository.loginAdministrative(config.getIgnoredUserId());
 			Group g = (Group)session.getAuthorizableManager().findAuthorizable(groupId);
