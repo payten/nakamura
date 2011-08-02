@@ -157,7 +157,8 @@ public class GrouperManagerImpl implements GrouperManager {
 
 			// Error handling is a bit awkward. If the group already exists its not a problem
 			if (!"T".equals(results.getResultMetadata().getSuccess())) {
-				if (results.getResults()[0].getResultMetadata().getResultMessage().contains("already exists")){
+				if (results.getResults().length > 0 &&
+						results.getResults()[0].getResultMetadata().getResultMessage().contains("already exists")){
 					log.debug("Group already existed in grouper at {}", grouperName);
 				}
 				else {
