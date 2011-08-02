@@ -130,9 +130,9 @@ public class BatchJMSMessageConsumer implements MessageListener {
 			
 			if (group != null && group.isGroup()) {
 				if (groupId.startsWith(ContactsGrouperNameProviderImpl.CONTACTS_GROUPID_PREFIX)){
-					grouperManager.createGroup(groupId, null);
+					grouperManager.createGroup(groupId);
 				} else {
-					grouperManager.createGroup(groupId, config.getGroupTypes());
+					grouperManager.createGroup(groupId);
 				}
 				List<String> members = Arrays.asList(((Group)group).getMembers());
 				if (members.size() > 0){

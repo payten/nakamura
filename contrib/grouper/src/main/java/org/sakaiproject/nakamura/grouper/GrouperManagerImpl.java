@@ -48,6 +48,7 @@ import org.sakaiproject.nakamura.grouper.exception.InvalidGroupIdException;
 import org.sakaiproject.nakamura.grouper.name.BaseGrouperNameProvider;
 import org.sakaiproject.nakamura.grouper.name.ContactsGrouperNameProviderImpl;
 import org.sakaiproject.nakamura.grouper.name.api.GrouperNameManager;
+import org.sakaiproject.nakamura.grouper.util.GroupUtil;
 import org.sakaiproject.nakamura.grouper.util.GrouperHttpUtil;
 import org.sakaiproject.nakamura.grouper.util.GrouperJsonUtil;
 import org.slf4j.Logger;
@@ -103,7 +104,7 @@ public class GrouperManagerImpl implements GrouperManager {
 	/**
 	 * @{inheritDoc}
 	 */
-	public void createGroup(String groupId, Set<String> groupTypes) throws GrouperException {
+	public void createGroup(String groupId) throws GrouperException {
 		try {
 			// Check if the groupid corresponds to a group.
 			Session session = repository.loginAdministrative(grouperConfiguration.getIgnoredUserId());
@@ -131,18 +132,14 @@ public class GrouperManagerImpl implements GrouperManager {
 			wsGroup.setExtension(grouperExtension);
 			wsGroup.setName(grouperName);
 
-			// More detailed group info
-			if (groupTypes != null && groupTypes.size() > 0 ) {
-				// TODO: handle multiple group types or make the arg a single
-				String groupType = groupTypes.iterator().next();
+			if (!GroupUtil.isContactsGroup(groupId)){
+				// More detailed group info
 				WsGroupDetail groupDetail = new WsGroupDetail();
-				groupDetail.setTypeNames(new String[] { groupType });
+				groupDetail.setTypeNames(new String[] { INCLUDE_EXCLUDE_GROUP_TYPE });
 				wsGroup.setDetail(groupDetail);
-				if (groupType.equals(INCLUDE_EXCLUDE_GROUP_TYPE)){
-					wsGroup.setName(grouperName + SYSTEM_OF_RECORD_SUFFIX);
-					wsGroup.setDisplayExtension(grouperExtension + SYSTEM_OF_RECORD_SUFFIX);
-					wsGroup.setExtension(grouperExtension + SYSTEM_OF_RECORD_SUFFIX);
-				}
+				wsGroup.setName(grouperName + SYSTEM_OF_RECORD_SUFFIX);
+				wsGroup.setDisplayExtension(grouperExtension + SYSTEM_OF_RECORD_SUFFIX);
+				wsGroup.setExtension(grouperExtension + SYSTEM_OF_RECORD_SUFFIX);
 			}
 
 			// Package up the request
@@ -219,15 +216,15 @@ public class GrouperManagerImpl implements GrouperManager {
 		try {
 			// Fill out the group delete request beans
 			WsRestGroupDeleteRequest groupDelete = new WsRestGroupDeleteRequest();
-			if (grouperConfiguration.getGroupTypes().contains(INCLUDE_EXCLUDE_GROUP_TYPE)){
-				groupDelete.setWsGroupLookups(new WsGroupLookup[]{
-						new WsGroupLookup(groupIdentifier, null),
-						new WsGroupLookup(groupIdentifier + INCLUDE_SUFFIX, null),
-						new WsGroupLookup(groupIdentifier + EXCLUDE_SUFFIX, null) });
-			} else {
-				groupDelete.setWsGroupLookups(new WsGroupLookup[]{ new WsGroupLookup(groupIdentifier, null)});
+			if (GroupUtil.isContactsGroup(groupIdentifier)){
+				groupDelete.setWsGroupLookups(new WsGroupLookup[]{new WsGroupLookup(groupIdentifier, null)});
 			}
-
+			else {
+				groupDelete.setWsGroupLookups(new WsGroupLookup[]{
+					new WsGroupLookup(groupIdentifier, null),
+					new WsGroupLookup(groupIdentifier + INCLUDE_SUFFIX, null),
+					new WsGroupLookup(groupIdentifier + EXCLUDE_SUFFIX, null) });
+			}
 			// Send the request and parse the result, throwing an exception on failure.
 			JSONObject response = post("/groups", groupDelete);
 			WsGroupDeleteResults results = (WsGroupDeleteResults)JSONObject.toBean(
@@ -252,8 +249,7 @@ public class GrouperManagerImpl implements GrouperManager {
 		String membersString = StringUtils.join(membersToAdd, ',');
 		log.debug("Adding members: Group = {} members = {}", grouperName, membersString);
 
-		if ( groupId.startsWith(ContactsGrouperNameProviderImpl.CONTACTS_GROUPID_PREFIX) ||
-				!grouperConfiguration.getGroupTypes().contains(INCLUDE_EXCLUDE_GROUP_TYPE)){
+		if (GroupUtil.isContactsGroup(groupId)){
 			addMembershipsSimple(groupId, grouperName, membersToAdd);
 		}
 		else {
@@ -307,8 +303,7 @@ public class GrouperManagerImpl implements GrouperManager {
 		String membersString = StringUtils.join(membersToRemove, ',');
 		log.debug("Removing members: Group = {} members = {}", grouperName, membersString);
 
-		if ( groupId.startsWith(ContactsGrouperNameProviderImpl.CONTACTS_GROUPID_PREFIX) ||
-				!grouperConfiguration.getGroupTypes().contains(INCLUDE_EXCLUDE_GROUP_TYPE)){
+		if (GroupUtil.isContactsGroup(groupId)){
 			removeMembershipsSimple(groupId, grouperName, membersToRemove);
 		}
 		else {

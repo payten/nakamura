@@ -100,11 +100,6 @@ public interface GrouperConfiguration {
 	public abstract String getCoursesStem();
 
 	/**
-	 * @return The group types for creating course groups in grouper.
-	 */
-	public abstract Set<String> getGroupTypes();
-
-	/**
 	 * @return a map of extension names to use to override the poseudogroup extensions
 	 */
 	public abstract Map<String,String> getExtensionOverrides();

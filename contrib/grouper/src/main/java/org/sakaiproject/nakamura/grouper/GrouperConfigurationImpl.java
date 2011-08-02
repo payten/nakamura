@@ -94,10 +94,6 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 	@Property(value = DEFAULT_COURSES_STEM)
 	public static final String PROP_COURSES_STEM = "grouper.nameprovider.courses.stem";
 
-	private static final String[] DEFAULT_GROUPER_GROUP_TYPES = {"addIncludeExclude"};
-	@Property(value = {"addIncludeExclude"}, cardinality = 9999)
-	public static final String PROP_GROUPER_GROUP_TYPES = "grouper.groupTypes";
-
 	private static final String[] DEFAULT_EXTENSION_OVERRIDES = new String[0];
 	@Property(value = {}, cardinality = 9999)
 	public static final String PROP_EXTENSION_OVERRIDES = "grouper.extension.overrides";
@@ -125,9 +121,6 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 
 	// Suffixes that indicate these are sakai internal groups
 	private String[] pseudoGroupSuffixes;
-
-	// Grouper group types for newly created groups.
-	private Set<String> groupTypes;
 
 	private Map<String, String> extensionOverrides;
 
@@ -168,12 +161,6 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 
 		deletesEnabled = OsgiUtil.toBoolean(props.get(PROP_DELETES_ENABLED), DEFAULT_DELETES_ENABLED);
 		disableForTesting = OsgiUtil.toBoolean(props.get(PROP_DISABLE_TESTING), false);
-
-		groupTypes = new HashSet<String>();
-		for (String gt: OsgiUtil.toStringArray(props.get(PROP_GROUPER_GROUP_TYPES),
-				DEFAULT_GROUPER_GROUP_TYPES)){
-			groupTypes.add(gt);
-		}
 
 		Builder<String, String> extentionOverridesBuilder = ImmutableMap.builder();
 		for (String exO: OsgiUtil.toStringArray(props.get(PROP_EXTENSION_OVERRIDES), DEFAULT_EXTENSION_OVERRIDES)){
@@ -236,10 +223,6 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 
 	public String getCoursesStem() {
 		return coursesStem;
-	}
-
-	public Set<String> getGroupTypes() {
-		return groupTypes;
 	}
 
 	public Map<String, String> getExtensionOverrides() {

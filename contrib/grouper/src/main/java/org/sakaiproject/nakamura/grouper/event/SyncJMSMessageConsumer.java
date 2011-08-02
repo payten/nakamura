@@ -136,7 +136,7 @@ public class SyncJMSMessageConsumer implements MessageListener {
 				String membersAdded = (String)message.getStringProperty(GrouperEventUtils.MEMBERS_ADDED_PROP);
 				if (membersAdded != null){
 					// membership adds can be attached to the same event for the group add.
-					grouperManager.createGroup(groupId, config.getGroupTypes());
+					grouperManager.createGroup(groupId);
 					grouperManager.addMemberships(groupId,
 							Arrays.asList(StringUtils.split(membersAdded, ",")));
 					operation.append("ADD_MEMBERS ");
@@ -157,11 +157,11 @@ public class SyncJMSMessageConsumer implements MessageListener {
 
 					if (groupId.startsWith(ContactsGrouperNameProviderImpl.CONTACTS_GROUPID_PREFIX)){
 						// TODO Why are we not getting added and removed properties on the Message
-						grouperManager.createGroup(groupId, null);
+						grouperManager.createGroup(groupId);
 						grouperManager.addMemberships(groupId, Arrays.asList(group.getMembers()));
 						operation.append("UPDATE CONTACTS ");
 					} else {
-						grouperManager.createGroup(groupId, config.getGroupTypes());
+						grouperManager.createGroup(groupId);
 						grouperManager.addMemberships(groupId, Arrays.asList(group.getMembers()));
 						operation.append("CREATE ");
 					}
