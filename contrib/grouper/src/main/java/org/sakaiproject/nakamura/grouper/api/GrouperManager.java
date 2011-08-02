@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.grouper.api;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.grouper.exception.GrouperException;

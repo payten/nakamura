@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.grouper.api;
 
 import java.net.URL;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.commons.httpclient.HttpClient;

@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 import net.sf.json.JSONObject;
 
@@ -46,7 +45,6 @@ import org.sakaiproject.nakamura.grouper.exception.GrouperException;
 import org.sakaiproject.nakamura.grouper.exception.GrouperWSException;
 import org.sakaiproject.nakamura.grouper.exception.InvalidGroupIdException;
 import org.sakaiproject.nakamura.grouper.name.BaseGrouperNameProvider;
-import org.sakaiproject.nakamura.grouper.name.ContactsGrouperNameProviderImpl;
 import org.sakaiproject.nakamura.grouper.name.api.GrouperNameManager;
 import org.sakaiproject.nakamura.grouper.util.GroupUtil;
 import org.sakaiproject.nakamura.grouper.util.GrouperHttpUtil;
