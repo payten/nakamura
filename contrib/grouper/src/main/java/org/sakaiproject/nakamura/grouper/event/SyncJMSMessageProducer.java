@@ -159,13 +159,13 @@ public class SyncJMSMessageProducer implements EventHandler {
 		// Ignore non-group events
 		// type must be g or group
 		String type = (String)event.getProperty("type");
-		if (! "g".equals(type) && ! "group".equals(type)){
+		if (! "g".equalsIgnoreCase(type) && ! "group".equalsIgnoreCase(type)){
 			return true;
 		}
 
 		// Ignore op=acl events
 		String op = (String)event.getProperty("op");
-		if (op != null && op.equals("acl")){
+		if (op != null && op.equalsIgnoreCase("acl")){
 			return true;
 		}
 
