@@ -55,6 +55,7 @@ import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -151,18 +152,24 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
         // user must be in the group directly to send a message:
         for (String memberName : group.getMembers()) {
           if (!recipients.contains(memberName)) {
+            recipients.add(memberName);
             // call back to itself: this allows for groups to be in groups and future
             // extensions
             sendHelper(recipients, memberName, originalMessage, session, messageId,
                 authManager);
-            recipients.add(memberName);
           }
         }
       } else {
         // only send a message to a user who hasn't already received one:
         if (!recipients.contains(recipient)) {
 
-          if ( messagingService.checkDeliveryAccessOk(recipient, originalMessage, session ) ) {
+          String messageStorePath = messagingService.getFullPathToStore(recipient, session);
+          if (messageStorePath.endsWith("/")) {
+            messageStorePath = messageStorePath.substring(0, messageStorePath.length() - 1);
+          }
+          boolean forPublicOrEveryone = hasEveryoneOrPublicPermission(messageStorePath, contentManager);
+
+          if ( forPublicOrEveryone || messagingService.checkDeliveryAccessOk(recipient, originalMessage, session ) ) {
             String toPath = messagingService.getFullPathToMessage(recipient, messageId,
                 session);
             
@@ -204,6 +211,27 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
     } finally {
       lockManager.clearLocks();
     }
+  }
+
+  private boolean hasEveryoneOrPublicPermission(String path, ContentManager contentManager) throws StorageClientException, AccessDeniedException {
+    if ("/".equals(path)) {
+      return false;
+    }
+    Content content = contentManager.get(path);
+    if (content == null) {
+      return false;
+    }
+    if (content.hasProperty("sakai:permissions")) {
+      if ("public".equals(content.getProperty("sakai:permissions")) || "everyone".equals(content.getProperty("sakai:permissions"))) {
+        return true;
+      } else {
+        return false;
+      }
+
+    }
+    String parentPath = PathUtils.getParentReference(path);
+    return hasEveryoneOrPublicPermission(parentPath, contentManager);
+
   }
 
   /**
