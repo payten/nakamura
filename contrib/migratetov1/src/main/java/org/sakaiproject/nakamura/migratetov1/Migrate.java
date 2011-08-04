@@ -208,6 +208,10 @@ public class Migrate {
 
   private void migrateContent(Content content) throws Exception
   {
+    if (content == null) {
+      return;
+    }
+
     LOGGER.info("Migrating content object: {}", content);
 
     targetCM.update(cloneContent(content));
@@ -223,12 +227,16 @@ public class Migrate {
 
   private List<Content> allChildren(Content content)
   {
-    List<Content> result = new ArrayList<Content>(1);
-    result.add(content);
+    List<Content> result = new ArrayList<Content>(0);
 
-    Iterator<Content> it = content.listChildren().iterator();
-    while (it.hasNext()) {
-      result.addAll(allChildren(it.next()));
+    if (content != null) {
+      result.add(content);
+
+      LOGGER.info("allChildren: {}", content);
+      Iterator<Content> it = content.listChildren().iterator();
+      while (it.hasNext()) {
+        result.addAll(allChildren(it.next()));
+      }
     }
 
     return result;
@@ -305,7 +313,7 @@ public class Migrate {
 
     // public profile
     for (Content obj : allChildren(sourceCM.get(userPath + "/public/profile"))) {
-      migrateContent(obj);
+        migrateContent(obj);
     }
 
     // contact nodes
