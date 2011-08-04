@@ -91,6 +91,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
@@ -135,7 +137,7 @@ public class SamlAuthenticationHandler implements AuthenticationHandler,
   /**
    * URI comparator that always returns true. Useful for development and testing.
    */
-  private static final URIComparator TRUE_URI_COMPARTOR = new URIComparator() {
+  protected static final URIComparator TRUE_URI_COMPARATOR = new URIComparator() {
     public boolean compare(String uri1, String uri2) {
       return true;
     }
@@ -144,11 +146,23 @@ public class SamlAuthenticationHandler implements AuthenticationHandler,
   /**
    * URI comparator that matches the URI up to the query string (excludes ? and beyond).
    */
-  private static final URIComparator SIMPLE_URI_COMPARATOR = new URIComparator() {
+  protected static final URIComparator SIMPLE_URI_COMPARATOR = new URIComparator() {
     public boolean compare(String uri1, String uri2) {
       String u1 = (uri1.indexOf('?') >= 0) ? uri1.substring(0, uri1.indexOf('?')) : uri1;
       String u2 = (uri2.indexOf('?') >= 0) ? uri2.substring(0, uri2.indexOf('?')) : uri2;
       return u1.equals(u2);
+    }
+  };
+
+  protected static final URIComparator HOST_ONLY_URI_COMPARATOR = new URIComparator() {
+    public boolean compare(String uri1, String uri2) {
+      try {
+        URI urii1 = new URI(uri1);
+        URI urii2 = new URI(uri2);
+        return urii1.getHost().equals(urii2.getHost());
+      } catch (URISyntaxException e) {
+        return false;
+      }
     }
   };
 
@@ -190,11 +204,13 @@ public class SamlAuthenticationHandler implements AuthenticationHandler,
   private String missingLocalUserUrl;
 
   static final String MATCH_DESTINATION_NONE = "none";
+  static final String MATCH_DESTINATION_HOST = "host";
   static final String MATCH_DESTINATION_SIMPLE = "simple";
   static final String MATCH_DESTINATION_CANONICAL = "canonical";
   static final String DEFAULT_MATCH_DESTINATION = MATCH_DESTINATION_SIMPLE;
   @Property(value = SamlAuthenticationHandler.DEFAULT_MATCH_DESTINATION, options = {
     @PropertyOption(name = SamlAuthenticationHandler.MATCH_DESTINATION_NONE, value = SamlAuthenticationHandler.MATCH_DESTINATION_NONE),
+    @PropertyOption(name = SamlAuthenticationHandler.MATCH_DESTINATION_HOST, value = SamlAuthenticationHandler.MATCH_DESTINATION_HOST),
     @PropertyOption(name = SamlAuthenticationHandler.MATCH_DESTINATION_SIMPLE, value = SamlAuthenticationHandler.MATCH_DESTINATION_SIMPLE),
     @PropertyOption(name = SamlAuthenticationHandler.MATCH_DESTINATION_CANONICAL, value = SamlAuthenticationHandler.MATCH_DESTINATION_CANONICAL)
   })
@@ -275,10 +291,12 @@ public class SamlAuthenticationHandler implements AuthenticationHandler,
 
     matchDestination = OsgiUtil.toString(props.get(MATCH_DESTINATION), DEFAULT_MATCH_DESTINATION);
     if (MATCH_DESTINATION_NONE.equals(matchDestination)) {
-      uriComparator = TRUE_URI_COMPARTOR;
+      uriComparator = TRUE_URI_COMPARATOR;
     } else if (MATCH_DESTINATION_SIMPLE.equals(matchDestination)) {
-      // only compare the schema + server + context (no querystring)
+      // only compare the scheme + server + context (no querystring)
       uriComparator = SIMPLE_URI_COMPARATOR;
+    } else if (MATCH_DESTINATION_HOST.equals(matchDestination)) {
+      uriComparator = HOST_ONLY_URI_COMPARATOR;
     } else {
       uriComparator = new BasicURLComparator();
     }
