@@ -121,12 +121,13 @@ public class Migrate {
   @Reference
   StorageClientPool targetConnectionPool;
 
+  String sourceSlingDir = "sling-migrateme";
+  String sourceStoreDir = "store-migrateme";
+
   private RepositoryImpl sourceRepository;
 
   private Configuration configuration;
   private JDBCStorageClientPool sourceConnectionPool;
-
-  protected BundleContext bundleContext;
 
   // The source repository
   Session sourceSession;
@@ -144,6 +145,16 @@ public class Migrate {
   private void connectToSourceRepository()
     throws Exception
   {
+    if (!new File(sourceSlingDir).exists()) {
+      throw new RuntimeException ("Couldn't open source sling directory: " + sourceSlingDir);
+    }
+
+    if (!new File(sourceStoreDir).exists()) {
+      throw new RuntimeException ("Couldn't open source store directory: " + sourceStoreDir);
+    }
+
+
+
     sourceRepository = new RepositoryImpl();
 
     Field configField = RepositoryImpl.class.getDeclaredField("configuration");
@@ -152,9 +163,9 @@ public class Migrate {
 
     sourceConnectionPool = new JDBCStorageClientPool();
     ImmutableMap.Builder<String, Object> connectionProps = ImmutableMap.builder();
-    connectionProps.put("jdbc-url", "jdbc:derby:sling-migrateme/sparsemap/db;create=true");
+    connectionProps.put("jdbc-url", "jdbc:derby:" + sourceSlingDir + "/sparsemap/db");
     connectionProps.put("jdbc-driver", "org.apache.derby.jdbc.EmbeddedDriver");
-    connectionProps.put("store-base-dir", "store-migrateme");
+    connectionProps.put("store-base-dir", sourceStoreDir);
     connectionProps.put("username", "sa");
     connectionProps.put("password", "");
     connectionProps.put("max-wait", 10);
@@ -521,8 +532,6 @@ public class Migrate {
   {
     try {
       LOGGER.info("Migrating!");
-
-      bundleContext = componentContext.getBundleContext();
 
       connectToSourceRepository();
       migrateAllUsers();
