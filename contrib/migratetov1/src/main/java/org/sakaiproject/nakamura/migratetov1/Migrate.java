@@ -55,6 +55,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
+import org.sakaiproject.nakamura.lite.types.Types;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.osgi.service.component.ComponentContext;
@@ -68,6 +69,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -199,6 +201,11 @@ public class Migrate {
   }
 
 
+  private void migrateContentACL(Content content) throws Exception
+  {
+    migrateACL("n", "CO", content.getPath(), true);
+  }
+
   private void migrateContent(Content content) throws Exception
   {
     LOGGER.info("Migrating content object: {}", content);
@@ -209,6 +216,8 @@ public class Migrate {
       targetCM.writeBody(content.getPath(), is);
       is.close();
     }
+
+    migrateContentACL(content);
   }
 
 
@@ -383,13 +392,64 @@ public class Migrate {
   // have to do it...
   private void migrateUserACL(Authorizable user) throws Exception
   {
-    String rid = rowHash("n", "ac", "AU/" + user.getId());
+    migrateACL("n", "AU", user.getId(), true);
+  }
 
-    migrateRows(((JDBCStorageClientPool)sourceConnectionPool).getConnection(),
-                ((JDBCStorageClientPool)targetConnectionPool).getConnection(),
-                "AC_CSS_B",
-                rid,
-                true);
+  
+  private InputStream rewriteHash(InputStream in, String old_rid, String new_rid, String columnFamily)
+    throws Exception
+  {
+    Map<String, Object> map = new HashMap<String, Object>();
+
+    Types.loadFromStream(old_rid, map, in, columnFamily);
+    return Types.storeMapToStream(new_rid, map, columnFamily);
+  }
+
+
+  private void migrateACL(String keySpace, String columnFamily, String id, boolean force)
+    throws Exception
+  {
+    String old_rid;
+
+    if (id != null && id.startsWith("/")) {
+      old_rid = rowHash(keySpace, "ac", columnFamily + id);
+    } else {
+      old_rid = rowHash(keySpace, "ac", columnFamily + "/" + id);
+    }
+
+    String new_rid = rowHash(keySpace, "ac", columnFamily + ";" + id);
+
+    Connection source = ((JDBCStorageClientPool)sourceConnectionPool).getConnection();
+    Connection dest = ((JDBCStorageClientPool)targetConnectionPool).getConnection();
+
+    PreparedStatement sourceRows = source.prepareStatement("select rid, b from AC_CSS_B where rid = ?");
+    PreparedStatement delete = dest.prepareStatement("delete from AC_CSS_B where rid = ?");
+    PreparedStatement insert = dest.prepareStatement("insert into AC_CSS_B (rid, b) values (?, ?)");
+
+    sourceRows.setString(1, old_rid);
+    ResultSet rs = sourceRows.executeQuery();
+
+    LOGGER.info("*** SQL STARTING - {} TO {}", old_rid, new_rid);
+
+    while (rs.next()) {
+      delete.clearParameters(); delete.clearWarnings();
+      insert.clearParameters(); insert.clearWarnings();
+
+      LOGGER.info ("Migrating row {} with value {}", rs.getString(1), rs.getBytes(2));
+
+      if (force) {
+        delete.setString(1, new_rid);
+        delete.execute();
+      }
+
+      insert.setString(1, new_rid);
+      insert.setBinaryStream(2, rewriteHash(rs.getBinaryStream(2), old_rid, new_rid, "ac"));
+
+      // FIXME: error checking would be nice
+      insert.execute();
+    }
+
+    LOGGER.info("*** SQL DONE");
   }
 
 
