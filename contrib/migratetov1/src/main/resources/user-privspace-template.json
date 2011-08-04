@@ -18,22 +18,25 @@
         "dashboard": {
             "columns": {
                 "column1": {
+                    "__array__0__": {
                         "name": "recentchangedcontent", 
-                        "uid": "__ID_1__0", 
+                        "uid": "__ID_6__", 
                         "visible": "block"
-                    }, 
+                    }
                 }, 
                 "column2": {
+                    "__array__0__": {
                         "name": "recentmemberships", 
-                        "uid": "__ID_1__1", 
+                        "uid": "__ID_7__", 
                         "visible": "block"
-                    }, 
+                    }
                 }, 
                 "column3": {
+                    "__array__0__": {
                         "name": "recentcontactsnew", 
-                        "uid": "__ID_1__2", 
+                        "uid": "__ID_8__", 
                         "visible": "block"
-                    }, 
+                    }
                 }
             }, 
             "layout": "threecolumn"
