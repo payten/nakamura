@@ -501,9 +501,13 @@ public class Migrate {
 
   private void migratePooledContent() throws Exception
   {
+    LOGGER.info("\n\nMigrating pooled content");
+
     int page = 0;
 
     while (true) {
+      LOGGER.info("\n\n** Migrating content page: " + page);
+
       JDBCStorageClient storageClient = (JDBCStorageClient)sourceConnectionPool.getClient();
       Iterator<Map<String,Object>> it = storageClient.find("n", "cn",
                                                            ImmutableMap.of("sling:resourceType", (Object)"sakai/pooled-content",
@@ -524,6 +528,8 @@ public class Migrate {
 
       page++;
     }
+
+    LOGGER.info("\n\nDONE: Migrating pooled content");
   }
 
 
