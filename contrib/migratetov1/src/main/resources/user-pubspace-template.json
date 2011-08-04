@@ -1,0 +1,36 @@
+{
+    "__ID_0__": {
+        "sectionid": "locations"
+    }, 
+    "__ID_1__": {
+        "sectionid": "basic"
+    }, 
+    "__ID_2__": {
+        "page": "<div id='widget_displayprofilesection___ID_8__' class='widget_inline'/>"
+    }, 
+    "__ID_3__": {
+        "page": "<div id='widget_mylibrary' class='widget_inline'></div>"
+    }, 
+    "__ID_4__": {
+        "page": "<div id='widget_joinrequestbuttons' class='widget_inline'></div> <div id='widget_tooltip' class='widget_inline'></div> <div id='widget_mymemberships' class='widget_inline'></div>"
+    }, 
+    "__ID_5__": {
+        "page": "<div id='widget_contacts' class='widget_inline'></div>"
+    }, 
+    "__ID_6__": {
+        "sectionid": "publications"
+    }, 
+    "__ID_7__": {
+        "page": "<div id='widget_displayprofilesection___ID_0__' class='widget_inline'/>"
+    }, 
+    "__ID_8__": {
+        "sectionid": "aboutme"
+    }, 
+    "__ID_9__": {
+        "page": "<div id='widget_displayprofilesection___ID_1__' class='widget_inline'/>"
+    }, 
+    "__ID_10__": {
+        "page": "<div id='widget_displayprofilesection___ID_6__' class='widget_inline'/>"
+    }, 
+    "structure0": "{\"profile\":{\"_title\":\"My Profile\",\"_altTitle\":\"${user}'s Profile\",\"_order\":0,\"_canEdit\":true,\"_nonEditable\":true,\"_reorderOnly\":true,\"_canSubedit\":true,\"basic\":{\"_ref\":\"__ID_9__\",\"_order\":0,\"_altTitle\":\"__MSG__PROFILE_BASIC_LABEL__\",\"_title\":\"__MSG__PROFILE_BASIC_LABEL__\",\"_nonEditable\":true},\"aboutme\":{\"_ref\":\"__ID_2__\",\"_order\":1,\"_altTitle\":\"__MSG__PROFILE_ABOUTME_LABEL__\",\"_title\":\"__MSG__PROFILE_ABOUTME_LABEL__\",\"_nonEditable\":true},\"locations\":{\"_ref\":\"__ID_7__\",\"_order\":2,\"_altTitle\":\"__MSG__PROFILE_LOCATIONS_LABEL__\",\"_title\":\"__MSG__PROFILE_LOCATIONS_LABEL__\",\"_nonEditable\":true},\"publications\":{\"_ref\":\"__ID_10__\",\"_order\":3,\"_altTitle\":\"__MSG__PROFILE_PUBLICATIONS_LABEL__\",\"_title\":\"__MSG__PROFILE_PUBLICATIONS_LABEL__\",\"_nonEditable\":true},\"_ref\":\"__ID_9__\"},\"library\":{\"_ref\":\"__ID_3__\",\"_order\":1,\"_title\":\"My Library\",\"_altTitle\":\"${user}'s Library\",\"_reorderOnly\":true,\"_nonEditable\":true,\"main\":{\"_ref\":\"__ID_3__\",\"_order\":0,\"_title\":\"Content\"}},\"memberships\":{\"_title\":\"My Memberships\",\"_order\":2,\"_ref\":\"__ID_4__\",\"_altTitle\":\"${user}'s Memberships\",\"_reorderOnly\":true,\"_nonEditable\":true,\"main\":{\"_ref\":\"__ID_4__\",\"_order\":0,\"_title\":\"Memberships\"}},\"contacts\":{\"_title\":\"My Contacts\",\"_order\":3,\"_ref\":\"__ID_5__\",\"_altTitle\":\"${user}'s Contacts\",\"_reorderOnly\":true,\"_nonEditable\":true,\"main\":{\"_ref\":\"__ID_5__\",\"_order\":0,\"_title\":\"Contacts\"}}}"
+}

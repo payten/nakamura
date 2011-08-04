@@ -1,0 +1,63 @@
+{
+    "__ID_0__": {
+        "page": "<div class='fl-force-right'><button type='button' class='s3d-button s3d-margin-top-5 s3d-header-button s3d-header-smaller-button dashboard_change_layout' data-tuid='__ID_5__'>Edit Layout</button><button type='button' class='s3d-button s3d-margin-top-5 s3d-header-button s3d-header-smaller-button dashboard_global_add_widget' data-tuid='__ID_5__'>Add Widget</button></div><div class='s3d-contentpage-title'>My Dashboard</div><div id='widget_carousel' class='widget_inline'></div><br/><div id='widget_dashboard___ID_5__' class='widget_inline'></div>"
+    }, 
+    "__ID_1__": {
+        "page": "<div id='widget_inbox___ID_9__' class='widget_inline'/>"
+    }, 
+    "__ID_2__": {
+        "page": "<div id='widget_inbox___ID_10__' class='widget_inline'/>"
+    }, 
+    "__ID_3__": {
+        "page": "<div id='widget_inbox___ID_11__' class='widget_inline'/>"
+    }, 
+    "__ID_4__": {
+        "page": "<div id='widget_inbox___ID_12__' class='widget_inline'/>"
+    }, 
+    "__ID_5__": {
+        "dashboard": {
+            "columns": {
+                "column1": {
+                        "name": "recentchangedcontent", 
+                        "uid": "__ID_1__0", 
+                        "visible": "block"
+                    }, 
+                }, 
+                "column2": {
+                        "name": "recentmemberships", 
+                        "uid": "__ID_1__1", 
+                        "visible": "block"
+                    }, 
+                }, 
+                "column3": {
+                        "name": "recentcontactsnew", 
+                        "uid": "__ID_1__2", 
+                        "visible": "block"
+                    }, 
+                }
+            }, 
+            "layout": "threecolumn"
+        }
+    }, 
+    "__ID_9__": {
+        "box": "inbox", 
+        "category": "message", 
+        "title": "INBOX"
+    }, 
+    "__ID_10__": {
+        "box": "inbox", 
+        "category": "invitation", 
+        "title": "INVITATIONS"
+    }, 
+    "__ID_11__": {
+        "box": "outbox", 
+        "category": "*", 
+        "title": "SENT"
+    }, 
+    "__ID_12__": {
+        "box": "trash", 
+        "category": "*", 
+        "title": "TRASH"
+    }, 
+    "structure0": "{\"dashboard\":{\"_ref\":\"__ID_0__\",\"_title\":\"My Dashboard\",\"_order\":0,\"_canEdit\":true,\"_reorderOnly\":true,\"_nonEditable\":true,\"main\":{\"_ref\":\"__ID_0__\",\"_order\":0,\"_title\":\"Dashboard\"}},\"messages\":{\"_title\":\"My Messages\",\"_ref\":\"__ID_1__\",\"_order\":1,\"_canEdit\":true,\"_reorderOnly\":true,\"_canSubedit\":true,\"_nonEditable\":true,\"inbox\":{\"_ref\":\"__ID_1__\",\"_order\":0,\"_title\":\"Inbox\",\"_nonEditable\":true},\"invitations\":{\"_ref\":\"__ID_2__\",\"_order\":1,\"_title\":\"Invitations\",\"_nonEditable\":true},\"sent\":{\"_ref\":\"__ID_3__\",\"_order\":2,\"_title\":\"Sent\",\"_nonEditable\":true},\"trash\":{\"_ref\":\"__ID_4__\",\"_order\":3,\"_title\":\"Trash\",\"_nonEditable\":true}}}"
+}
