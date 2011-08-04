@@ -55,12 +55,9 @@ import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
-import org.sakaiproject.nakamura.lite.types.Types;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.nakamura.lite.RepositoryImpl;
-import org.sakaiproject.nakamura.lite.OSGiStoreListener;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -97,16 +94,19 @@ import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.sakaiproject.nakamura.api.lite.Configuration;
-import org.sakaiproject.nakamura.lite.storage.StorageClient;
-import org.sakaiproject.nakamura.lite.storage.StorageClientPool;
-import org.sakaiproject.nakamura.lite.storage.jdbc.JDBCStorageClientPool;
-import org.sakaiproject.nakamura.lite.storage.jdbc.JDBCStorageClient;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.security.MessageDigest;
 
+import org.sakaiproject.nakamura.lite.RepositoryImpl;
+import org.sakaiproject.nakamura.lite.OSGiStoreListener;
+import org.sakaiproject.nakamura.lite.storage.StorageClient;
+import org.sakaiproject.nakamura.lite.storage.StorageClientPool;
+import org.sakaiproject.nakamura.lite.storage.jdbc.JDBCStorageClientPool;
+import org.sakaiproject.nakamura.lite.storage.jdbc.JDBCStorageClient;
+import org.sakaiproject.nakamura.lite.types.Types;
 
 /**
  *
