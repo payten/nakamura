@@ -1,0 +1,30 @@
+{
+    "activity": {
+        "sling:resourceType": "sakai/activityStore"
+    }, 
+    "id439704665": {
+        "participants": {
+            "groupid": "__GROUP__"
+        }
+    }, 
+    "id6573920372": {
+        "page": "<img id='widget_participants_id439704665' class='widget_inline' style='display: block; padding: 10px; margin: 4px;' src='/devwidgets/participants/images/participants.png' data-mce-src='/devwidgets/participants/images/participants.png' data-mce-style='display: block; padding: 10px; margin: 4px;' border='1'><br></p>"
+    }, 
+    "sakai:copyright": "creativecommons", 
+    "sakai:custom-mimetype": "x-sakai/document", 
+    "sakai:description": "", 
+    "sakai:permissions": "public", 
+    "sakai:pool-content-created-for": "admin", 
+    "sakai:pooled-content-file-name": "Participants", 
+    "sakai:pooled-content-manager": [
+        "admin", 
+        "__GROUP__-manager"
+    ], 
+    "sakai:pooled-content-viewer": [
+        "anonymous", 
+        "__GROUP__-member", 
+        "everyone"
+    ], 
+    "sling:resourceType": "sakai/pooled-content", 
+    "structure0": "{\"participants\":{\"_ref\":\"id6573920372\",\"_order\":0,\"_title\":\"Participants\",\"_nonEditable\":true,\"main\":{\"_ref\":\"id6573920372\",\"_order\":0,\"_nonEditable\":true,\"_title\":\"Participants\"}}}"
+}

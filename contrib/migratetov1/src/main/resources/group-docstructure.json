@@ -1,0 +1,3 @@
+{
+    "structure0": "{\"library\":{\"_title\":\"Library\",\"_order\":0,\"_nonEditable\":true,\"_view\":\"[\\\"everyone\\\",\\\"anonymous\\\",\\\"-member\\\"]\",\"_edit\":\"[\\\"-manager\\\"]\",\"_pid\":\"__LIBRARY_POOLID__\"},\"participants\":{\"_title\":\"Participants\",\"_order\":1,\"_nonEditable\":true,\"_view\":\"[\\\"everyone\\\",\\\"anonymous\\\",\\\"-member\\\"]\",\"_edit\":\"[\\\"-manager\\\"]\",\"_pid\":\"__PARTICIPANTS_POOLID__\"}}"
+}

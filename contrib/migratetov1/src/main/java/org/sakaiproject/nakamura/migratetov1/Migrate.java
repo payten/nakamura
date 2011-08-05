@@ -35,6 +35,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.lite.Repository;
@@ -58,6 +59,7 @@ import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -95,6 +97,8 @@ import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.sakaiproject.nakamura.api.lite.Configuration;
 
+
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -120,6 +124,9 @@ public class Migrate {
 
   @Reference
   StorageClientPool targetConnectionPool;
+
+  @Reference
+  ClusterTrackingService clusterTrackingService;
 
   String sourceSlingDir = "sling-migrateme";
   String sourceStoreDir = "store-migrateme";
@@ -205,6 +212,13 @@ public class Migrate {
   }
 
 
+  private void importJson(String path, String jsonString) throws Exception
+  {
+    JSONObject json = new JSONObject(jsonString);
+    new LiteJsonImporter().importContent(targetCM, json, path, true, true, true, targetACL);
+  }
+
+
   private Content cloneContent(Content content) throws Exception
   {
     return new Content(content.getPath(),
@@ -243,7 +257,6 @@ public class Migrate {
     if (content != null) {
       result.add(content);
 
-      LOGGER.info("allChildren: {}", content);
       Iterator<Content> it = content.listChildren().iterator();
       while (it.hasNext()) {
         result.addAll(allChildren(it.next()));
@@ -270,9 +283,9 @@ public class Migrate {
   }
 
 
-  private String fillOutTemplate(String templatePath) throws Exception
+  private String readResource(String name) throws Exception
   {
-    InputStream is = this.getClass().getClassLoader().getResourceAsStream(templatePath);
+    InputStream is = this.getClass().getClassLoader().getResourceAsStream(name);
     byte buf[] = new byte[4096];
 
     StringBuilder sb = new StringBuilder();
@@ -286,7 +299,13 @@ public class Migrate {
       sb.append(new String(buf, 0, count));
     }
 
-    String s = sb.toString();
+    return sb.toString();
+  }
+
+
+  private String fillOutTemplate(String templatePath) throws Exception
+  {
+    String s = readResource(templatePath);
 
     for (int i = 0; i < 1000; i++) {
       s = s.replaceAll(("__ID_" + i + "__"),
@@ -371,14 +390,10 @@ public class Migrate {
     }
 
     // User pubspace
-    JSONObject pubspace = new JSONObject(fillOutTemplate("user-pubspace-template.json"));
-    new LiteJsonImporter().importContent(targetCM, pubspace, (userPath + "/public/pubspace"),
-                                         true, true, true, targetACL);
+    importJson(userPath + "/public/pubspace", fillOutTemplate("user-pubspace-template.json"));
 
     // User privspace
-    JSONObject privspace = new JSONObject(fillOutTemplate("user-privspace-template.json"));
-    new LiteJsonImporter().importContent(targetCM, privspace, (userPath + "/private/privspace"),
-                                         true, true, true, targetACL);
+    importJson(userPath + "/private/privspace", fillOutTemplate("user-privspace-template.json"));
   }
 
 
@@ -562,6 +577,222 @@ public class Migrate {
   }
 
 
+  private void setWorldReadable(String poolId) throws Exception
+  {
+    List<AclModification> acls = new ArrayList<AclModification>();
+     
+    AclModification.addAcl(true, Permissions.CAN_READ, User.ANON_USER, acls);
+    AclModification.addAcl(true, Permissions.CAN_READ, org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE, acls);
+
+    targetACL.setAcl(Security.ZONE_CONTENT, poolId, acls.toArray(new AclModification[acls.size()]));
+  }
+
+
+  private void buildDocstructure(Authorizable group) throws Exception
+  {
+    String libraryPoolId = clusterTrackingService.getClusterUniqueId();
+    String participantsPoolId = clusterTrackingService.getClusterUniqueId();
+
+    importJson(libraryPoolId,
+               readResource("group-library.json").replaceAll("__GROUP__", group.getId()));
+    LOGGER.info("... done.\n");
+
+    importJson(participantsPoolId,
+               readResource("group-participants.json").replaceAll("__GROUP__", group.getId()));
+
+    setWorldReadable(libraryPoolId);
+    setWorldReadable(participantsPoolId);
+
+    importJson("a:" + group.getId() + "/docstructure",
+               (readResource("group-docstructure.json")
+                .replaceAll("__LIBRARY_POOLID__", libraryPoolId)
+                .replaceAll("__PARTICIPANTS_POOLID__", participantsPoolId)));
+  }
+
+
+  private String getMembersString(String groupName, String[] members)
+  {
+    List<String> filtered = new ArrayList<String>(members.length);
+
+    for (String member : members) {
+      if (!member.equals(groupName + "-managers")) {
+        filtered.add(member);
+      }
+    }
+
+    return StringUtils.join(filtered, ";");
+  }
+
+
+  private void migrateGroup(Authorizable group) throws Exception
+  {
+    LOGGER.info ("Migrating group: {}", group);
+
+    String groupId = group.getId();
+    String groupPath = "a:" + groupId;
+
+    Map<String,Object> props = new HashMap<String,Object>(group.getOriginalProperties());
+
+    props.remove("sakai:managers-group");
+
+    props.put("members", getMembersString(groupId, ((String)props.get("members")).split(";")));
+
+    props.put("sakai:roles", "[{\"id\":\"member\",\"roleTitle\":\"Members\",\"title\":\"Member\",\"allowManage\":false},{\"id\":\"manager\",\"roleTitle\":\"Managers\",\"title\":\"Manager\",\"allowManage\":true}]");
+
+    List<String> managers = new ArrayList<String>();
+    for (String elt : (String[])props.get("rep:group-managers")) {
+      if ((groupId + "-managers").equals(elt)) {
+        managers.add(groupId + "-manager");
+      } else {
+        managers.add(elt);
+      }
+    }
+
+    props.put("rep:group-managers", managers.toArray(new String[managers.size()]));
+
+    props.put("sakai:category", "group");
+    props.put("sakai:templateid", "simplegroup");
+    props.put("sakai:joinRole", "member");
+    props.put("membershipsCount", 0);
+    props.put("membersCount", 0);
+    props.put("contentCount", 0);
+
+    // Set the rep:group-viewers based on the group's visibility
+    String visibility = (String)props.get("sakai:group-visible");
+
+    if (visibility != null) {
+      if (visibility.equals("logged-in-only")) {
+        props.put("rep:group-viewers", new String[] {group + "-manager",
+                                                     group + "-member",
+                                                     "everyone",
+                                                     groupId});
+      } else if (visibility.equals("members-only")) {
+        props.put("rep:group-viewers", new String[] {group + "-manager",
+                                                     group + "-member",
+                                                     "everyone",
+                                                     groupId});
+      } else {
+        props.put("rep:group-viewers", new String[] {group + "-manager",
+                                                     group + "-member",
+                                                     "everyone",
+                                                     "anonymous",
+                                                     groupId});
+      }
+    }
+
+    targetAM.createGroup(groupId, (String)group.getProperty("sakai:group-title"), props);
+
+    // Group members
+    targetAM.createGroup(groupId + "-member",
+                         String.format("%s (Members)", groupId),
+                         new ImmutableMap.Builder<String,Object>()
+                         .put("type", "g")
+                         .put("principals", groupId)
+                         .put("rep:group-viewers", props.get("rep:group-viewers"))
+                         .put("rep:group-managers", props.get("rep:group-managers"))
+                         .put("sakai:group-joinable", props.get("sakai:group-joinable"))
+                         .put("sakai:group-id", groupId + "-member")
+                         .put("sakai:group-title", String.format("%s (Members)", groupId))
+                         .put("sakai:pseudogroupparent", groupId)
+                         .put("contentCount", 0)
+                         .put("sakai:pseudoGroup", true)
+                         .put("name", groupId + "-member")
+                         .put("email", "unknown")
+                         .put("firstName", "unknown")
+                         .put("lastName", "unknown")
+                         .put("membershipsCount", 1)
+                         .put("sakai:excludeSearch", true)
+                         .put("sakai:group-visible", props.get("sakai:group-visible"))
+                         .put("members", getMembersString(groupId, ((Group)group).getMembers()))
+                         .build());
+
+
+    // Group managers
+    targetAM.createGroup(groupId + "-manager",
+                         String.format("%s (Managers)", groupId),
+                         new ImmutableMap.Builder<String,Object>()
+                         .put("type", "g")
+                         .put("principals", groupId)
+                         .put("rep:group-viewers", props.get("rep:group-viewers"))
+                         .put("rep:group-managers", props.get("rep:group-managers"))
+                         .put("sakai:group-joinable", props.get("sakai:group-joinable"))
+                         .put("sakai:group-id", groupId + "-manager")
+                         .put("sakai:group-title", String.format("%s (Managers)", groupId))
+                         .put("sakai:pseudogroupparent", groupId)
+                         .put("contentCount", 0)
+                         .put("sakai:pseudoGroup", true)
+                         .put("name", groupId + "-manager")
+                         .put("email", "unknown")
+                         .put("firstName", "unknown")
+                         .put("lastName", "unknown")
+                         .put("membershipsCount", 1)
+                         .put("sakai:excludeSearch", true)
+                         .put("sakai:group-visible", props.get("sakai:group-visible"))
+                         .put("members", getMembersString(groupId, ((Group)sourceAM.findAuthorizable(groupId + "-managers")).getMembers()))
+                         .build());
+
+
+
+    // Group home
+    migrateContent(sourceCM.get(groupPath));
+
+
+    // Authprofile nodes
+    for (Content obj : allChildren(sourceCM.get(groupPath))) {
+      if (obj.getPath().matches(".*authprofile.*")) {
+        migrateContent(obj);
+      }
+    }
+
+    LOGGER.info("\n\nBuilding docstructure...");
+    buildDocstructure(group);
+
+
+    // tickle the indexer
+    targetAM.updateAuthorizable(targetAM.findAuthorizable(groupId));
+  }
+
+
+  private void migrateAllGroups() throws Exception
+  {
+    LOGGER.info("\n\nMigrating Groups");
+
+    int page = 0;
+
+    while (true) {
+      LOGGER.info("\n\n** Migrating group page: " + page);
+
+      JDBCStorageClient storageClient = (JDBCStorageClient)sourceConnectionPool.getClient();
+      Iterator<Map<String,Object>> it = storageClient.find("n", "cn",
+                                                           ImmutableMap.of("sling:resourceType", (Object)"sakai/group-home",
+                                                                           "_page", String.valueOf(page)));
+
+      int processed = 0;
+
+      while (it.hasNext()) {
+        processed++;
+        Map<String,Object> groupMap = it.next();
+
+        String groupName = ((String)groupMap.get("_path")).split(":", 2)[1];
+        Authorizable group = sourceAM.findAuthorizable(groupName);
+
+        targetAM.delete(groupName);
+        targetAM.delete(groupName + "-member");
+        targetAM.delete(groupName + "-manager");
+        migrateGroup(group);
+    }
+
+      if (processed == 0) {
+        break;
+      }
+
+      page++;
+    }
+
+    LOGGER.info("\n\nDONE: Migrating groups");
+  }
+
+
   @Activate
   protected void activate(ComponentContext componentContext)
   {
@@ -571,6 +802,7 @@ public class Migrate {
       connectToSourceRepository();
       migrateAllUsers();
       migratePooledContent();
+      migrateAllGroups();
 
     } catch (Exception e) {
       LOGGER.error("Caught a top-level error: {}", e);
