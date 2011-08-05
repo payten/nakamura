@@ -301,6 +301,8 @@ public class Migrate {
   {
     String userId = user.getId();
     String userPath = "a:" + userId;
+    String contactsGroup = "g-contacts-" + userId;
+
 
     targetAM.createUser(userId, userId, "testuser",
                         user.getOriginalProperties());
@@ -319,6 +321,34 @@ public class Migrate {
     for (Content obj : allChildren(sourceCM.get(userPath))) {
       if (obj.getPath().matches(".*authprofile.*")) {
         migrateContent(obj);
+
+        List<AclModification> acls = new ArrayList<AclModification>();
+     
+        if (obj.getPath().matches("(.*authprofile$|.*authprofile/basic.*)")) {
+          // Set basic profile information readable to logged in users
+          AclModification.addAcl(false,
+                                 Permissions.CAN_READ,
+                                 User.ANON_USER,
+                                 acls);
+          AclModification.addAcl(true,
+                                 Permissions.CAN_READ,
+                                 org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE,
+                                 acls);
+        } else {
+          // And all others to contacts only
+          AclModification.addAcl(false,
+                                 Permissions.CAN_READ,
+                                 User.ANON_USER,
+                                 acls);
+          AclModification.addAcl(false,
+                                 Permissions.CAN_READ,
+                                 org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE,
+                                 acls);
+          AclModification.addAcl(true, Permissions.CAN_READ, contactsGroup, acls);
+        }
+
+        AclModification.addAcl(true, Permissions.CAN_ANYTHING, userId, acls);
+        targetACL.setAcl(Security.ZONE_CONTENT, obj.getPath(), acls.toArray(new AclModification[acls.size()]));
       }
     }
 
@@ -333,7 +363,6 @@ public class Migrate {
     }
 
     // contact groups
-    String contactsGroup = "g-contacts-" + userId;
     targetAM.createGroup(contactsGroup, contactsGroup, null);
     Authorizable sourceGroup = sourceAM.findAuthorizable(contactsGroup);
     Authorizable targetGroup = targetAM.findAuthorizable(contactsGroup);
