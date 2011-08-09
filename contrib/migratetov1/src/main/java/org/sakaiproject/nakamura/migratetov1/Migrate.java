@@ -590,6 +590,20 @@ public class Migrate {
   }
 
 
+  private void setWorldReadableGroupWritable(String poolId, Authorizable group)
+    throws Exception
+  {
+    setWorldReadable(poolId);
+
+    List<AclModification> acls = new ArrayList<AclModification>();
+
+    AclModification.addAcl(true, Permissions.CAN_READ, group.getId() + "-member", acls);
+    AclModification.addAcl(true, Permissions.ALL, group.getId() + "-manager", acls);
+
+    targetACL.setAcl(Security.ZONE_CONTENT, poolId, acls.toArray(new AclModification[acls.size()]));
+  }
+
+
   private void setWorldReadable(String poolId) throws Exception
   {
     List<AclModification> acls = new ArrayList<AclModification>();
@@ -726,6 +740,7 @@ public class Migrate {
                  .replaceAll("__PAGE_TITLE__", (String)content.getProperty("pageTitle"))
                  .replaceAll("__CONTENT_ID__", contentId));
 
+    // THINKE: does "permissions" need to be cleverer?
     targetCM.update(new Content(poolId,
                                 new ImmutableMap.Builder<String,Object>()
                                 .put("sakai:copyright", "creativecommons")
@@ -741,6 +756,8 @@ public class Migrate {
                                 .put("sling:resourceType", "sakai/pooled-content")
                                 .put("structure0", structure)
                                 .build()));
+
+    setWorldReadableGroupWritable(poolId, group);
 
     targetCM.update(new Content(poolId + "/" + contentId,
                                 new ImmutableMap.Builder<String,Object>()
