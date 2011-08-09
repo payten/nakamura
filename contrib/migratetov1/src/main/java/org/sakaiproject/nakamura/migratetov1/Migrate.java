@@ -624,6 +624,138 @@ public class Migrate {
   }
 
 
+  private void addToDocstructure(Authorizable group, String pageId, String title, String poolId)
+    throws Exception
+  {
+    String groupId = group.getId();
+    String groupPath = "a:" + groupId;
+    Content content = targetCM.get(groupPath + "/docstructure");
+    JSONObject structure = new JSONObject((String)content.getProperty("structure0"));
+
+    int maxOrder = -1;
+    for (Iterator<String> k = structure.keys(); k.hasNext();) {
+      int order = structure.getJSONObject(k.next()).getInt("_order");
+      if (order > maxOrder) {
+        maxOrder = order;
+      }
+    }
+
+    JSONObject newNode = new JSONObject();
+    newNode.put("_title", title);
+    newNode.put("_order", maxOrder + 1);
+    newNode.put("_nonEditable", false);
+    newNode.put("_pid", poolId);
+    newNode.put("_view", "[\"everyone\",\"anonymous\",\"-member\"]");
+    newNode.put("_edit", "[\"-manager\"]");
+
+    structure.put(pageId, newNode);
+
+    content.setProperty("structure0", structure.toString());
+
+    targetCM.update(content);
+  }
+
+
+  private String getPageContent(Content content) throws Exception
+  {
+    for (Content obj : content.listChildren()) {
+      if ("sakai/pagecontent".equals(obj.getProperty("sling:resourceType"))) {
+        return (String)obj.getProperty("sakai:pagecontent");
+      }
+    }
+
+    LOGGER.error("Couldn't find page content for: {}", content);
+    return "";
+  }
+
+
+  private void migrateContentTree(Content rootNode, String newRoot)
+    throws Exception
+  {
+    int lastSlash = rootNode.getPath().lastIndexOf("/");
+    String oldRoot = rootNode.getPath().substring(0, lastSlash + 1);
+    String nodeName = rootNode.getPath().substring(lastSlash + 1);
+    String newPath = newRoot + "/" + nodeName;
+
+    targetCM.update(new Content(newPath, rootNode.getProperties()));
+
+    for (Content child : rootNode.listChildren()) {
+      migrateContentTree(child, newPath);
+    }
+  }
+
+
+  private void migrateWidgetData(Authorizable group, String poolId)
+    throws Exception
+  {
+    String groupId = group.getId();
+    String groupPath = "a:" + groupId;
+
+    for (Content obj : allChildren(sourceCM.get(groupPath + "/pages/_widgets"))) {
+      if (obj.getPath().matches("^.*/id[0-9]+$")) {
+        migrateContentTree(obj, poolId);
+      }
+    }
+  }
+
+
+  private void migratePage(Authorizable group, Content content) throws Exception
+  {
+    String path =  content.getPath();
+    String pageId = path.substring(path.lastIndexOf("/") + 1);
+    String creator = (String)content.getProperty("_createdBy");
+    String contentId = generateWidgetId();
+    String poolId = clusterTrackingService.getClusterUniqueId();
+
+    String structure = "{\"__PAGE_ID__\":{\"_title\":\"__PAGE_TITLE__\",\"_order\":0,\"_ref\":\"__CONTENT_ID__\",\"_nonEditable\":false,\"main\":{\"_title\":\"__PAGE_TITLE__\",\"_order\":0,\"_ref\":\"__CONTENT_ID__\",\"_nonEditable\":false}}}";
+    structure = (structure
+                 .replaceAll("__PAGE_ID__", pageId)
+                 .replaceAll("__PAGE_TITLE__", (String)content.getProperty("pageTitle"))
+                 .replaceAll("__CONTENT_ID__", contentId));
+
+    targetCM.update(new Content(poolId,
+                                new ImmutableMap.Builder<String,Object>()
+                                .put("sakai:copyright", "creativecommons")
+                                .put("sakai:custom-mimetype", "x-sakai/document")
+                                .put("sakai:description", "")
+                                .put("sakai:permissions"," public")
+                                .put("sakai:pool-content-created-for", creator)
+                                .put("sakai:pooled-content-file-name", pageId)
+                                .put("sakai:pooled-content-manager",
+                                     new String[] { group.getId() + "-manager", creator })
+                                .put("sakai:pooled-content-viewer",
+                                     new String[] { "anonymous", "everyone", group.getId() + "-member" })
+                                .put("sling:resourceType", "sakai/pooled-content")
+                                .put("structure0", structure)
+                                .build()));
+
+    targetCM.update(new Content(poolId + "/" + contentId,
+                                new ImmutableMap.Builder<String,Object>()
+                                .put("page", getPageContent(content))
+                                .build()));
+
+    addToDocstructure(group, pageId, (String)content.getProperty("pageTitle"), poolId);
+
+    migrateWidgetData(group, poolId);
+  }
+
+
+  private void migratePages(Authorizable group) throws Exception
+  {
+    LOGGER.info ("Migrating pages for group: {}", group);
+
+    String groupId = group.getId();
+    String groupPath = "a:" + groupId;
+
+    for (Content obj : allChildren(sourceCM.get(groupPath))) {
+      if ("sakai/page".equals(obj.getProperty("sling:resourceType")) &&
+          !obj.getPath().matches("^.*/(about-this-group|group-dashboard)$")) {
+        migratePage(group, obj);
+      }
+    }
+  }
+
+
   private void migrateGroup(Authorizable group) throws Exception
   {
     LOGGER.info ("Migrating group: {}", group);
@@ -744,9 +876,21 @@ public class Migrate {
       }
     }
 
+    // The group's profile picture (THINKME: is this a specific case of a more
+    // general type of content that needs migrating too?)
+    for (Content obj : allChildren(sourceCM.get(groupPath))) {
+      if ((obj.getProperty("mimeType") != null && ((String)(obj.getProperty("mimeType"))).startsWith("image/")) ||
+          (obj.getProperty("_mimeType") != null && ((String)obj.getProperty("_mimeType")).startsWith("image/"))) {
+        migrateContent(obj);
+      }
+    }
+
     LOGGER.info("\n\nBuilding docstructure...");
     buildDocstructure(group);
 
+
+    LOGGER.info("\n\nMigrating group pages...");
+    migratePages(group);
 
     // tickle the indexer
     targetAM.updateAuthorizable(targetAM.findAuthorizable(groupId));
