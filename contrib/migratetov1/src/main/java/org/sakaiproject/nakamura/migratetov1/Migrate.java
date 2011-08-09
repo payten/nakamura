@@ -61,10 +61,16 @@ import org.slf4j.LoggerFactory;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 
+import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.SlingHttpServletResponse;
+import javax.servlet.ServletException;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -96,7 +102,7 @@ import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.sakaiproject.nakamura.api.lite.Configuration;
-
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 
 
 import java.sql.Connection;
@@ -115,8 +121,9 @@ import org.sakaiproject.nakamura.lite.types.Types;
 /**
  *
  */
-@Component
-public class Migrate {
+
+@SlingServlet(methods = "GET", paths = "/system/migratetov1", generateComponent=true)
+public class Migrate extends SlingSafeMethodsServlet {
   private Logger LOGGER = LoggerFactory.getLogger(Migrate.class);
 
   @Reference
@@ -424,8 +431,6 @@ public class Migrate {
   private String rowHash(String keySpace, String columnFamily, String key)
     throws Exception
   {
-    LOGGER.info("Hash algo is: " + getHashAlgorithm());
-
     return StorageClientUtils.encode(MessageDigest.getInstance(getHashAlgorithm()).digest
                                      ((keySpace + ":" + columnFamily + ":" + key).getBytes("UTF-8")));
   }
@@ -720,6 +725,13 @@ public class Migrate {
 
     for (Content obj : allChildren(sourceCM.get(groupPath + "/pages/_widgets"))) {
       if (obj.getPath().matches("^.*/id[0-9]+$")) {
+        // THINKE: this is going to link every embedded piece of content
+        // for a group to every page in the group.  Does this matter?
+        // Embedded content used to all get put into a shared pool under
+        // the embedcontent widget, but now they're added to a node
+        // under the page's pool id.  Not sure how to figure out which
+        // embedded content belongs to which page without parsing the
+        // page source...
         migrateContentTree(obj, poolId);
       }
     }
@@ -733,6 +745,8 @@ public class Migrate {
     String creator = (String)content.getProperty("_createdBy");
     String contentId = generateWidgetId();
     String poolId = clusterTrackingService.getClusterUniqueId();
+
+    LOGGER.info("\n\nWILL USE: {}", poolId);
 
     String structure = "{\"__PAGE_ID__\":{\"_title\":\"__PAGE_TITLE__\",\"_order\":0,\"_ref\":\"__CONTENT_ID__\",\"_nonEditable\":false,\"main\":{\"_title\":\"__PAGE_TITLE__\",\"_order\":0,\"_ref\":\"__CONTENT_ID__\",\"_nonEditable\":false}}}";
     structure = (structure
@@ -780,7 +794,9 @@ public class Migrate {
     for (Content obj : allChildren(sourceCM.get(groupPath))) {
       if ("sakai/page".equals(obj.getProperty("sling:resourceType")) &&
           !obj.getPath().matches("^.*/(about-this-group|group-dashboard)$")) {
+        LOGGER.info ("\n\n\nMIGRATING PAGE: {}", obj);
         migratePage(group, obj);
+        LOGGER.info ("\nDONE\n\n");
       }
     }
   }
@@ -967,8 +983,10 @@ public class Migrate {
   }
 
 
-  @Activate
-  protected void activate(ComponentContext componentContext)
+
+  protected void doGet(SlingHttpServletRequest request,
+                       SlingHttpServletResponse response)
+    throws ServletException, IOException
   {
     try {
       LOGGER.info("Migrating!");
