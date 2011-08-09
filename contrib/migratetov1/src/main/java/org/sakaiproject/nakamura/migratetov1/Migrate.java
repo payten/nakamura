@@ -322,9 +322,22 @@ public class Migrate {
     String userPath = "a:" + userId;
     String contactsGroup = "g-contacts-" + userId;
 
+    Map<String,Object> props = new HashMap<String,Object>(user.getOriginalProperties());
 
-    targetAM.createUser(userId, userId, "testuser",
-                        user.getOriginalProperties());
+    List<String> filtered = new ArrayList<String>();
+
+    for (String membership : ((String)props.get("principals")).split(";")) {
+      if (membership.endsWith("-managers")) {
+        // Now "-manager"
+        filtered.add(membership.substring(0, membership.length() - 1));
+      } else {
+        filtered.add(membership);
+      }
+    }
+
+    props.put("principals", StringUtils.join(filtered, ";"));
+
+    targetAM.createUser(userId, userId, "testuser", props);
 
     LOGGER.info("\nMigrating user: {}", user);
 
