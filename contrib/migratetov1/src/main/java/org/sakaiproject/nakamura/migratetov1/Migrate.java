@@ -246,6 +246,41 @@ public class Migrate extends SlingSafeMethodsServlet {
 
     LOGGER.info("Migrating content object: {}", content);
 
+    // Migrate any versions of this object prior to the latest version
+    int versionCount = 0;
+    for (String versionId : sourceCM.getVersionHistory(content.getPath())) {
+      LOGGER.info("Migrating version {} of content object {}", versionId, content.getPath());
+
+      Content version = sourceCM.getVersion(content.getPath(), versionId);
+
+      Map<String,Object> props = new HashMap(version.getOriginalProperties());
+
+      if (versionCount == 0) {
+        // We're going to replay the versions in reverse order, but that
+        // generates a new bunch of version IDs.  Clear the version history UUID
+        // to create a new list.
+
+        props.remove("_versionHistoryId");
+      }
+
+      props.remove("_readOnly");
+      version = new Content(version.getPath(), props);
+
+      versionCount++;
+
+      targetCM.update(cloneContent(version));
+
+      InputStream versionInputStream = sourceCM.getVersionInputStream(content.getPath(), versionId);
+
+      if (versionInputStream != null) {
+        targetCM.writeBody(content.getPath(), versionInputStream);
+        versionInputStream.close();
+      }
+
+      targetCM.saveVersion(content.getPath());
+    }
+
+    // Finally, having written the versions (if any) write the most recent state of the object.
     targetCM.update(cloneContent(content));
     if (sourceCM.hasBody(content.getPath(), null)) {
       InputStream is = sourceCM.getInputStream(content.getPath());
@@ -446,8 +481,6 @@ public class Migrate extends SlingSafeMethodsServlet {
     sourceRows.setString(1, rid);
     ResultSet rs = sourceRows.executeQuery();
 
-    LOGGER.info("*** SQL STARTING");
-
     while (rs.next()) {
       delete.clearParameters(); delete.clearWarnings();
       insert.clearParameters(); insert.clearWarnings();
@@ -465,8 +498,6 @@ public class Migrate extends SlingSafeMethodsServlet {
       // FIXME: error checking would be nice
       insert.execute();
     }
-
-    LOGGER.info("*** SQL DONE");
   }
 
   // Hm.  Actually this throws dupe key errors and looks a bit like we don't
@@ -510,8 +541,6 @@ public class Migrate extends SlingSafeMethodsServlet {
     sourceRows.setString(1, old_rid);
     ResultSet rs = sourceRows.executeQuery();
 
-    LOGGER.info("*** SQL STARTING - {} TO {}", old_rid, new_rid);
-
     while (rs.next()) {
       delete.clearParameters(); delete.clearWarnings();
       insert.clearParameters(); insert.clearWarnings();
@@ -529,8 +558,6 @@ public class Migrate extends SlingSafeMethodsServlet {
       // FIXME: error checking would be nice
       insert.execute();
     }
-
-    LOGGER.info("*** SQL DONE");
   }
 
 
