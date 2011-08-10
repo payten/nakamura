@@ -439,7 +439,8 @@ public class Migrate extends SlingSafeMethodsServlet {
     migrateContent(sourceCM.get(userPath));
 
     // Message box
-    migrateContent(sourceCM.get(userPath + "/message"));
+    migrateContentTree(sourceCM.get(userPath + "/message"),
+                       userPath);
 
     // Authprofile nodes
     for (Content obj : allChildren(sourceCM.get(userPath))) {
@@ -1092,7 +1093,6 @@ public class Migrate extends SlingSafeMethodsServlet {
 
     LOGGER.info("\n\nDONE: Migrating groups");
   }
-
 
 
   protected void doGet(SlingHttpServletRequest request,
