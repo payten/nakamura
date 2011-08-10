@@ -431,7 +431,7 @@ public class Migrate extends SlingSafeMethodsServlet {
     String userPath = "a:" + userId;
     String contactsGroup = "g-contacts-" + userId;
 
-    LOGGER.info("\nMigrating user: {}", user);
+    LOGGER.info("Migrating user: {}", user);
 
     migrateUserACL(user);
 
@@ -659,12 +659,12 @@ public class Migrate extends SlingSafeMethodsServlet {
 
   private void migratePooledContent() throws Exception
   {
-    LOGGER.info("\n\nMigrating pooled content");
+    LOGGER.info("Migrating pooled content");
 
     int page = 0;
 
     while (true) {
-      LOGGER.info("\n\n** Migrating content page: " + page);
+      LOGGER.info("** Migrating content page: " + page);
 
       JDBCStorageClient storageClient = (JDBCStorageClient)sourceConnectionPool.getClient();
       Iterator<Map<String,Object>> it = storageClient.find("n", "cn",
@@ -701,7 +701,7 @@ public class Migrate extends SlingSafeMethodsServlet {
       page++;
     }
 
-    LOGGER.info("\n\nDONE: Migrating pooled content");
+    LOGGER.info("DONE: Migrating pooled content");
   }
 
 
@@ -856,7 +856,7 @@ public class Migrate extends SlingSafeMethodsServlet {
     String contentId = generateWidgetId();
     String poolId = clusterTrackingService.getClusterUniqueId();
 
-    LOGGER.info("\n\nWILL USE: {}", poolId);
+    LOGGER.info("Migrating page with PoolId: {}", poolId);
 
     String structure = "{\"__PAGE_ID__\":{\"_title\":\"__PAGE_TITLE__\",\"_order\":0,\"_ref\":\"__CONTENT_ID__\",\"_nonEditable\":false,\"main\":{\"_title\":\"__PAGE_TITLE__\",\"_order\":0,\"_ref\":\"__CONTENT_ID__\",\"_nonEditable\":false}}}";
     structure = (structure
@@ -904,9 +904,9 @@ public class Migrate extends SlingSafeMethodsServlet {
     for (Content obj : allChildren(sourceCM.get(groupPath))) {
       if ("sakai/page".equals(obj.getProperty("sling:resourceType")) &&
           !obj.getPath().matches("^.*/(about-this-group|group-dashboard)$")) {
-        LOGGER.info ("\n\n\nMIGRATING PAGE: {}", obj);
+        LOGGER.info ("MIGRATING PAGE: {}", obj);
         migratePage(group, obj);
-        LOGGER.info ("\nDONE\n\n");
+        LOGGER.info ("DONE\n\n");
       }
     }
   }
@@ -1041,11 +1041,11 @@ public class Migrate extends SlingSafeMethodsServlet {
       }
     }
 
-    LOGGER.info("\n\nBuilding docstructure...");
+    LOGGER.info("Building docstructure...");
     buildDocstructure(group);
 
 
-    LOGGER.info("\n\nMigrating group pages...");
+    LOGGER.info("Migrating group pages...");
     migratePages(group);
 
     // tickle the indexer
@@ -1055,12 +1055,12 @@ public class Migrate extends SlingSafeMethodsServlet {
 
   private void migrateAllGroups() throws Exception
   {
-    LOGGER.info("\n\nMigrating Groups");
+    LOGGER.info("Migrating Groups");
 
     int page = 0;
 
     while (true) {
-      LOGGER.info("\n\n** Migrating group page: " + page);
+      LOGGER.info("** Migrating group page: " + page);
 
       JDBCStorageClient storageClient = (JDBCStorageClient)sourceConnectionPool.getClient();
       Iterator<Map<String,Object>> it = storageClient.find("n", "cn",
@@ -1091,7 +1091,7 @@ public class Migrate extends SlingSafeMethodsServlet {
       page++;
     }
 
-    LOGGER.info("\n\nDONE: Migrating groups");
+    LOGGER.info("DONE: Migrating groups");
   }
 
 
