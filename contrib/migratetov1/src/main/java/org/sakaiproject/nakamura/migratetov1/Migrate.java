@@ -112,6 +112,7 @@ import java.security.MessageDigest;
 
 import org.sakaiproject.nakamura.lite.RepositoryImpl;
 import org.sakaiproject.nakamura.lite.OSGiStoreListener;
+import org.sakaiproject.nakamura.lite.CachingManager;
 import org.sakaiproject.nakamura.lite.storage.StorageClient;
 import org.sakaiproject.nakamura.lite.storage.StorageClientPool;
 import org.sakaiproject.nakamura.lite.storage.jdbc.JDBCStorageClientPool;
@@ -142,6 +143,8 @@ public class Migrate extends SlingSafeMethodsServlet {
 
   private Configuration configuration;
   private JDBCStorageClientPool sourceConnectionPool;
+
+  private Map<String,Object> sharedCache;
 
   // The source repository
   Session sourceSession;
@@ -209,6 +212,11 @@ public class Migrate extends SlingSafeMethodsServlet {
     targetAM = targetSession.getAuthorizableManager();
     targetCM = targetSession.getContentManager();
     targetACL = targetSession.getAccessControlManager();
+    targetCM.setMaintanenceMode(true);
+
+    Field cacheField = CachingManager.class.getDeclaredField("sharedCache");
+    cacheField.setAccessible(true);
+    sharedCache = (Map<String,Object>)cacheField.get(targetCM);
   }
 
 
@@ -238,10 +246,45 @@ public class Migrate extends SlingSafeMethodsServlet {
     migrateACL("n", "CO", content.getPath(), true);
   }
 
-  private void migrateContent(Content content) throws Exception
+
+  private void setSparseMapValue(String keySpace,
+                                 String columnFamily,
+                                 String mapKey,
+                                 String property,
+                                 Object newValue) throws Exception
+  {
+    StorageClient storageClient = targetConnectionPool.getClient();
+
+    Map<String,Object> props = storageClient.get("n", "cn", mapKey);
+
+    props.put(property, newValue);
+
+    storageClient.insert("n", "cn", mapKey, props, false);
+
+    // Invalidate the content manager's cache to avoid serving back stale data.
+    sharedCache.clear();
+  }
+
+
+  private void saveVersionWithTimestamp(String path, Object timestamp) throws Exception
+  {
+      String newVersionId = targetCM.saveVersion(path);
+      
+      // We've now got a new version, but its version ID will have been
+      // clobbered with the current timestamp.  Set it back.
+      setSparseMapValue("n", "cn", (String)targetCM.get(path).getProperty("_versionHistoryId"),
+                        newVersionId, timestamp);
+      setSparseMapValue("n", "cn", newVersionId, "_versionNumber", timestamp);
+  }
+
+
+  private boolean migrateContent(Content content) throws Exception
   {
     if (content == null) {
-      return;
+      // We may get a null content object when an item is deleted but not
+      // properly cleaned up from the repo.  I think I've seen this when
+      // deleting content objects with multiple versions...
+      return false;
     }
 
     LOGGER.info("Migrating content object: {}", content);
@@ -253,7 +296,7 @@ public class Migrate extends SlingSafeMethodsServlet {
 
       Content version = sourceCM.getVersion(content.getPath(), versionId);
 
-      Map<String,Object> props = new HashMap(version.getOriginalProperties());
+      Map<String,Object> props = new HashMap<String,Object>(version.getOriginalProperties());
 
       if (versionCount == 0) {
         // We're going to replay the versions in reverse order, but that
@@ -277,7 +320,7 @@ public class Migrate extends SlingSafeMethodsServlet {
         versionInputStream.close();
       }
 
-      targetCM.saveVersion(content.getPath());
+      saveVersionWithTimestamp(content.getPath(), version.getProperty("_versionNumber"));
     }
 
     // Finally, having written the versions (if any) write the most recent state of the object.
@@ -289,6 +332,8 @@ public class Migrate extends SlingSafeMethodsServlet {
     }
 
     migrateContentACL(content);
+
+    return true;
   }
 
 
@@ -608,8 +653,23 @@ public class Migrate extends SlingSafeMethodsServlet {
         processed++;
         Map<String,Object> contentMap = it.next();
 
-        migrateContent(sourceCM.get((String)contentMap.get("_path")));
-      }
+        if ("Y".equals((String)contentMap.get("_readOnly"))) {
+          // Content objects that are read-only will be revisions of some other
+          // content object, and we'll get them when migrating that.
+          LOGGER.info("Skipped read-only object: {}", contentMap);
+          continue;
+        }
+
+        try {
+          if (migrateContent(sourceCM.get((String)contentMap.get("_path")))) {
+            // saveVersionWithTimestamp((String)contentMap.get("_path"),
+            //                          contentMap.get("_lastModified"));
+          }
+        } catch (Exception e) {
+            LOGGER.warn("Hit problems migrating: {}", contentMap);
+            e.printStackTrace();
+          }
+        }
 
       if (processed == 0) {
         break;
