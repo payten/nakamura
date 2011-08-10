@@ -590,6 +590,7 @@ video/vnd.mpegurl		mxu m4u
 video/vnd.nokia.interleaved-multimedia
 video/vnd.objectvideo
 video/vnd.vivo
+video/x-m4v			m4v
 video/x-msvideo			avi
 video/x-sgi-movie		movie
 x-conference/x-cooltalk		ice

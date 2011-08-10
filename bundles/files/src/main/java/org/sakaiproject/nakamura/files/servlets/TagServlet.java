@@ -171,7 +171,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
     try {
       if (tagResource instanceof SparseContentResource) {
         Content contentTag = tagResource.adaptTo(Content.class);
-        tagUuid = (String) contentTag.getProperty(Content.UUID_FIELD);
+        tagUuid = (String) contentTag.getProperty(Content.getUuidField());
       } else {
         Node nodeTag = tagResource.adaptTo(Node.class);
         tagUuid = nodeTag.getIdentifier();

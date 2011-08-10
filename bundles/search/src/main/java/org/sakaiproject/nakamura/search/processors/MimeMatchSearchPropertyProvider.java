@@ -15,28 +15,35 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.activity.search;
+package org.sakaiproject.nakamura.search.processors;
 
+import static org.sakaiproject.nakamura.api.search.solr.Query.SOLR;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.solr.client.solrj.util.ClientUtils;
-import org.sakaiproject.nakamura.api.activity.ActivityUtils;
+import org.sakaiproject.nakamura.api.search.SearchConstants;
+import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
-import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-@Component(label = "ActivitySearchPropertyProvider")
-@Properties({
-    @Property(name = "sakai.search.provider", value = "Activity"),
-    @Property(name = "sakai.search.resourceType", value = "sakai/page"),
-    @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "service.description", value = "Provides properties to the activity search templates.")})
+/**
+ *
+ */
+@Component
 @Service
-public class ActivitySearchPropertyProvider implements SolrSearchPropertyProvider {
+@Properties({
+  @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = SearchConstants.REG_PROVIDER_NAMES, value = "MimeMatch") })
+public class MimeMatchSearchPropertyProvider implements SolrSearchPropertyProvider {
+  private static final Logger logger = LoggerFactory
+      .getLogger(TagMatchSearchPropertyProvider.class);
 
   /**
    * {@inheritDoc}
@@ -47,12 +54,17 @@ public class ActivitySearchPropertyProvider implements SolrSearchPropertyProvide
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
 
-    // The current user his feed.
-    String user = request.getRemoteUser();
+    String mimeClause = "";
+    String mimetype = request.getParameter("mimetype");
+    if (!StringUtils.isBlank(mimetype) && !"*".equals(mimetype)) {
+      if (mimetype.endsWith("*")) {
+        mimetype = mimetype.substring(0, mimetype.length() - 1);
+      }
 
-    String path = ActivityUtils.getUserFeed(user);
-    // Encode the path
-    path = ClientUtils.escapeQueryChars(path);
-    propertiesMap.put("_myFeed", path);
+      mimeClause = " AND mimeType:" + SearchUtil.escapeString(mimetype, SOLR);
+    }
+
+    logger.debug("_mimetype: " + mimeClause);
+    propertiesMap.put("_mimetype", mimeClause);
   }
 }

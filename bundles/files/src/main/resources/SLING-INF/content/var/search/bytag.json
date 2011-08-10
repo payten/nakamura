@@ -1,14 +1,15 @@
 {
   "sling:resourceType": "sakai/solr-search",
-  "sakai:query-template": "tag:(${tag}) OR category:(${tag})",
+  "sakai:query-template": "tag:(${tag})",
   "sakai:query-template-options": {
-      "fq": "resourceType:${_resourceType}${_type}",
+      "fq": "resourceType:${_resourceType}${_type}${_categoryAnd}",
       "sort": "${sortOn} ${sortOrder}"
   },
+  "_categoryAnd": "",
   "sortOn": "score",
   "sortOrder": "desc",
   "sakai:title": "By Tag",
-  "sakai:propertyprovider": "ByTag",
+  "sakai:propertyprovider": ["ByTag","CategoryPropertyProvider"],
   "sakai:batchresultprocessor": "GeneralFeed",
   "sakai:shortDescription": "Search by tag (user, group, content) or category (group).",
   "sakai:description": [

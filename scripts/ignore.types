@@ -1,7 +1,40 @@
 # A list of types to exclude from preview processing
 
+# ignore disk images and compressed files
 application/octet-stream
 application/x-diskcopy
 application/x-gzip
 application/x-tar
 application/zip
+
+# ignore all videos
+video/bmpeg
+video/bt656
+video/celb
+video/dv
+video/h261
+video/h263
+video/h263-1998
+video/h263-2000
+video/jpeg
+video/mp1s
+video/mp2p
+video/mp2t
+video/mp4v-es
+video/mpv
+video/mpeg
+video/nv
+video/parityfec
+video/pointer
+video/quicktime
+video/smpte292m
+video/vnd.fvt
+video/vnd.motorola.video
+video/vnd.motorola.videop
+video/vnd.mpegurl
+video/vnd.nokia.interleaved-multimedia
+video/vnd.objectvideo
+video/vnd.vivo
+video/x-m4v
+video/x-msvideo
+video/x-sgi-movie

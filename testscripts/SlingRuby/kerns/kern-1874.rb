@@ -30,7 +30,7 @@ class TC_Kern1874Test < Test::Unit::TestCase
     # create a sakai doc with custom mimetype
     post_params = {}
     post_params["sakai:pooled-content-file-name"] = TEST_SAKAI_DOC_NAME
-    post_params["sakai:custom-mimetype"] = TEST_SAKAI_DOC_MIME_TYPE
+    post_params["mimeType"] = TEST_SAKAI_DOC_MIME_TYPE
     post_params["sakai:description"] = TEST_SAKAI_DOC_NAME + "description"
     post_params["sakai:permissions"] = "public"
     post_params["sakai:copyright"] = "creativecommons"
@@ -42,7 +42,7 @@ class TC_Kern1874Test < Test::Unit::TestCase
     json = JSON.parse(res.body)
     assert_not_nil(json, "Expecting valid json from doc creation")
     content_item = json['_contentItem']
-    mime_type = content_item["item"]["sakai:custom-mimetype"]
+    mime_type = content_item["item"]["_mimeType"]
     assert_equal(TEST_SAKAI_DOC_MIME_TYPE, mime_type, "Expecting valid mime type from response")
     doc_name = content_item["item"]["sakai:pooled-content-file-name"]
     assert_equal(TEST_SAKAI_DOC_NAME, doc_name, "Expecting valid file name from response")
@@ -107,7 +107,7 @@ class TC_Kern1874Test < Test::Unit::TestCase
       if (TEST_SAKAI_DOC_NAME.eql? test_doc_name)
            doc_name = test_doc_name
            doc_found = true
-           doc_mime_type = result["sakai:custom-mimetype"]
+           doc_mime_type = result["_mimeType"]
            doc_count = doc_count +1
       end
     end

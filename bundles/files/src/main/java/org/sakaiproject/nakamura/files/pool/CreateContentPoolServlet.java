@@ -75,16 +75,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.HashSet;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
@@ -245,7 +244,8 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
         }
       }
       if (!fileUpload ) {
-        // not a file upload, ok, create an item and use all the request paremeters, only if there was no poolId specified
+        // not a file upload, ok, create an item and use all the request parameters, only
+        // if there was no poolId specified
         if ( poolId == null ) {
           String createPoolId = generatePoolId();
           results.put("_contentItem",  ImmutableMap.of("poolId", (Object)createPoolId,  "item", createContentItem(createPoolId, adminSession, request, au).getProperties()));
@@ -307,7 +307,12 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
         if ( rp != null && rp.length > 0 ) {
           if ( rp.length == 1) {
               if ( rp[0].isFormField() ) {
+              // Since this is a non-file upload allow override of the mimetype
+              if ("mimeType".equals(k)) {
+                contentProperties.put(Content.MIMETYPE_FIELD, rp[0].getString());
+              } else {
                 contentProperties.put(k, rp[0].getString());
+              }
               }
           } else {
             List<String> values = Lists.newArrayList();
@@ -329,7 +334,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
 
     ActivityUtils.postActivity(eventAdmin, au.getId(), poolId, "Content", "default", "pooled content", "UPDATED_CONTENT", null);
 
-    // deny anon everyting
+    // deny anon everything
     // deny everyone everything
     // grant the user everything.
     List<AclModification> modifications = new ArrayList<AclModification>();
@@ -365,7 +370,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       contentManager.writeBody(poolId, value.getInputStream());
       
       
-      // deny anon everyting
+      // deny anon everything
       // deny everyone everything
       // grant the user everything.
       List<AclModification> modifications = new ArrayList<AclModification>();

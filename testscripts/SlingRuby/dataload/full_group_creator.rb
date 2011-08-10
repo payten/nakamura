@@ -102,11 +102,11 @@ module SlingUsers
       batch_post = []
       batch_post[0] = {"url" => "/system/pool/createfile", "method" => "POST", "parameters" => {"sakai:pooled-content-file-name" => "Library", "sakai:description" => "", "sakai:permissions" => "public", "sakai:copyright" => "creativecommons", \
                       "structure0" => "{\"library\":{\"_ref\":\"id9867543247\",\"_order\":0,\"_nonEditable\":true,\"_title\":\"Library\",\"main\":{\"_ref\":\"id9867543247\",\"_order\":0,\"_nonEditable\":true,\"_title\":\"Library\"}}}", \
-                      "sakai:custom-mimetype" => "x-sakai/document","_charset_" => "utf-8"}, "_charset_" => "utf-8"}       
-       
+                      "mimeType" => "x-sakai/document","_charset_" => "utf-8"}, "_charset_" => "utf-8"}
+
       batch_post[1] = {"url" => "/system/pool/createfile", "method" => "POST", "parameters" => {"sakai:pooled-content-file-name" => "Participants", "sakai:description" => "", "sakai:permissions" => "public", "sakai:copyright" => "creativecommons", \
                       "structure0" => "{\"participants\":{\"_ref\":\"id6573920372\",\"_order\":0,\"_nonEditable\":true,\"_title\":\"Participants\",\"main\":{\"_ref\":\"id6573920372\",\"_order\":0,\"_nonEditable\":true,\"_title\":\"Participants\"}}}", \
-                      "sakai:custom-mimetype" => "x-sakai/document","_charset_" => "utf-8"}, "_charset_" => "utf-8"}
+                      "mimeType" => "x-sakai/document","_charset_" => "utf-8"}, "_charset_" => "utf-8"}
       batch_post_json = JSON.generate batch_post
       @log.debug("#POST 8 - creating initial sakai docs batch post is: #{batch_post_json}")
       @file_log.debug("#POST 8 - creating initial sakai docs batch post is: #{batch_post_json}")      

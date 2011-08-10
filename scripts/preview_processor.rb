@@ -169,9 +169,9 @@ def main
       if ignore_processing?(mime_type) || extension.eql?('')
         if extension.eql?('')
           log "ignoring processing of #{filename}, no preview can be generated for files without a known mime type"
-          log "The file's original extension was #{given_extension}"
+          log "The file's original extension was #{given_extension}, and it's mime type is #{mime_type}"
         else
-          log "ignoring processing of #{filename}, no preview can be generated for #{extension} files"
+          log "ignoring processing of #{filename}, no preview can be generated for #{mime_type} files"
         end
       else
         # Making a local copy of the file.
