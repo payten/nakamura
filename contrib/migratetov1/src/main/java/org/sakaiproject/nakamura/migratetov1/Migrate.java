@@ -110,6 +110,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.security.MessageDigest;
 
+// Forbidden classes!
 import org.sakaiproject.nakamura.lite.RepositoryImpl;
 import org.sakaiproject.nakamura.lite.OSGiStoreListener;
 import org.sakaiproject.nakamura.lite.CachingManager;
@@ -119,9 +120,6 @@ import org.sakaiproject.nakamura.lite.storage.jdbc.JDBCStorageClientPool;
 import org.sakaiproject.nakamura.lite.storage.jdbc.JDBCStorageClient;
 import org.sakaiproject.nakamura.lite.types.Types;
 
-/**
- *
- */
 
 @SlingServlet(methods = "GET", paths = "/system/migratetov1", generateComponent=true)
 public class Migrate extends SlingSafeMethodsServlet {
@@ -144,7 +142,7 @@ public class Migrate extends SlingSafeMethodsServlet {
   private Configuration configuration;
   private JDBCStorageClientPool sourceConnectionPool;
 
-  private Map<String,Object> sharedCache;
+  private Map sharedCache;
 
   // The source repository
   Session sourceSession;
@@ -216,7 +214,7 @@ public class Migrate extends SlingSafeMethodsServlet {
 
     Field cacheField = CachingManager.class.getDeclaredField("sharedCache");
     cacheField.setAccessible(true);
-    sharedCache = (Map<String,Object>)cacheField.get(targetCM);
+    sharedCache = (Map)cacheField.get(targetCM);
   }
 
 
@@ -403,11 +401,10 @@ public class Migrate extends SlingSafeMethodsServlet {
   }
 
 
-  private void migrateUser(Authorizable user) throws Exception
+  private boolean createUser(Authorizable user) throws Exception
   {
     String userId = user.getId();
     String userPath = "a:" + userId;
-    String contactsGroup = "g-contacts-" + userId;
 
     Map<String,Object> props = new HashMap<String,Object>(user.getOriginalProperties());
 
@@ -424,7 +421,15 @@ public class Migrate extends SlingSafeMethodsServlet {
 
     props.put("principals", StringUtils.join(filtered, ";"));
 
-    targetAM.createUser(userId, userId, "testuser", props);
+    return targetAM.createUser(userId, userId, "testuser", props);
+  }
+
+
+  private void migrateUser(Authorizable user) throws Exception
+  {
+    String userId = user.getId();
+    String userPath = "a:" + userId;
+    String contactsGroup = "g-contacts-" + userId;
 
     LOGGER.info("\nMigrating user: {}", user);
 
@@ -473,7 +478,7 @@ public class Migrate extends SlingSafeMethodsServlet {
 
     // public profile
     for (Content obj : allChildren(sourceCM.get(userPath + "/public/profile"))) {
-        migrateContent(obj);
+      migrateContent(obj);
     }
 
     // contact nodes
@@ -606,8 +611,10 @@ public class Migrate extends SlingSafeMethodsServlet {
   }
 
 
-  private void migrateAllUsers() throws Exception
+  private List<String> createAllUsers() throws Exception
   {
+    List<String> createdUsers = new ArrayList<String>();
+
     int page = 0;
 
     while (true) {
@@ -620,7 +627,9 @@ public class Migrate extends SlingSafeMethodsServlet {
         Authorizable user = it.next();
 
         if (!isBoringUser(user.getId())) {
-          migrateUser(user);
+          if (createUser(user)) {
+            createdUsers.add(user.getId());
+          }
         }
       }
 
@@ -629,6 +638,20 @@ public class Migrate extends SlingSafeMethodsServlet {
       }
 
       page++;
+    }
+
+    return createdUsers;
+  }
+
+
+  private void migrateUsers(List<String> createdUsers) throws Exception
+  {
+    for (String userId : createdUsers) {
+      Authorizable user = targetAM.findAuthorizable(userId);
+
+      if (user != null) {
+        migrateUser(user);
+      }
     }
   }
 
@@ -661,9 +684,8 @@ public class Migrate extends SlingSafeMethodsServlet {
         }
 
         try {
-          if (migrateContent(sourceCM.get((String)contentMap.get("_path")))) {
-            // saveVersionWithTimestamp((String)contentMap.get("_path"),
-            //                          contentMap.get("_lastModified"));
+          if (targetCM.get((String)contentMap.get("_path")) == null) {
+            migrateContent(sourceCM.get((String)contentMap.get("_path")));
           }
         } catch (Exception e) {
             LOGGER.warn("Hit problems migrating: {}", contentMap);
@@ -1053,10 +1075,12 @@ public class Migrate extends SlingSafeMethodsServlet {
         String groupName = ((String)groupMap.get("_path")).split(":", 2)[1];
         Authorizable group = sourceAM.findAuthorizable(groupName);
 
-        targetAM.delete(groupName);
-        targetAM.delete(groupName + "-member");
-        targetAM.delete(groupName + "-manager");
-        migrateGroup(group);
+        if (targetAM.findAuthorizable(groupName) == null) {
+        // targetAM.delete(groupName);
+        // targetAM.delete(groupName + "-member");
+        // targetAM.delete(groupName + "-manager");
+          migrateGroup(group);
+        }
     }
 
       if (processed == 0) {
@@ -1079,7 +1103,10 @@ public class Migrate extends SlingSafeMethodsServlet {
       LOGGER.info("Migrating!");
 
       connectToSourceRepository();
-      migrateAllUsers();
+      // Annoyingly, all users need to exist before we can start linking them up
+      // with connections, etc..
+      List<String> createdUsers = createAllUsers();
+      migrateUsers(createdUsers);
       migratePooledContent();
       migrateAllGroups();
 
