@@ -3,7 +3,6 @@ package org.sakaiproject.nakamura.user.lite.servlet;
 import static org.mockito.Mockito.when;
 
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestParameterMap;
 import org.apache.sling.api.resource.Resource;
@@ -24,15 +23,16 @@ import org.sakaiproject.nakamura.api.lite.SessionAdaptable;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification.Operation;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification.Operation;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResource;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProvider;
 import org.sakaiproject.nakamura.user.lite.resource.RepositoryHelper;
 import org.sakaiproject.nakamura.user.postprocessors.DefaultPostProcessor;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -45,9 +45,6 @@ public class LiteUpdateSakaiGroupServletTest  {
   @Mock
   private ResourceResolver resourceResolver;
 
-  @SuppressWarnings("unused")
-  @Mock
-  private SlingHttpServletResponse httpResponse;
 
   @SuppressWarnings("unused")
   @Mock
@@ -60,7 +57,7 @@ public class LiteUpdateSakaiGroupServletTest  {
 
 
 
-  public LiteUpdateSakaiGroupServletTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException {
+  public LiteUpdateSakaiGroupServletTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException, IOException {
     repository = RepositoryHelper.getRepository(new String[]{ "ieb","jeff","joe"}, new String[]{"g-course101", } );
     MockitoAnnotations.initMocks(this);
   }

@@ -29,6 +29,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.sakaiproject.nakamura.api.captcha.CaptchaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,9 +71,9 @@ public class ReCaptchaService implements CaptchaService {
   @Activate
   protected void activate(Map<?, ?> properties) {
     // Get the properties.
-    keyPrivate = (String) properties.get(KEY_PRIVATE);
-    keyPublic = (String) properties.get(KEY_PUBLIC);
-    endpoint = (String) properties.get(RECAPTCHA_ENDPOINT);
+    keyPrivate = OsgiUtil.toString(properties.get(KEY_PRIVATE), "");
+    keyPublic = OsgiUtil.toString(properties.get(KEY_PUBLIC), "");
+    endpoint = OsgiUtil.toString(properties.get(RECAPTCHA_ENDPOINT), "");
 
     // Initialize the client on start up.
     client = new HttpClient();
@@ -127,6 +128,10 @@ public class ReCaptchaService implements CaptchaService {
     try {
       int code = client.executeMethod(method);
       if (code != 200) {
+        LOGGER.warn("ReCaptcha request responded with {} {} if this persists enable debug logging on this class for more info ",code, method.getStatusText());
+        if ( LOGGER.isDebugEnabled()) {
+          LOGGER.debug("Response was {} ",method.getResponseBodyAsString());
+        }
         return false;
       }
 
@@ -137,6 +142,7 @@ public class ReCaptchaService implements CaptchaService {
 
       LOGGER.debug("=== start of reCAPTCHA output ===\n" + body + "\n=== end of reCAPTCHA output ==="); // allow logging statement to show more clearly that the reCAPTCHA output contains a crlf character.
       if (!body.startsWith("true")) {
+        LOGGER.warn("ReCaptcha challenge [{}] responde [{}] denied, debug level has more info ",challenge,response);
         return false;
       }
 

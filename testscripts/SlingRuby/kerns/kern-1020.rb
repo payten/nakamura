@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require 'ruby-lib-dir.rb'
+require './ruby-lib-dir.rb'
 
 require 'sling/test'
 include SlingUsers
@@ -37,12 +37,12 @@ class TC_Kern1020Test < Test::Unit::TestCase
     @s.switch_user(manager)
     res = @s.execute_get(@s.url_for("/system/userManager/group/#{managedgroup.name}.tidy.json"))
     @log.info("ManagedGroup #{res.body}")
-    res = @s.execute_get(@s.url_for("/system/userManager/group/#{managedgroup.name}-managers.tidy.json"))
-    @log.info("ManagedGroup Managers  #{res.body}")
+    # res = @s.execute_get(@s.url_for("/system/userManager/group/#{managedgroup.name}-managers.tidy.json"))
+    # @log.info("ManagedGroup Managers  #{res.body}")
     res = @s.execute_get(@s.url_for("/system/userManager/group/#{membergroup.name}.tidy.json"))
     @log.info("Member Group  #{res.body}")
-    res = @s.execute_get(@s.url_for("/system/userManager/group/#{membergroup.name}-managers.tidy.json"))
-    @log.info("Member Group Managers  #{res.body}")
+    # res = @s.execute_get(@s.url_for("/system/userManager/group/#{membergroup.name}-managers.tidy.json"))
+    # @log.info("Member Group Managers  #{res.body}")
     res = @s.execute_get(@s.url_for("/system/userManager/user/#{manager.name}.tidy.json"))
     @log.info("Manager User  #{res.body}")
     res = @s.execute_get(@s.url_for("/system/userManager/user/#{member.name}.tidy.json"))

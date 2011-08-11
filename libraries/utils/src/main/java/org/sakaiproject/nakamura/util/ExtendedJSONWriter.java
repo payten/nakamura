@@ -20,8 +20,9 @@ package org.sakaiproject.nakamura.util;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Writer;
 import java.util.Collection;
@@ -39,6 +40,7 @@ import javax.jcr.ValueFormatException;
 import javax.jcr.nodetype.PropertyDefinition;
 
 public class ExtendedJSONWriter extends JSONWriter {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExtendedJSONWriter.class);
 
   public ExtendedJSONWriter(Writer w) {
     super(w);
@@ -158,50 +160,49 @@ public class ExtendedJSONWriter extends JSONWriter {
 
   public static void writeNodeContentsToWriter(JSONWriter write, Content content)
       throws JSONException {
-    // Since removal of bigstore we add in jcr:path and jcr:name
-    write.key("jcr:path");
-    write.value(PathUtils.translateAuthorizablePath(content.getPath()));
-    write.key("jcr:name");
-    write.value(StorageClientUtils.getObjectName(content.getPath()));
+    if (content == null) {
+      return;
+    }
 
     Map<String, Object> props = content.getProperties();
     for (Entry<String, Object> prop : props.entrySet()) {
       String propName = prop.getKey();
       Object propValue = prop.getValue();
 
-      if ("_path".equals(propName)) {
-        continue;
-      }
-
       write.key(propName);
       if (propValue instanceof Object[]) {
         write.array();
         for (Object value : (Object[]) propValue) {
-          if (isUserPath(propName, value)) {
-            write.value(PathUtils.translateAuthorizablePath(value));
-          } else {
-            write.value(value);
-          }
+          write.value(PathUtils.translateAuthorizablePath(value));
         }
         write.endArray();
       } else if (propValue instanceof java.util.Calendar){
-          write.value(DateUtils.iso8601((java.util.Calendar)propValue));
+        write.value(DateUtils.iso8601((java.util.Calendar)propValue));
       } else {
-        if (isUserPath(propName, propValue)) {
-          write.value(PathUtils.translateAuthorizablePath(propValue));
-        } else {
-          write.value(propValue);
-        }
+        write.value(PathUtils.translateAuthorizablePath(propValue));
       }
     }
   }
 
   @Override
   public JSONWriter value(Object object) throws JSONException {
+    return value(object, true);
+  }
+
+  /**
+   * @param object
+   *          The object to write out.
+   * @param collapseArray
+   *          Whether the output should be collapsed to a single value if (object instance
+   *          Object[] && object.length == 1)
+   * @return <code>this</code> for continued writing
+   * @throws JSONException
+   */
+  public JSONWriter value(Object object, boolean collapseArray) throws JSONException {
     if ( object instanceof Object[]) {
       Object[] oarray = (Object[]) object;
       if (  oarray.length > 0 ) {
-        if ( oarray.length == 1) {
+        if (collapseArray && oarray.length == 1) {
           value(oarray[0]);
         } else {
           array();
@@ -400,6 +401,11 @@ public class ExtendedJSONWriter extends JSONWriter {
   protected static void writeNodeTreeToWriter(JSONWriter write, Content content,
       boolean objectInProgress, int maxDepth, int currentLevel)
       throws JSONException {
+    if (content == null) {
+      LOGGER.warn("Can't write node tree to writer; null content");
+      return;
+    }
+
     // Write this node's properties.
     if (!objectInProgress) {
       write.object();
@@ -409,7 +415,8 @@ public class ExtendedJSONWriter extends JSONWriter {
     if (maxDepth == -1 || currentLevel < maxDepth) {
       // Write all the child nodes.
       for (Content child : content.listChildren()) {
-        write.key(child.getPath());
+        // Write only the end of the path (KERN-1883)
+        write.key(PathUtils.lastElement(child.getPath()));
         writeNodeTreeToWriter(write, child, false, maxDepth, currentLevel + 1);
       }
     }

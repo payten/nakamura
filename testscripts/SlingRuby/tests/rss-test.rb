@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require 'ruby-lib-dir.rb'
+require './ruby-lib-dir.rb'
 
 require 'sling/sling'
 require 'sling/test'
@@ -33,7 +33,7 @@ class TC_RSSTest < Test::Unit::TestCase
     @log.info("Getting W3Schools.com")
     res = @s.execute_get(@s.url_for("var/proxy/rss.json"), {"rss" => "http://www.w3schools.com/xml/note.xml"})
     @log.info("Done Getting W3Schools.com")
-    assert_equal(500, res.code.to_i, "This is a plain XML (non-RSS) file. Service should return 403."+res.body)
+    assert_equal(400, res.code.to_i, "This is a plain XML (non-RSS) file. Service should return 400."+res.body)
   end
 
 

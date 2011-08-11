@@ -34,6 +34,13 @@ import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -45,8 +52,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-//import org.sakaiproject.nakamura.api.profile.ProfileService;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +72,38 @@ import javax.servlet.http.HttpServletResponse;
  * Servlet endpoint for comments associated to a piece of pooled content.
  */
 @SlingServlet(methods = { "GET", "POST", "DELETE" }, extensions = "comments", resourceTypes = { "sakai/pooled-content" })
+@ServiceDocumentation(name = "ContentPoolCommentServlet", okForVersion = "0.11", shortDescription = "Read/Write/Delete comments on a content item.",
+    description = "Read, write, and delete comments associated to a piece of pooled content.",
+    bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/pooled-content",
+                extensions = @ServiceExtension(name = "comments", description = "Accesses the comments on a piece of content.")),
+    methods = {
+      @ServiceMethod(name = "GET", description = "Retrieve the list of comments associated to a content item.",
+        response = {
+          @ServiceResponse(code = 200, description = "Successfully retrieved the comments for this content item."),
+          @ServiceResponse(code = 500, description = "Failure, explanation is in the HTML.")
+        }),
+      @ServiceMethod(name = "POST", description = "Add a new comment to a content item. <br />",
+        parameters = {
+          @ServiceParameter(name = "comment", description = "The text of the comment to add to the content item."),
+          @ServiceParameter(name = "_charset_", description = "Must be utf-8")
+        },
+        response = {
+          @ServiceResponse(code = 201, description = "Comment successfully added."),
+          @ServiceResponse(code = 400, description = "Bad request: if there is no comment parameter or if user is anonymous."),
+          @ServiceResponse(code = 500, description = "Failure, explanation is in the HTML.")
+        }),
+      @ServiceMethod(name = "DELETE", description = "Remove the specified comment from this content item.",
+        parameters = {
+          @ServiceParameter(name = "commentId", description = "The unique ID of the comment to delete.")
+        },
+        response = {
+          @ServiceResponse(code = 204, description = "The comment was successfully removed."),
+          @ServiceResponse(code = 403, description = "Forbidden. Must be a manager of the pooled content item or author of the comment to delete a comment."),
+          @ServiceResponse(code = 400, description = "Bad request. The commentId parameter was missing, and is not optional."),
+          @ServiceResponse(code = 500, description = "Failure, explanation is in the HTML.")
+        })
+    }
+  )
 public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
     OptingServlet {
   private static final Logger LOGGER = LoggerFactory
@@ -79,6 +117,8 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
 
   @Reference
   private Repository repository;
+  @Reference
+  private BasicUserInfoService basicUserInfoService;
 
   /**
    * Determine if we will accept this request. Had to add this because something is
@@ -133,8 +173,7 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
 
           try {
             Authorizable author = authorizableManager.findAuthorizable(authorId);
-            BasicUserInfo basicUserInfo = new BasicUserInfo();
-            ValueMap profile = new ValueMapDecorator(basicUserInfo.getProperties(author));
+            ValueMap profile = new ValueMapDecorator(basicUserInfoService.getProperties(author));
             w.valueMapInternals(profile);
           } catch (StorageClientException e ) {
             w.key(AUTHOR);
@@ -206,13 +245,25 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
       // have the node name be the number of the comments there are
       Calendar cal = Calendar.getInstance();
       String newNodeName = Long.toString(cal.getTimeInMillis());
-      Content newComment = new Content(path + "/" + newNodeName, ImmutableMap.of(AUTHOR,
-          (Object)request.getRemoteUser(), COMMENT,
+      String newNodePath = path + "/" + newNodeName;
+      Content newComment = new Content(newNodePath, ImmutableMap.of(AUTHOR,
+          (Object)user, COMMENT,
           body));
 
       contentManager.update(newComment);
 
       response.setStatus(HttpServletResponse.SC_CREATED);
+      // return the comment id created for this comment
+      response.setContentType("text/plain");
+      response.setCharacterEncoding("UTF-8");
+      ExtendedJSONWriter w = new ExtendedJSONWriter(response.getWriter());
+      w.object();
+      w.key(COMMENT_ID);
+      w.value(newNodePath);
+      w.endObject();
+    } catch (JSONException e) {
+      LOGGER.warn(e.getMessage(), e);
+      throw new ServletException(e.getMessage(), e);
     } catch (ClientPoolException e) {
       LOGGER.warn(e.getMessage(), e);
       throw new ServletException(e.getMessage(), e);

@@ -8,9 +8,12 @@ require '../kerns/ruby-lib-dir.rb'
 require 'sling/sling'
 require 'sling/users'
 require 'sling/file'
+require 'sling/contacts'
+require 'full_group_creator'
 include SlingInterface
 include SlingUsers
 include SlingFile
+include SlingContacts
 
 module NakamuraData
   
@@ -21,17 +24,27 @@ module NakamuraData
     TEST_GROUP_PREFIX = 'group'
     FIRST_NAMES_FILE = '../../jmeter/firstnames.csv'
     LAST_NAMES_FILE = '../../jmeter/lastnames.csv'
+    CATEGORIES_FILE = "categories.txt"
+    TAGS_FILE = "tags.txt"
 
-    @user_manager = nil
+    @full_group_creator = nil
     @sling = nil
     @file_manager = nil
+
+    attr_reader :log, :file_log, :task, :category_index, :tag_index
     
     def initialize(options)
-
+      @upload_success_count = 0
+      @upload_failure_count = 0
+      @category_index = 0
+      @tag_index = 0
       @user_ids_file = options[:usersfile]
       @num_groups = options[:numgroups].to_i
       @groups_per_user = options[:groupsperuser].to_i
+      @contacts = options[:contacts].to_i
       @load_content_files = options[:loadfiles].to_i
+      @content_root = options[:contentroot]
+      @task = options[:task]
       
       @groups = []
       @user_ids = []
@@ -40,11 +53,14 @@ module NakamuraData
       @sling = Sling.new(server_url, false)
       @sling.log.level = Logger::INFO
       @sling.do_login
-      @user_manager = UserManager.new(@sling)
-      @user_manager.log.level = Logger::INFO
-      @file_manager = FileManager.new(@sling)
       @log = Logger.new(STDOUT)
-      @log.level = Logger::DEBUG
+      @log.level = Logger::INFO
+      @file_log = Logger.new('load.log', 'daily')
+      @file_log.level = Logger::INFO
+      @full_group_creator = SlingUsers::FullGroupCreator.new @sling, @file_log
+      @full_group_creator.log.level = Logger::INFO
+      @file_manager = FileManager.new(@sling)
+      @contact_manager = ContactManager.new(@sling)
     end
     
     def load_users_data
@@ -61,6 +77,34 @@ module NakamuraData
       last_names_file.close
     end
     
+    def load_categories
+      categories_file = File.open(CATEGORIES_FILE, "r")
+      @categories = categories_file.readlines('\n').join.split(',')
+      @categories.each do |category|
+	category.chomp!
+	category.lstrip!
+      end
+      if ("".eql? @categories[@categories.length - 1])
+	@categories.delete_at(@categories.length - 1) 
+      end
+      @log.info "categories are #{@categories.inspect}"
+      @file_log.info "categories are #{@categories.inspect}"
+    end
+    
+    def load_tags
+      tags_file = File.open(TAGS_FILE, "r")
+      @tags = tags_file.readlines('\n').join.split(',')
+      @tags.each do |tag|
+	tag.chomp!
+	tag.lstrip!
+      end
+      if ("".eql? @tags[@tags.length - 1])
+	@tags.delete_at(@tags.length - 1) 
+      end
+      @log.info "tags are #{@tags.inspect}"
+      @file_log.info "tags are #{@tags.inspect}"      
+    end
+    
     # create users from the generated user_ids file
     def create_users()
       if(@user_ids && @first_names && @last_names)
@@ -70,11 +114,13 @@ module NakamuraData
 	  user_id = user_id.split(",")[0]
 	  first_name = @first_names[rand(@first_names.length)]
 	  last_name = @last_names[rand(@last_names.length)]
-	  target_user = @user_manager.create_user user_id.chomp, first_name.chomp, last_name.chomp
+	  target_user = @full_group_creator.create_user user_id.chomp, first_name.chomp, last_name.chomp
 	  if(target_user)
 	    @log.info("created user: #{target_user.inspect}")
+	    @file_log.info("created user: #{target_user.inspect}")
 	  else
 	    @log.info("user #{user_id} not created, may already exist?")
+	    @file_log.info("user #{user_id} not created, may already exist?")	    
 	    target_user = User.new user_id
 	  end
 	end
@@ -83,17 +129,35 @@ module NakamuraData
       end
     end
     
-    # create the requested groups and add one manager to each group      
+    #follow the UI's sequence of posts to create fully functional groups/worlds
+    # including the intial sakai docs for Library and Participants
+    def create_full_groups
+      count = 0
+      while count < @num_groups
+	group_name = "#{TEST_GROUP_PREFIX}-#{count.to_s}"
+	creator_id = @user_ids[rand(@user_ids.length)]
+	creator_id = creator_id.split(",")[0]
+	group = @full_group_creator.create_full_group creator_id, group_name, "#{group_name} Title", "#{group_name} Description"
+	count = count + 1
+	@groups << group
+      end
+    end
+    
+    # create the requested groups and add one manager to each group
+    # this now deprecated in favor of create_full_groups although
+    # it could still be used with a command line switch
     def create_groups
       count = 0
       while count < @num_groups
 	group_name = "#{TEST_GROUP_PREFIX}-#{count.to_s}"
 	#def create_group_complete(groupname, manager, title = nil)
-	group = @user_manager.create_group group_name, "Test Group #{count.to_s}"
+	group = @full_group_creator.create_group group_name, "Test Group #{count.to_s}"
 	if(group)
-	  @log.info "created group: #{group.inspect}"
+	  @log.info "created group: #{group.name}"
+	  @file_log.info "created group: #{group.name}"	  
 	else
 	  @log.info("group #{group_name} not created, may already exist?")
+	  @file_log.info("group #{group_name} not created, may already exist?")	  
 	  group = Group.new group_name
 	end
 	@groups << group
@@ -102,11 +166,13 @@ module NakamuraData
 	manager_id = @user_ids[rand(@user_ids.length)]
 	manager_id = manager_id.split(",")[0]
 	result = add_group_manager group_name, manager_id
-	@log.info "result: #{result.inspect} from adding manager: #{manager_id} to group: #{group.inspect}"
+	@log.info "result: #{result.inspect} from adding manager: #{manager_id} to group: #{group.name}"
 	if (result.code.to_i > 299)
-	    @log.warn "error adding manager: #{manager_id} to group: #{group.inspect}"
+	    @log.warn "error adding manager: #{manager_id} to group: #{group.name}"
+	    @file_log.warn "error adding manager: #{manager_id} to group: #{group.name}"	    
 	  else
-	    @log.info "added manager: #{manager_id} to group: #{group.inspect}"
+	    @log.info "added manager: #{manager_id} to group: #{group.name}"
+	    @file_log.info "added manager: #{manager_id} to group: #{group.name}"
 	  end
       end
     end
@@ -116,7 +182,6 @@ module NakamuraData
       uri = $USERMANAGER_URI + "group/#{group_name}-managers.update.json"
       result = @sling.execute_post(@sling.url_for(uri), { ":member" => principal })
     end
-     #{"url":"/system/userManager/group/my-test-group-managers.update.json","method":"POST","parameters":{":member":"ch1946"}}]
     
     # put each user into however many groups are specified on command line    
     def join_groups
@@ -127,9 +192,11 @@ module NakamuraData
 	  group = @groups[rand(@groups.length)]
 	  result = group.add_member @sling, user_id, "user"
 	  if (result.code.to_i > 299)
-	    @log.warn "error user: #{user_id} to group: #{group.inspect}"
+	    @log.warn "error user: #{user_id} to group: #{group.name}"
+	    @file_log.warn "error user: #{user_id} to group: #{group.name}"	    
 	  else
-	    @log.info "added user: #{user_id} to group: #{group.inspect}"
+	    @log.info "added user: #{user_id} to group: #{group.name}"
+	    @file_log.info "added user: #{user_id} to group: #{group.name}"	    
 	  end
 	  group_count = group_count + 1
 	end
@@ -138,11 +205,16 @@ module NakamuraData
     
     # load some Lorem Ipsum generated text files and, if specified, load the NYU Content
     def load_content
-      load_simple_content
+      load_categories
+      load_tags
+      #load_simple_content -- per Alan no need for lorem ipsum content
       if(@load_content_files == 1)
-	rootdir_name = "./TestContent"
-	load_files_from_filesystem rootdir_name
+	load_files_from_filesystem @content_root
       end
+	@log.info("Total files uploaded: #{@upload_success_count.to_s}")
+	@log.info("File upload failures: #{@upload_failure_count.to_s}")
+	@file_log.info("Total files uploaded: #{@upload_success_count.to_s}")
+	@file_log.info("File upload failures: #{@upload_failure_count.to_s}")         
     end
     
         
@@ -159,11 +231,22 @@ module NakamuraData
 	  @log.debug lorem_text
 	  file_name = "Lorem_Ipsum_#{rand(1000)}"
 	  res = @file_manager.upload_pooled_file(file_name, lorem_text, 'text/plain')
+	  if (res.code.to_i < 299)  
+	    @log.info("uploaded lorem content: #{file_name}")
+	    @file_log.info("uploaded lorem content: #{file_name}")
+	    @upload_success_count = @upload_success_count + 1
+	  else
+	    @log.info("failed uploading lorem content: #{file_name}")
+	    @file_log.info("failed uploading lorem content: #{file_name}")	    
+	    @upload_failure_count = @upload_failure_count + 1
+	  end
 	  file_extension = ".txt"
 	  json = JSON.parse(res.body)
-	  contentid = json[file_name ]
+	  contentid = json[file_name]['poolId']
 	  # in addition to the upload, the following properties need to be set for fully functional, viewable content
 	  finish_content contentid, file_name, file_extension
+	  categorize_content contentid
+	  tag_content contentid	  
 	rescue Exception => ex
 	  @log.warn "failed loading simple content file: #{file_name}"
 	end
@@ -173,24 +256,33 @@ module NakamuraData
     # load the NYU content if requested
     def load_files_from_filesystem(rootdir_name)
       ignore_dirs = ['.','..']
-      Dir.foreach(rootdir_name) do |dir_name|
-	@log.debug "Got #{dir_name}"
-	if (!ignore_dirs.include? dir_name)
-	  # this is a top level content containing directory e.g. doc
-	  content_dir = Dir.new rootdir_name + '/' + dir_name
-	  content_dir.each do |content_file_name|
-	    if (!ignore_dirs.include? content_file_name)
-	      @log.debug "Got content file name: #{content_file_name}"
-	      # we're not going to do the recursive thing, so just bail if we hit a subdirectory
-	      begin
-		load_file_from_filesystem content_dir.path, content_file_name, get_mime_type(content_file_name)
-	      rescue Exception => ex
-		@log.warn "Failed uploading #{content_file_name} because #{ex.class}: #{ex.message}"
-	      end	
+      begin
+	Dir.foreach(rootdir_name) do |dir_name|
+	  @log.debug "Got #{dir_name}"
+	  if (!ignore_dirs.include? dir_name)
+	    # this is a top level content containing directory e.g. doc
+	    content_dir = Dir.new rootdir_name + '/' + dir_name
+	    content_dir.each do |content_file_name|
+	      if (!ignore_dirs.include? content_file_name)
+		@log.debug "Got content file name: #{content_file_name}"
+		# we're not going to do the recursive thing, so just bail if we hit a subdirectory
+		begin
+		  load_file_from_filesystem content_dir.path, content_file_name, get_mime_type(content_file_name)
+		rescue Exception => ex
+		  @log.warn "Failed uploading #{content_file_name} because #{ex.class}: #{ex.message}"
+		  @log.warn("failed uploading file: #{content_file_name} 0" )
+		  @file_log.warn "Failed uploading #{content_file_name} because #{ex.class}: #{ex.message}"
+		  @file_log.warn("failed uploading file: #{content_file_name} 0" )		
+		  @upload_failure_count = @upload_failure_count + 1
+		end	
+	      end
 	    end
 	  end
 	end
-      end
+      rescue Exception => ex
+	@log.warn "failed to load content from root dir #{rootdir_name}"
+	@file_log.warn "failed to load content from root dir #{rootdir_name}"
+      end 	
     end
     
     
@@ -202,6 +294,7 @@ module NakamuraData
       file_name = full_file_name.slice(0, last_dot)
       file_extension = full_file_name.slice(last_dot, (file_name.length - 1))
       @log.info "uploading #{full_file_name} of mime type: #{mime_type}"
+      @file_log.info "uploading #{full_file_name} of mime type: #{mime_type}"      
       File.open("#{directory_name}/#{full_file_name}") do |file|
 	req = Net::HTTP::Post::Multipart.new url.path,
 	  "file" => UploadIO.new(file, mime_type, file_name)
@@ -209,10 +302,20 @@ module NakamuraData
 	res = Net::HTTP.start(url.host, url.port) do |http|
 	  http.request(req)
 	end
-	json = JSON.parse(res.body)
-	contentid = json[file_name]
-	@log.info("uploaded file: #{file_name} with content_id: #{contentid}" )
-	finish_content contentid, file_name, file_extension
+	if (res.code.to_i < 299)
+	  json = JSON.parse(res.body)
+	  contentid = json[file_name]["poolId"]	
+	  @log.info("uploaded file: #{file_name} with content_id: #{contentid} 1" )
+	  @file_log.info("uploaded file: #{file_name} with content_id: #{contentid} 1" )
+	  @upload_success_count = @upload_success_count + 1
+	  finish_content contentid, file_name, file_extension
+	  categorize_content contentid
+	  tag_content contentid
+	else
+	  @log.info("failed to upload file: #{file_name} 0" )
+	  @file_log.info("failed to upload file: #{file_name} 0" )
+	  @upload_failure_count = @upload_failure_count + 1	  
+	end
       end
     end
     
@@ -255,10 +358,132 @@ module NakamuraData
 	"privilege@jcr:read" => "granted"
       })
     end
-            
+
+    def categorize_content(contentid)
+      category = get_category
+      @log.info("creating category tag for category #{category}")
+      @file_log.info("creating category tag for category #{category}")    
+      batch_post = []
+      batch_post[0] = {"url" => "/tags/directory/#{category}", "method" => "POST", "parameters" => {"sakai:tag-name" => "directory/#{category}", "sling:resourceType" => "sakai/tag", "_charset_" => "utf-8"}, "_charset_" => "utf-8"}
+      batch_post_json = JSON.generate batch_post
+      parameters = {"requests" => batch_post_json}
+      @log.debug("creating category tag batch post is: #{batch_post_json}")
+      @file_log.debug("creating category tag batch post is: #{batch_post_json}")   
+      response = @sling.execute_post(@sling.url_for("#{$BATCH_URI}"), parameters)
+      @log.info("creating category response code is: #{response.code}")
+      @file_log.info("creating category response code is: #{response.code}")
+      
+      @log.info("applying category tag #{category} to content item #{contentid}")
+      @file_log.info("applying category tag #{category} to content item #{contentid}")   
+      batch_post = []
+      batch_post[0] = {"url" => "/p/#{contentid}", "method" => "POST", "parameters" => {"key" => "/tags/directory/#{category}", ":operation" => "tag","_charset_" => "utf-8"}, "_charset_" => "utf-8"}
+      batch_post_json = JSON.generate batch_post
+      @log.debug("applying category tag batch post is: #{batch_post_json}")
+      @file_log.debug("applying category tag batch post is: #{batch_post_json}")  
+      parameters = {"requests" => batch_post_json}
+      response = @sling.execute_post(@sling.url_for("#{$BATCH_URI}"), parameters)
+      @log.info("creating category response code is: #{response.code}")
+      @file_log.info("creating category response code is: #{response.code}")
+    end
+    
+#    	[{"url":"/tags/tag1","method":"POST","parameters":{"sakai:tag-name":"tag1","sling:resourceType":"sakai/tag","_charset_":"utf-8"},"_charset_":"utf-8"},\
+#	{"url":"/tags/tag2","method":"POST","parameters":{"sakai:tag-name":"tag2","sling:resourceType":"sakai/tag","_charset_":"utf-8"},"_charset_":"utf-8"}]
+
+#	[{"url":"/p/h5Voiiymib","method":"POST","parameters":{"key":"/tags/tag1",":operation":"tag","_charset_":"utf-8"},"_charset_":"utf-8"},\
+#	{"url":"/p/h5Voiiymib","method":"POST","parameters":{"key":"/tags/tag2",":operation":"tag","_charset_":"utf-8"},"_charset_":"utf-8"}]
+    def tag_content contentid
+      tag_name1 = get_tag
+      tag_name2 = get_tag
+      @log.info("creating tags #{tag_name1} and #{tag_name2}")
+      @file_log.info("creating tags #{tag_name1} and #{tag_name2}")
+      
+      batch_post = []
+      batch_post[0] = {"url" => "/tags/#{tag_name1}", "method" => "POST", "parameters" => {"sakai:tag-name" => "#{tag_name1}", "sling:resourceType" => "sakai/tag", "_charset_" => "utf-8"}, "_charset_" => "utf-8"}
+      batch_post[1] = {"url" => "/tags/#{tag_name2}", "method" => "POST", "parameters" => {"sakai:tag-name" => "#{tag_name2}", "sling:resourceType" => "sakai/tag", "_charset_" => "utf-8"}, "_charset_" => "utf-8"}
+      batch_post_json = JSON.generate batch_post
+      @log.debug("creating tags batch post is: #{batch_post_json}")
+      @file_log.debug("applying tags batch post is: #{batch_post_json}")      
+      parameters = {"requests" => batch_post_json}
+      response = @sling.execute_post(@sling.url_for("#{$BATCH_URI}"), parameters)
+      @log.info("creating tags response code is: #{response.code}")
+      @file_log.info("creating tags response code is: #{response.code}")
+      
+      @log.info("applying tags #{tag_name1} and #{tag_name2} to content item #{contentid}")
+      @file_log.info("applying tags #{tag_name1} and #{tag_name2} to content item #{contentid}")
+      batch_post = []
+      batch_post[0] = {"url" => "/p/#{contentid}", "method" => "POST", "parameters" => {"key" => "/tags/#{tag_name1}", ":operation" => "tag","_charset_" => "utf-8"}, "_charset_" => "utf-8"}
+      batch_post[1] = {"url" => "/p/#{contentid}", "method" => "POST", "parameters" => {"key" => "/tags/#{tag_name2}", ":operation" => "tag","_charset_" => "utf-8"}, "_charset_" => "utf-8"}
+      batch_post_json = JSON.generate batch_post
+      @log.debug("applying category tag batch post is: #{batch_post_json}")
+      @file_log.debug("applying category tag batch post is: #{batch_post_json}")  
+      parameters = {"requests" => batch_post_json}
+      response = @sling.execute_post(@sling.url_for("#{$BATCH_URI}"), parameters)
+      @log.info("applying tags response code is: #{response.code}")
+      @file_log.info("applying tags response code is: #{response.code}")
+    end
+
+    def get_category
+      @category_index = 0 if (@category_index == @categories.length)
+      category = @categories[@category_index]
+      @category_index = @category_index + 1
+      return category
+    end
+    
+    def get_tag
+      @tag_index = 0 if (@tag_index == @tags.length)
+      tag = @tags[@tag_index]
+      @tag_index = @tag_index + 1
+      return tag      
+    end
+    
+    # makes and accepts contacts among users
+    # if the default, 5, is used, the first set 5 users will invite
+    # the second set of 5 users who will in turn accept the invitation
+    # thus making 5 * 5 = 25 connections
+    # Note you must have 2 * @contacts number of users - 10 minimum
+    def make_contacts
+      if (@user_ids.length < 2 * @contacts)
+        @log.error("not enough users, #{@user_ids.length} to make #{@contacts.length} contacts")
+        return
+      else
+        @log.info "about to make #{@contacts} for first set of #{@contacts} users with second set of #{@conctacts} users" 
+        @file_log.info "about to make #{@contacts} contacts for first set of #{@contacts} users with second set of #{@contacts} users" 
+        source_user_ids = @user_ids[0, @contacts]
+        target_user_ids = @user_ids[@contacts, @contacts]
+        source_user_ids.each do |source_id|
+        source_id = source_id.split(",")[0]
+        source_user = User.new source_id
+        @sling.switch_user source_user
+        @sling.do_login
+        target_user_ids.each do |target_id|
+          target_id = target_id.split(",")[0]
+          target_user = User.new target_id
+          response = @contact_manager.invite_contact target_id, "colleague"
+          if ("200".eql? response.code)
+            @log.info "user #{source_id} invited user #{target_id} to be a contact"
+            @file_log.info "user #{source_id} invited user #{target_id} to be a contact"	      
+          else
+            @log.info "user #{source_id} failed to invite user #{target_id} to be a contact, invitation may already exist?"
+            @file_log.info "user #{source_id} failed invite to user #{target_id} to be a contact, invitation may already exist?"	      
+          end
+          @sling.switch_user target_user
+          @sling.do_login
+          response = @contact_manager.accept_contact source_id
+          if ("200".eql? response.code)
+            @log.info "user #{target_id} accepted invitation from user #{source_id}"
+            @file_log.info "user #{target_id} accepted invitation from user #{source_id}"
+          else
+            @log.info "user #{target_id} failed to accept invitation from user #{source_id}, may have already accepted invitation?"
+            @file_log.info "user #{target_id} failed to accept invitation from user #{source_id}, may have already accepted invitation?"	      
+          end
+          @sling.switch_user source_user
+          @sling.do_login
+        end
+      end
+    end
   end
 end
-
+  
 if ($PROGRAM_NAME.include? 'sling_data_loader.rb')
   options = {}
   optparser = OptionParser.new do |opts|
@@ -280,27 +505,57 @@ if ($PROGRAM_NAME.include? 'sling_data_loader.rb')
     end
     
     options[:numgroups] = 200
-    opts.on("-g", "--num-groups NUMGROUPS", "Number of groups to create") do |ng|
+    opts.on("-g", "--num-groups [NUMGROUPS]", "Number of groups to create, default is 200") do |ng|
       options[:numgroups] = ng
     end
     
     options[:groupsperuser] = 2
-    opts.on("-m", "--groups-per-user GROUPSPERUSER", "Number of groups that user is a member of") do |oi|
+    opts.on("-m", "--groups-per-user [GROUPSPERUSER]", "Number of groups that user is a member of, default is 2") do |oi|
       options[:groupsperuser] = oi
     end
     
+    options[:contacts] = 5
+    opts.on("-c", "--contacts [CONTACTS]", "Number of contacts created and accepted among users, default is 5") do |oi|
+      options[:contacts] = oi
+    end    
+    
     options[:loadfiles] = 1
-    opts.on("-f", "--load-content-files CONTENTFILES", "Load static content files") do |lf|
+    opts.on("-f", "--load-content-files [CONTENTFILES]", "Load static content files, default is 1") do |lf|
       options[:loadfiles] = lf
     end
+    
+    options[:contentroot] = './TestContent'
+    opts.on("-r", "--content-root [CONTENTROOT]", "Root Directory of Content files, default is './TestContent'") do |cr|
+      options[:contentroot] = cr
+    end
+    
+    options[:task] = 'all'
+    # tasks are 'all' (the default), 'usersandgroups' or 'content'
+    opts.on("-t", "--task [TASK]", "The task or tasks to perform one of 'all'(the default), 'usersandgroups', 'content'" ) do |tk|
+      options[:task] = tk
+    end    
   end
-  
+end 
   optparser.parse ARGV
   
   sdl = NakamuraData::SlingDataLoader.new options
   sdl.load_users_data
-  sdl.create_users
-  sdl.create_groups
-  sdl.join_groups
-  sdl.load_content
+  if (sdl.task == 'all')
+    sdl.create_users
+    sdl.create_full_groups
+    sdl.join_groups
+    sdl.make_contacts
+    sdl.load_content
+  elsif (sdl.task == 'usersandgroups')
+    sdl.create_users
+    sdl.create_full_groups
+    sdl.join_groups
+  elsif (sdl.task == 'content')
+    sdl.load_content
+  elsif (sdl.task == 'contacts')
+    sdl.make_contacts       
+  else
+    sdl.log.warn("-t --task parameter incorrect, @task is #{sdl.task}")
+  end
+
 end

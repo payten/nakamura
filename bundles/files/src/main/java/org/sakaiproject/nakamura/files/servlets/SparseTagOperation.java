@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.files.servlets;
 
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.TOPIC_FILES_TAG;
 
@@ -34,7 +35,7 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.jcr.api.SlingRepository;import org.apache.sling.servlets.post.Modification;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -43,7 +44,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.files.FileUtils;
-import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.files.FilesConstants;import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
@@ -61,35 +62,49 @@ import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Dictionary;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.jcr.Node;
-import javax.jcr.RepositoryException;
+import javax.jcr.NodeIterator;import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "TagOperation", shortDescription = "Tag a node", description = { "Add a tag to a node." }, methods = { @ServiceMethod(name = "POST", description = { "This operation should be performed on the node you wish to tag. Tagging on any item will be performed by adding a weak reference to the content item. Put simply a sakai:tag-uuid property with the UUID of the tag node. We use the UUID to uniquely identify the tag in question, a string of the tag name is not sufficient. This allows the tag to be renamed and moved without breaking the relationship. Additionally for convenience purposes we may put the name of the tag at the time of tagging in sakai:tag although this will not be actively maintained. " }, parameters = {
-    @ServiceParameter(name = ":operation", description = "The value HAS TO BE <i>tag</i>."),
-    @ServiceParameter(name = "key", description = "Can be either 1) A fully qualified path, 2) UUID, or 3) a content poolId.") }, response = {
-    @ServiceResponse(code = 201, description = "The tag was added to the node."),
-    @ServiceResponse(code = 400, description = "The request did not have sufficient information to perform the tagging, probably a missing parameter or the uuid does not point to an existing tag."),
-    @ServiceResponse(code = 403, description = "Anonymous users can't tag anything, other people can tag <i>every</i> node in the repository where they have READ on."),
-    @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Requested Node  for given key could not be found."),
-    @ServiceResponse(code = 500, description = "Something went wrong, the error is in the HTML.") }) }, bindings = { @ServiceBinding(type = BindingType.OPERATION, bindings = { "tag" }) })
 @Component(immediate = true)
 @Service(value = SparsePostOperation.class)
 @Properties(value = {
-    @Property(name = "sling.post.operation", value = "tag"),
-    @Property(name = "service.description", value = "Creates an internal link to a file."),
-    @Property(name = "service.vendor", value = "The Sakai Foundation") })
+  @Property(name = "sling.post.operation", value = "tag"),
+  @Property(name = "service.description", value = "Associates one or more tags with a piece of content."),
+  @Property(name = "service.vendor", value = "The Sakai Foundation") })
+@ServiceDocumentation(name = "SparseTagOperation", okForVersion = "0.11",
+  shortDescription = "Tag a node",
+  description = "Add a tag to a node.",
+  bindings = {
+    @ServiceBinding(type = BindingType.OPERATION, bindings = { "tag" })
+  },
+  methods = {
+    @ServiceMethod(name = "POST",
+      description = { "This operation should be performed on the node you wish to tag. Tagging on any item will be performed by adding a weak reference to the content item. Put simply a sakai:tag-uuid property with the UUID of the tag node. We use the UUID to uniquely identify the tag in question, a string of the tag name is not sufficient. This allows the tag to be renamed and moved without breaking the relationship. Additionally for convenience purposes we may put the name of the tag at the time of tagging in sakai:tag although this will not be actively maintained. "
+      },
+      parameters = {
+        @ServiceParameter(name = ":operation", description = "(required) The value HAS TO BE <i>tag</i>."),
+        @ServiceParameter(name = "key", description = "(required) Can be either 1) A fully qualified path, 2) UUID, or 3) a content poolId.")
+      },
+      response = {
+        @ServiceResponse(code = 201, description = "The tag was added to the content node."),
+        @ServiceResponse(code = 400, description = "Bad request: either the 'key' parameter was missing, or the resource to be tagged could not be found."),
+        @ServiceResponse(code = 403, description = "Anonymous users can't tag anything, other people can tag <i>every</i> node in the repository where they have READ on."),
+        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Requested Node  for given key could not be found."),
+        @ServiceResponse(code = 500, description = "Something went wrong, the error is in the HTML.")
+      })
+  })
 public class SparseTagOperation extends AbstractSparsePostOperation {
 
 
   @Reference
   protected transient EventAdmin eventAdmin;
+
+  @Reference
+  protected transient SlingRepository slingRepository;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SparseTagOperation.class);
 
@@ -151,12 +166,28 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
       }
       if (tagResource instanceof SparseContentResource) {
         Content contentTag = tagResource.adaptTo(Content.class);
-        tagUuid = (String) contentTag.getProperty(Content.UUID_FIELD);
+        tagUuid = (String) contentTag.getProperty(Content.getUuidField());
         tagName = tagContentWithContentTag(contentManager, content, contentTag);
       } else {
         Node nodeTag = tagResource.adaptTo(Node.class);
         tagUuid = nodeTag.getIdentifier();
         tagName = tagContentWithNodeTag(contentManager, content, nodeTag);
+        javax.jcr.Session adminSession = null;
+        try {
+          adminSession = slingRepository.loginAdministrative(null);
+          Node adminTagNode = adminSession.getNode(nodeTag.getPath());
+          String[] tagNames = StorageClientUtils.nonNullStringArray((String[]) content.getProperty(SAKAI_TAGS));
+          if (!isProfile) {
+            incrementTagCounts(adminTagNode, tagNames, false);
+          }
+          if (adminSession.hasPendingChanges()) {
+            adminSession.save();
+          }
+        } finally {
+          if (adminSession != null) {
+            adminSession.logout();
+          }
+        }
       }
     } catch (Exception e) {
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
@@ -174,14 +205,12 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
         tagUuidSet.add(tagUuid);
         authorizable.setProperty(SAKAI_TAG_UUIDS,
             tagUuidSet.toArray(new String[tagUuidSet.size()]));
-
         // add tag names
         Set<String> tagNameSet = Sets.newHashSet(StorageClientUtils
             .nonNullStringArray((String[]) authorizable.getProperty(SAKAI_TAGS)));
         tagNameSet.add(tagName);
         authorizable.setProperty(SAKAI_TAGS,
             tagNameSet.toArray(new String[tagNameSet.size()]));
-
         authManager.updateAuthorizable(authorizable);
       }
     }
@@ -198,6 +227,67 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
       LOGGER.error("Could not send an OSGi event for tagging a file", e);
     }
 
+  }private void incrementTagCounts(Node nodeTag, String[] tagNames, boolean calledByAChild) throws RepositoryException {
+      if (calledByAChild || !alreadyTaggedBelowThisLevel(nodeTag, tagNames)) {
+        Long tagCount = 1L;
+        if (nodeTag.hasProperty(FilesConstants.SAKAI_TAG_COUNT)) {
+          tagCount = nodeTag.getProperty(FilesConstants.SAKAI_TAG_COUNT).getLong();
+          tagCount++;
+        }
+        nodeTag.setProperty(FilesConstants.SAKAI_TAG_COUNT, tagCount);
+      }
+
+      // if this node's parent is not the root, we keep going up
+      List<String> relatedTags = new ArrayList<String>();
+      relatedTags.addAll(ancestorTags(nodeTag));
+      NodeIterator nodeIterator = nodeTag.getParent().getNodes();
+      while(nodeIterator.hasNext()) {
+        Node peer = nodeIterator.nextNode();
+        if (FileUtils.isTag(peer) && !nodeTag.isSame(peer)) {
+          relatedTags.add(peer.getProperty(SAKAI_TAG_NAME).getString());
+        }
+      }
+      if (!isChildOfRoot(nodeTag) && !alreadyTaggedAtOrAboveThisLevel(tagNames, relatedTags)) {
+        incrementTagCounts(nodeTag.getParent(), tagNames, true);
+      }
+  }private Collection<String> ancestorTags(Node tagNode) throws RepositoryException {
+      Collection<String> rv = new ArrayList<String>();
+      if(!isChildOfRoot(tagNode)) {
+        Node parentNode = tagNode.getParent();
+        if (FileUtils.isTag(parentNode)) {
+          rv.add(parentNode.getProperty(SAKAI_TAG_NAME).getString());
+        }
+        rv.addAll(ancestorTags(parentNode));
+      }
+      return rv;
+  }
+
+  private boolean alreadyTaggedBelowThisLevel(Node tagNode, String[] tagNames) throws RepositoryException {
+    List<String> tagNamesList = Arrays.asList(tagNames);
+    NodeIterator childNodes = tagNode.getNodes();
+    while(childNodes.hasNext()){
+      Node child = childNodes.nextNode();
+      if (alreadyTaggedBelowThisLevel(child, tagNames)) {
+        return true;
+      }
+      if (FileUtils.isTag(child) && tagNamesList.contains(child.getProperty(SAKAI_TAG_NAME).getString())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean alreadyTaggedAtOrAboveThisLevel(String[] tagNames, List<String>peerTags) {
+    for(String tagName : tagNames) {
+      if(peerTags.contains(tagName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean isChildOfRoot(Node node) throws RepositoryException {
+    return node.getParent().isSame(node.getSession().getRootNode());
   }
 
   private String tagContentWithNodeTag(ContentManager contentManager, Content content, Node nodeTag) throws Exception {

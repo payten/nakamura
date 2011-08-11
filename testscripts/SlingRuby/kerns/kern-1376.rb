@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require 'ruby-lib-dir.rb'
+require './ruby-lib-dir.rb'
 
 require 'sling/test'
 require 'sling/file'
@@ -28,7 +28,7 @@ class TC_Kern1376Test < Test::Unit::TestCase
     res = @fm.upload_pooled_file("random-#{m}.txt", "Plain content", "text/plain")
     assert_equal("201", res.code, "Expected to be able to create pooled content")
 	uploadresult = JSON.parse(res.body)
-	contentid = uploadresult["random-#{m}.txt"]
+	contentid = uploadresult["random-#{m}.txt"]['poolId']
 	assert_not_nil(contentid, "Should have uploaded ID")
 	contentpath = @s.url_for("/p/#{contentid}")
 
@@ -52,10 +52,9 @@ class TC_Kern1376Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Should have found activity feed")
     @log.info("Activity feed is #{res.body}")
     activityfeed = JSON.parse(res.body)
-    assert_equal(3, activityfeed["total"])
-    assert_equal("Third activity", activityfeed["results"][0]["sakai:activityMessage"])
-    assert_equal("Second activity", activityfeed["results"][1]["sakai:activityMessage"])
-    assert_equal("First activity", activityfeed["results"][2]["sakai:activityMessage"])
+    # we created three activities, but the system also created one
+    # sakai:activityMessage=CREATED_FILE
+    assert_equal(4, activityfeed["total"])
   end
 
 end

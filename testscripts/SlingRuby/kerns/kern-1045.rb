@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require 'ruby-lib-dir.rb'
+require './ruby-lib-dir.rb'
 
 require 'sling/test'
 require 'sling/file'
@@ -35,11 +35,10 @@ class TC_Kern1045 < Test::Unit::TestCase
     fileBody = "Add the time to make it sort of random #{Time.now.to_f}."
     res = @fm.upload_pooled_file(name, fileBody, 'text/plain')
     json = JSON.parse(res.body)
-    id = json[name]
+    id = json[name]['poolId']
 
 
     # Search the files that I manage .. should be 1
-    wait_for_indexer()
     res = @s.execute_get(@s.url_for("/var/search/pool/me/manager-all.tidy.json"))
     assert_equal("200",res.code,res.body)
     json = JSON.parse(res.body)

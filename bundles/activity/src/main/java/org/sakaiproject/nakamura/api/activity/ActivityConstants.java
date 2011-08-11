@@ -77,6 +77,10 @@ public interface ActivityConstants {
    */
   public static final String ACTIVITY_ITEM_RESOURCE_TYPE = "sakai/activity";
 
+  /**
+   * The sling:resourceType the resource type of the original activity that is posted. Needs to be different from the item that is delivered.
+   */
+  public static final String ACTIVITY_SOURCE_ITEM_RESOURCE_TYPE = "sakai/activity-post";
   /** resource type for resources that are updated */
   String RESOURCE_UPDATE = "sakai/resource-update";
 
@@ -91,5 +95,12 @@ public interface ActivityConstants {
    * The property in the event which will hold the location to the original activity.
    */
   public static final String EVENT_PROP_PATH = "sakai:activity-item-path";
+  /**
+   * Specifies the privacy settings for the activity. 
+   */
+  public static final String PARAM_ACTIVITY_PRIVACY = "sakai:activity-privacy";
+  
+  public static final String PRIVACY_PUBLIC = "public";
+
 
 }

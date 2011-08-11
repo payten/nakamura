@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.nakamura.message;
 
+import com.google.common.collect.ImmutableMap;
+
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.PARAMS_ITEMS_PER_PAGE;
+
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -27,6 +31,7 @@ import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.common.params.CommonParams;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -56,40 +61,38 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Will count all the messages under the user his message store. The user can
  * specify what messages should be counted by specifying parameters in comma
- * seperated values. ex:
- * messages.count.json?filters=sakai:messagebox,read,to&values
- * =inbox,true,user1&groupedby=sakai:messagebox The following are optional: -
- * filters: only nodes with the properties in filters and the values in values
- * get travers - groupedby: group the results by the values of this parameter.
- * 
- * count.json?filters=sakai:read,sakai:messagebox&values=true,inbox&groupby=sakai:category
- * 
+ * separated values. ex:
+ * messages.count.json?filters=sakai:messagebox,read,to&values=inbox,true,user1&groupedby=sakai:messagebox
+ *
+ * The following are optional:
+ *  - filters: only nodes with the properties in filters and the values in values
+ *    get traversed
+ *  - groupedby: group the results by the values of this parameter.
  */
 @SlingServlet(methods = {"GET"}, resourceTypes = {"sakai/messagestore"}, selectors = {"count"}, generateComponent = true, generateService = true)
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Endpoint to count messages in a messagestore.") })
 @ServiceDocumentation(
-    name = "CountServlet",
+    name = "LiteCountServlet documentation", okForVersion = "0.11",
     shortDescription = "Count all the internal messages a user has.",
-    description = "Counts all the internal messaegs a user has.", 
+    description = "Counts all the internal messages a user has.",
     bindings = @ServiceBinding(type = BindingType.TYPE, 
         bindings = "sakai/messagestore", 
         selectors = @ServiceSelector(name = "count")), 
-    methods = @ServiceMethod(name = "POST",
+    methods = @ServiceMethod(name = "GET",
         description = "Count all the internal messages a user has. <br />" +
         "Example:<br />" +
-        "curl http://admin:admin@localhost:8080/_user/message.count.json",
+        "curl -u zach:zach http://localhost:8080/~zach/message.count.json?groupedby=sakai:category" +
+        "<pre>{\"count\":[{\"group\":\"message\",\"count\":2}]}</pre>",
         response = {
-          @ServiceResponse(code = 200, description = "The servlet will send a JSON response which holds 2 keys." + 
-            "<ul><li>id: The id for the newly created message.</li><li>message: This is an object which will hold all the key/values for the newly created message.</li></ul>"),
+          @ServiceResponse(code = 200, description = "The request returned successfully."),
           @ServiceResponse(code = 400, description = "The request did not contain all the (correct) parameters."),
-          @ServiceResponse(code = 401, description = "The user is not logged. Anonymous users are not allowed to send messages."),
-          @ServiceResponse(code = 500, description = "The server was unable to create the message.")},
+          @ServiceResponse(code = 500, description = "The server was unable to count the messages.")},
         parameters = {
-          @ServiceParameter(name = "filters", description = "Comma seperated list of properties that should be matched"),
-          @ServiceParameter(name = "values", description = "Comma seperated list of values for each property."),
-          @ServiceParameter(name = "groupedby", description = "Comma seperated list of property names on what to group by.") }))
+          @ServiceParameter(name = "filters", description = "Optional. Comma separated list of properties that should be matched"),
+          @ServiceParameter(name = "values", description = "Optional. Comma separated list of values for each property."),
+          @ServiceParameter(name = "groupedby", description = "Optional. A property name on what to group by, e.g. sakai:category will return separate counts for each message category.") }))
 
 public class LiteCountServlet extends SlingSafeMethodsServlet {
 
@@ -98,6 +101,8 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
    */
   private static final long serialVersionUID = -5714446506015596037L;
   private static final Logger LOGGER = LoggerFactory.getLogger(LiteCountServlet.class);
+
+  private static long MAX_RESULTS_COUNTED = 500;
 
   @Reference
   protected transient LiteMessagingService messagingService;
@@ -108,7 +113,7 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
   @Override
   protected void doGet(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
-    LOGGER.info("In count servlet" );
+    LOGGER.debug("In count servlet" );
 
     Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
 
@@ -140,9 +145,23 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
         }
       }
 
-      queryString.append(")&start=0&sort=_created desc");
+      queryString.append(")");
 
-      Query query = new Query(queryString.toString(), null);
+      // The "groupedby" clause forces us to inspect every message. If not
+      // specified, all we need is the count.
+      final long itemCount;
+      if (request.getRequestParameter("groupedby") == null) {
+        itemCount = 0;
+      } else {
+        itemCount = MAX_RESULTS_COUNTED;
+      }
+      Map<String, String> queryOptions = ImmutableMap.of(
+          PARAMS_ITEMS_PER_PAGE, Long.toString(itemCount),
+          CommonParams.START, "0",
+          CommonParams.SORT, "_created desc"
+      );
+
+      Query query = new Query(queryString.toString(), queryOptions);
       LOGGER.info("Submitting Query {} ", query);
       SolrSearchResultSet resultSet = searchServiceFactory.getSearchResultSet(
           request, query, false);
@@ -156,8 +175,6 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
       if (request.getRequestParameter("groupedby") == null) {
         write.object();
         write.key("count");
-        // TODO: getSize iterates over all the nodes, add a JackRabbit service
-        // to fetch this number.
         write.value(resultSet.getSize());
         write.endObject();
       } else {
@@ -168,9 +185,16 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
         if (groupedby.startsWith("sakai:")) {
           groupedby = groupedby.substring(6);
         }
+
+        long count = 0;
         Map<String, Integer> mapCount = new HashMap<String, Integer>();
         while (resultIterator.hasNext()) {
           Result n = resultIterator.next();
+
+          if (count >= MAX_RESULTS_COUNTED) {
+            break;
+          }
+          count++;
 
           if (n.getProperties().containsKey(groupedby)) {
             String key = (String) n.getFirstValue(groupedby);
@@ -201,8 +225,10 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
       }
 
     } catch (JSONException e) {
+      LOGGER.error("JSON issue from query " + request.getQueryString(), e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
     } catch (Exception e) {
+      LOGGER.error("Unexpected exception for query " + request.getQueryString(), e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
     }
 

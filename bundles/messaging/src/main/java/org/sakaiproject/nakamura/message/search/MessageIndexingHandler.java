@@ -17,8 +17,12 @@
  */
 package org.sakaiproject.nakamura.message.search;
 
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_BODY;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_SUBJECT;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.Lists;
 
@@ -46,8 +50,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Indexes messages for searching as autonomous items or as part of the user,group
@@ -70,6 +76,8 @@ public class MessageIndexingHandler implements IndexingHandler {
     propBuilder.put("sakai:marker", "marker");
     propBuilder.put("sakai:sendstate", "sendstate");
     propBuilder.put("sakai:initialpost", "initialpost");
+    propBuilder.put(PROP_SAKAI_SUBJECT, "title");
+    propBuilder.put(PROP_SAKAI_BODY, "content");
     WHITELISTED_PROPS = propBuilder.build();
   }
 
@@ -78,17 +86,24 @@ public class MessageIndexingHandler implements IndexingHandler {
 
   private static final String AUTH_SUFFIX = "-auth";
 
+  private static final Set<String> CONTENT_TYPES = Sets
+      .newHashSet(MessageConstants.SAKAI_MESSAGE_RT);
+
   @Reference(target = "(type=sparse)")
   private ResourceIndexingService resourceIndexingService;
 
   @Activate
-  protected void activate(Map<?, ?> props) {
-    resourceIndexingService.addHandler(MessageConstants.SAKAI_MESSAGE_RT, this);
+  public void activate(Map<String, Object> properties) throws Exception {
+    for (String type : CONTENT_TYPES) {
+      resourceIndexingService.addHandler(type, this);
+    }
   }
 
   @Deactivate
-  protected void deactivate(Map<?, ?> props) {
-    resourceIndexingService.removeHandler(MessageConstants.SAKAI_MESSAGE_RT, this);
+  public void deactivate(Map<String, Object> properties) {
+    for (String type : CONTENT_TYPES) {
+      resourceIndexingService.removeHandler(type, this);
+    }
   }
 
   /**
@@ -109,6 +124,10 @@ public class MessageIndexingHandler implements IndexingHandler {
         Content content = cm.get(path);
 
         if (content != null) {
+          if (!CONTENT_TYPES.contains(content.getProperty("sling:resourceType"))) {
+            return documents;
+          }
+
           // index as autonomous message
           SolrInputDocument doc = new SolrInputDocument();
           for (String prop : WHITELISTED_PROPS.keySet()) {
@@ -163,11 +182,17 @@ public class MessageIndexingHandler implements IndexingHandler {
    * @see org.sakaiproject.nakamura.api.solr.IndexingHandler#getDeleteQueries(org.sakaiproject.nakamura.api.solr.RepositorySession,
    *      org.osgi.service.event.Event)
    */
-  public Collection<String> getDeleteQueries(RepositorySession respositorySession,
+  public Collection<String> getDeleteQueries(RepositorySession repositorySession,
       Event event) {
+    List<String> retval = Collections.emptyList();
     logger.debug("GetDelete for {} ", event);
     String path = (String) event.getProperty(FIELD_PATH);
-    return ImmutableList.of("id:(" + ClientUtils.escapeQueryChars(path) + " OR " + ClientUtils.escapeQueryChars(path + AUTH_SUFFIX) + ")");
+    String resourceType = (String) event.getProperty("resourceType");
+    if (CONTENT_TYPES.contains(resourceType)) {
+      retval = ImmutableList.of("id:(" + ClientUtils.escapeQueryChars(path) + " OR "
+          + ClientUtils.escapeQueryChars(path + AUTH_SUFFIX) + ")");
+    }
+    return retval;
   }
 
 }

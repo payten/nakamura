@@ -22,12 +22,12 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.10</version>
+    <version>0.11-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.world</artifactId>
   <packaging>bundle</packaging>
-  <version>0.10</version>
+  <version>0.11-SNAPSHOT</version>
   <name>Sakai Nakamura :: World Support</name>
   <description>World Support bundle</description>
   <build>
@@ -43,7 +43,6 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-nakamura </Bundle-Category>
-            <Export-Package>org.sakaiproject.nakamura.api.world.*</Export-Package>
             <Private-Package>org.sakaiproject.nakamura.world.*</Private-Package>
             <Sling-Initial-Content>
                 SLING-INF/content/var/world;path:=/var/world;ignoreImportProviders:="json";uninstall:=false;overwrite:=true
@@ -67,27 +66,27 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.core</artifactId>
-      <version>0.10</version>
+      <version>1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.10</version>
+      <version>0.11-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.templates</artifactId>
-      <version>0.10</version>
+      <version>0.11-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.resource</artifactId>
-      <version>0.10</version>
+      <version>0.11-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.cluster</artifactId>
-      <version>0.10</version>
+      <version>0.11-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.google.collections</groupId>

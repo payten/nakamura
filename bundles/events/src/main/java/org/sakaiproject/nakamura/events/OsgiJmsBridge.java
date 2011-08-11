@@ -17,23 +17,6 @@
  */
 package org.sakaiproject.nakamura.events;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
-import org.osgi.service.component.ComponentContext;
-import org.osgi.service.event.Event;
-import org.osgi.service.event.EventConstants;
-import org.osgi.service.event.EventHandler;
-import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
-import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
-import org.sakaiproject.nakamura.api.events.EventDeliveryConstants;
-import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventAcknowledgeMode;
-import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventDeliveryMode;
-import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventMessageMode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.List;
@@ -47,6 +30,25 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
+
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.commons.osgi.OsgiUtil;
+import org.osgi.service.component.ComponentContext;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventConstants;
+import org.osgi.service.event.EventHandler;
+import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
+import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
+import org.sakaiproject.nakamura.api.events.EventDeliveryConstants;
+import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventAcknowledgeMode;
+import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventDeliveryMode;
+import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventMessageMode;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Bridge to send OSGi events onto a JMS topic.
@@ -118,12 +120,12 @@ public class OsgiJmsBridge implements EventHandler {
   protected void activate(ComponentContext ctx) {
     Dictionary props = ctx.getProperties();
 
-    transacted = (Boolean) props.get(SESSION_TRANSACTED);
-    acknowledgeMode = (Integer) props.get(ACKNOWLEDGE_MODE);
-    connectionClientId = (String) props.get(CONNECTION_CLIENT_ID);
+    transacted = OsgiUtil.toBoolean(props.get(SESSION_TRANSACTED), false);
+    acknowledgeMode = OsgiUtil.toInteger(props.get(ACKNOWLEDGE_MODE), 0);
+    connectionClientId = OsgiUtil.toString(props.get(CONNECTION_CLIENT_ID), "sakai.event.bridge");
     serverId = clusterTrackingService.getCurrentServerId();
 
-    String[] ignoreEventTopicsValues = (String[]) props.get(IGNORE_EVENT_TOPICS);
+    String[] ignoreEventTopicsValues = OsgiUtil.toStringArray(props.get(IGNORE_EVENT_TOPICS));
     ignoreEventTopics.clear();
 
     if ( ignoreEventTopicsValues != null ) {
@@ -233,8 +235,8 @@ public class OsgiJmsBridge implements EventHandler {
         // message that was not of one of these types.
         if (obj instanceof Byte || obj instanceof Boolean || obj instanceof Character
             || obj instanceof Number || obj instanceof Map || obj instanceof String
-            || obj instanceof List) {
-          msg.setObjectProperty(name, obj);
+            || obj instanceof List || obj instanceof Object[]) {
+          msg.setObjectProperty(name, EventUtils.cleanProperty(obj));
         }
       }
 
@@ -272,5 +274,4 @@ public class OsgiJmsBridge implements EventHandler {
       }
     }
   }
-
 }

@@ -14,6 +14,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 
 public abstract class LiteAbstractMyGroupsServlet extends SlingSafeMethodsServlet {
   private static final long serialVersionUID = -8743012430930506449L;
-  private static final Logger LOGGER = LoggerFactory.getLogger(MyManagedGroupsServlet.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(LiteAbstractMyGroupsServlet.class);
 
   public static final String PARAM_TEXT_TO_MATCH = "q";
 
@@ -63,7 +64,7 @@ public abstract class LiteAbstractMyGroupsServlet extends SlingSafeMethodsServle
   public static final String JSON_RESULTS = "results";
   private static final Set<String> IGNORE_PROPERTIES = new HashSet<String>();
   private static final String[] IGNORE_PROPERTY_NAMES = new String[] {
-    "members", "principals", "sakai:managers-group"
+    "members", "principals",
   };
 
   static {
@@ -101,7 +102,7 @@ public abstract class LiteAbstractMyGroupsServlet extends SlingSafeMethodsServle
         response.sendError(HttpServletResponse.SC_BAD_REQUEST,"User "+userId+" not found.");
         return;
       }
-      TreeMap<String, Group> groups = getGroups(authorizable, am);
+      TreeMap<String, Group> groups = getGroups(authorizable, am, request);
 
       // Get the specified search query filter, if any.
       Pattern filterPattern = getFilterPattern(request.getParameter(PARAM_TEXT_TO_MATCH));
@@ -185,7 +186,55 @@ public abstract class LiteAbstractMyGroupsServlet extends SlingSafeMethodsServle
       return defaultValue;
     }
   }
-  protected abstract TreeMap<String, Group> getGroups(Authorizable member, AuthorizableManager userManager) throws StorageClientException, AccessDeniedException;
+
+  protected String stringRequestParameter(final SlingHttpServletRequest request,
+      final String paramName, final String defaultValue) {
+    final String p = request.getParameter(paramName);
+    if (p == null || p.trim().length() == 0) {
+      return defaultValue;
+    }
+    try {
+      return p;
+    } catch (Exception e) {
+      LOGGER.debug(e.getLocalizedMessage(), e);
+      return defaultValue;
+    }
+  }
+
+  protected boolean isPseudoGroup(Group group) {
+    return ("true".equals(group.getProperty(UserConstants.PROP_PSEUDO_GROUP)) &&
+            group.getProperty(UserConstants.PROP_PSEUDO_GROUP_PARENT) != null);
+  }
+
+  protected boolean isManagerGroup(Group group, AuthorizableManager userManager)
+    throws AccessDeniedException, StorageClientException {
+    String groupId = group.getId();
+    String childGroupId = (String)group.getProperty(UserConstants.PROP_PSEUDO_GROUP_PARENT);    
+
+    Authorizable childGroup = (Authorizable)userManager.findAuthorizable(childGroupId);
+
+    if (childGroup == null) {
+      return false;
+    }
+
+    String[] managers = (String[])childGroup.getProperty(UserConstants.PROP_GROUP_MANAGERS);
+
+    if (managers == null) {
+      return false;
+    }
+
+    for (String manager : managers) {
+      if (groupId.equals(manager)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  protected abstract TreeMap<String, Group> getGroups(Authorizable member,
+      AuthorizableManager userManager, SlingHttpServletRequest request)
+      throws StorageClientException, AccessDeniedException;
 
   protected static Pattern getFilterPattern(String filterParameter) {
     Pattern filterPattern;

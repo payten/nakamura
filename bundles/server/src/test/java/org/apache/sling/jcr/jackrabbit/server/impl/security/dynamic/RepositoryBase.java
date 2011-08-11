@@ -17,15 +17,17 @@
  */
 package org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.jackrabbit.core.RepositoryImpl;
 import org.apache.jackrabbit.core.config.RepositoryConfig;
-import org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipalProvider;
+import org.apache.sling.jcr.jackrabbit.server.impl.Activator;
 import org.mockito.Mockito;
 import org.osgi.framework.BundleContext;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Configuration;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.lite.ConfigurationImpl;
@@ -50,7 +52,7 @@ import javax.jcr.SimpleCredentials;
  */
 public class RepositoryBase {
   private RepositoryImpl repository;
-  private SakaiActivator sakaiActivator;
+  private Activator sakaiActivator;
   private BundleContext bundleContext;
   private org.sakaiproject.nakamura.lite.RepositoryImpl sparseRepository;
   private ConfigurationImpl configuration;
@@ -102,29 +104,17 @@ public class RepositoryBase {
    * @throws StorageClientException
    * @throws ClientPoolException
    * @throws ClassNotFoundException
+   * @throws IOException 
    * 
    */
   private void setupSakaiActivator() throws ClientPoolException, StorageClientException,
-      AccessDeniedException, ClassNotFoundException {
-    DynamicPrincipalManagerFactoryImpl dynamicPrincipalManagerFactoryImpl = new DynamicPrincipalManagerFactoryImpl(
-        bundleContext);
-    RuleProcessorManagerImpl ruleProcessorManagerImpl = new RuleProcessorManagerImpl(
-        bundleContext);
-    PrincipalProviderRegistryManagerImpl principalProviderRegistryManagerImpl = new PrincipalProviderRegistryManagerImpl(
-        bundleContext);
-    principalProviderRegistryManagerImpl.addProvider(new RulesPrincipalProvider());
-    SakaiActivator.setDynamicPrincipalManagerFactory(dynamicPrincipalManagerFactoryImpl);
-    SakaiActivator.setRuleProcessorManager(ruleProcessorManagerImpl);
-    SakaiActivator.setPrincipalProviderManager(principalProviderRegistryManagerImpl);
-    sakaiActivator = new SakaiActivator();
+      AccessDeniedException, ClassNotFoundException, IOException {
+    sakaiActivator = new Activator();
     Mockito.when(bundleContext.getProperty("sling.repository.home")).thenReturn("target/testrepo");
     Mockito.when(bundleContext.getProperty("sling.home")).thenReturn("target/testrepo");
     sakaiActivator.start(bundleContext);
 
     // setup the Sparse Content Repository.
-    connectionPool = new MemoryStorageClientPool();
-    connectionPool.activate(new HashMap<String, Object>());
-    client = connectionPool.getClient();
     configuration = new ConfigurationImpl();
     Map<String, Object> properties = Maps.newHashMap();
     properties.put("keyspace", "n");
@@ -132,6 +122,9 @@ public class RepositoryBase {
     properties.put("authorizable-column-family", "au");
     properties.put("content-column-family", "cn");
     configuration.activate(properties);
+    connectionPool = new MemoryStorageClientPool();
+    connectionPool.activate(ImmutableMap.of(Configuration.class.getName(), (Object) configuration));
+    client = connectionPool.getClient();
     AuthorizableActivator authorizableActivator = new AuthorizableActivator(client,
         configuration);
     authorizableActivator.setup();

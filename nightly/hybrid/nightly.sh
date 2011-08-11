@@ -4,9 +4,9 @@
 # don't forget to trust the svn certificate permanently: svn info https://source.sakaiproject.org/svn
 
 export K2_TAG="HEAD"
-export S2_TAG="branches/sakai-2.8.x"
-export UX_SRC="git://github.com/sakaiproject/3akai-ux.git"
-export UX_TAG="HEAD"
+export S2_TAG="tags/sakai-2.8.0"
+export UX_SRC="git://github.com/sgithens/3akai-ux.git"
+export UX_TAG="origin/june1hybrid"
 export HYBRID_TAG="branches/hybrid-1.1.x"
 export K2_HTTP_PORT="8080"
 export S2_HTTP_PORT="8880"
@@ -69,6 +69,8 @@ then
         rm -rf sakai
         rm -rf sakai2-demo
         rm -rf 3akai-ux
+        rm -rf sparsemapcontent
+        rm -rf solr
         rm -rf sakai3
         # rm -rf ~/.m2/repository/org/sakaiproject
     else
@@ -77,6 +79,14 @@ then
 else
     echo "Starting incremental build..."
 fi
+
+# clean mysql database
+echo "Cleaning MySQL..."
+mysql -u sakaiuser << EOSQL
+drop database if exists nakamura;
+create database nakamura default character set 'utf8';
+exit
+EOSQL
 
 # build 3akai-ux
 cd $BUILD_DIR
@@ -92,13 +102,47 @@ else
     git checkout -b "build-$UX_TAG" $UX_TAG
     # enable My Sakai 2 Sites widget
     # "personalportal":false --> "personalportal":true
-    # perl -pwi -e 's/"personalportal"\s*\:\s*false/"personalportal"\:true/gi' devwidgets/mysakai2/config.json
+    perl -pwi -e 's/"personalportal"\s*\:\s*false/"personalportal"\:true/gi' devwidgets/mysakai2/config.json
     # "showSakai2" : false --> "showSakai2" : true
     perl -pwi -e 's/showSakai2\s*\:\s*false/showSakai2 \: true/gi' dev/configuration/config.js
     # "useLiveSakai2Feeds" : false --> "useLiveSakai2Feeds" : true
     perl -pwi -e 's/useLiveSakai2Feeds\s*\:\s*false/useLiveSakai2Feeds \: true/gi' dev/configuration/config.js
+    # "sakaidocs": false --> "sakaidocs": true
+    perl -pwi -e 's/"sakaidocs"\s*\:\s*false/"sakaidocs"\:true/gi' devwidgets/basiclti/config.json
+    # "sakaidocs": false --> "sakaidocs": true
+    perl -pwi -e 's/"sakaidocs"\s*\:\s*false/"sakaidocs"\:true/gi' devwidgets/sakai2tools/config.json
     mvn -B -e clean install
     date > ../.lastbuild
+fi
+
+# build sparsemapcontent
+cd $BUILD_DIR
+mkdir -p sparsemapcontent
+cd sparsemapcontent
+if [ -f .lastbuild ]
+then
+    echo "Skipping build sparsemapcontent@HEAD..."
+else
+    echo "Building sparsemapcontent@HEAD..."
+    git clone -q git://github.com/ieb/sparsemapcontent.git
+    cd sparsemapcontent
+    git checkout -b "build-HEAD" HEAD
+    mvn -B -e clean install
+fi
+
+# build solr
+cd $BUILD_DIR
+mkdir -p solr
+cd solr
+if [ -f .lastbuild ]
+then
+    echo "Skipping build solr@HEAD..."
+else
+    echo "Building solr@HEAD..."
+    git clone -q git://github.com/ieb/solr.git
+    cd solr
+    git checkout -b "build-HEAD" HEAD
+    mvn -B -e clean install
 fi
 
 # build sakai 3
@@ -113,7 +157,16 @@ else
     git clone -q git://github.com/sakaiproject/nakamura.git
     cd nakamura
     git checkout -b "build-$K2_TAG" $K2_TAG
+    perl -pwi -e 's/http:\/\/sakaiproject\.org/http:\/\/sakai3-nightly\.uits\.indiana\.edu/gi' bundles/basiclti/src/main/resources/SLING-INF/content/var/basiclti/globalSettings.json
+    perl -pwi -e 's/http:\/\/localhost/http:\/\/sakai3-nightly\.uits\.indiana\.edu:8088/gi' bundles/basiclti/src/main/resources/SLING-INF/content/var/basiclti/sakai*.json
     mvn -B -e clean install
+    #install optional mysql driver
+    cd contrib/mysql-jdbc
+    mvn -B -e clean install
+    cd ../../app/
+    perl -pwi -e 's/<startLevel level="1">/<startLevel level="1"><bundle><groupId>org\.sakaiproject\.nakamura<\/groupId><artifactId>org\.sakaiproject\.nakamura\.mysqljdbc<\/artifactId><version>0.11-SNAPSHOT<\/version><\/bundle>/gi' src/main/bundles/list.xml
+    mvn -B -e clean install
+    cd ..
     date > .lastbuild
 fi
 
@@ -121,16 +174,31 @@ fi
 echo "Starting sakai3 instance..."
 cd app/target/
 K2_ARTIFACT=`find . -name "org.sakaiproject.nakamura.app*[^sources].jar"`
-# configure TrustedLoginTokenProxyPreProcessor via file install
-mkdir -p load
-echo 'sharedSecret=e2KS54H35j6vS5Z38nK40' > load/org.sakaiproject.nakamura.proxy.TrustedLoginTokenProxyPreProcessor.cfg
-echo "port=$HTTPD_PORT" >> load/org.sakaiproject.nakamura.proxy.TrustedLoginTokenProxyPreProcessor.cfg
-echo 'hostname=localhost' >> load/org.sakaiproject.nakamura.proxy.TrustedLoginTokenProxyPreProcessor.cfg
-# configure ServerProtectionServiceImpl via file install
-echo "trusted.secret=shhhhh" > load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
-echo "trusted.hosts=http://sakai3-nightly.uits.indiana.edu:$HTTPD_PORT" >> load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
-echo "trusted.referer=http://sakai3-nightly.uits.indiana.edu:$HTTPD_PORT" >> load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
-echo "untrusted.contenturl=http://sakai3-nightly.uits.indiana.edu:8082" >> load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
+# configure TrustedLoginTokenProxyPreProcessor
+mkdir -p sling/config/org/sakaiproject/nakamura/proxy
+echo 'service.pid="org.sakaiproject.nakamura.proxy.TrustedLoginTokenProxyPreProcessor"' > sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
+echo 'hostname="localhost"' >> sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
+echo "port=I\"$HTTPD_PORT\"" >> sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
+echo 'sharedSecret="e2KS54H35j6vS5Z38nK40"' >> sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
+# configure ServerProtectionServiceImpl
+mkdir -p sling/config/org/sakaiproject/nakamura/http/usercontent
+echo 'service.pid="org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl"' > sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'trusted.paths=["/dev","/devwidgets","/system"]' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'trusted.postwhitelist=["/system/console"]' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'trusted.exact.paths=["/","/index.html"]' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'trusted.anonpostwhitelist=["/system/userManager/user.create","/system/batch"]' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'disable.protection.for.dev.mode=B"false"' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'trusted.secret="shhhhh"' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'untrusted.contenturl="http://sakai3-nightly.uits.indiana.edu:8082"' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo "trusted.hosts=[\"http://sakai3-nightly.uits.indiana.edu:$HTTPD_PORT\"]" >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo "trusted.referer=[\"/\",\"http://sakai3-nightly.uits.indiana.edu:$HTTPD_PORT\"]" >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+#configure JDBC connector
+mkdir -p sling/config/org/sakaiproject/nakamura/lite/storage/jdbc
+echo 'service.pid="org.sakaiproject.nakamura.lite.storage.jdbc.JDBCStorageClientPool"' > sling/config/org/sakaiproject/nakamura/lite/storage/jdbc/JDBCStorageClientPool.config
+echo 'jdbc-driver="com.mysql.jdbc.Driver"' >> sling/config/org/sakaiproject/nakamura/lite/storage/jdbc/JDBCStorageClientPool.config
+echo 'jdbc-url="jdbc:mysql://localhost/nakamura?autoReconnectForPools=true"' >> sling/config/org/sakaiproject/nakamura/lite/storage/jdbc/JDBCStorageClientPool.config
+echo 'username="sakaiuser"' >> sling/config/org/sakaiproject/nakamura/lite/storage/jdbc/JDBCStorageClientPool.config
+echo 'password="ironchef"' >> sling/config/org/sakaiproject/nakamura/lite/storage/jdbc/JDBCStorageClientPool.config
 java $K2_OPTS -jar $K2_ARTIFACT -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
 
 # build sakai 2
@@ -187,9 +255,9 @@ else
     echo "org.sakaiproject.hybrid.util.TrustedLoginFilter.sharedSecret=e2KS54H35j6vS5Z38nK40" >> sakai2-demo/sakai/sakai.properties
     echo "org.sakaiproject.hybrid.util.TrustedLoginFilter.safeHosts=localhost;127.0.0.1;0:0:0:0:0:0:0:1%0;129.79.26.127" >> sakai2-demo/sakai/sakai.properties
     # enabled Basic LTI provider
-    echo "imsblti.provider.enabled=true" >> sakai2-demo/sakai/sakai.properties
-    echo "imsblti.provider.allowedtools=sakai.forums:sakai.messages:sakai.synoptic.messagecenter:sakai.poll:sakai.profile:sakai.profile2:sakai.announcements:sakai.synoptic.announcement:sakai.assignment.grades:sakai.summary.calendar:sakai.schedule:sakai.chat:sakai.dropbox:sakai.resources:sakai.gradebook.tool:sakai.help:sakai.mailbox:sakai.news:sakai.podcasts:sakai.postem:sakai.site.roster:sakai.rwiki:sakai.syllabus:sakai.singleuser:sakai.samigo:sakai.sitestats" >> sakai2-demo/sakai/sakai.properties
-    echo "imsblti.provider.12345.secret=secret" >> sakai2-demo/sakai/sakai.properties
+    echo "basiclti.provider.enabled=true" >> sakai2-demo/sakai/sakai.properties
+    echo "basiclti.provider.allowedtools=sakai.forums:sakai.messages:sakai.synoptic.messagecenter:sakai.poll:sakai.profile:sakai.profile2:sakai.announcements:sakai.synoptic.announcement:sakai.assignment.grades:sakai.summary.calendar:sakai.schedule:sakai.chat:sakai.dropbox:sakai.resources:sakai.gradebook.tool:sakai.help:sakai.mailbox:sakai.news:sakai.podcasts:sakai.postem:sakai.site.roster:sakai.rwiki:sakai.syllabus:sakai.singleuser:sakai.samigo:sakai.sitestats" >> sakai2-demo/sakai/sakai.properties
+    echo "basiclti.provider.12345.secret=secret" >> sakai2-demo/sakai/sakai.properties
     echo "webservices.allow=.+" >> sakai2-demo/sakai/sakai.properties
     # enable debugging for hybrid related code
     echo "log.config.count=6" >> sakai2-demo/sakai/sakai.properties

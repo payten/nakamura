@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,6 +37,8 @@ import org.sakaiproject.nakamura.api.lite.SessionAdaptable;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.user.lite.resource.RepositoryHelper;
+
+import java.io.IOException;
 
 
 /**
@@ -55,9 +56,6 @@ public class LiteUserExistsServletTest {
   @Mock
   private SlingHttpServletResponse httpResponse;
 
-  @SuppressWarnings("unused")
-  @Mock
-  private Resource resource;
 
   private Repository repository;
   
@@ -66,7 +64,7 @@ public class LiteUserExistsServletTest {
 
 
 
-  public LiteUserExistsServletTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException {
+  public LiteUserExistsServletTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException, IOException {
     repository = RepositoryHelper.getRepository(new String[]{ "ieb","jeff","joe"}, new String[]{"g-course101", } );
     MockitoAnnotations.initMocks(this);
   }

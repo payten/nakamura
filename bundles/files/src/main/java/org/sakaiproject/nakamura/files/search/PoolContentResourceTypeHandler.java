@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
@@ -31,7 +32,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.tika.exception.TikaException;
-import org.osgi.framework.BundleContext;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
@@ -72,9 +72,8 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(PoolContentResourceTypeHandler.class);
-  private static final String[] CONTENT_TYPES = new String[] {
-    "sakai/pooled-content"
-  };
+  private static final Set<String> CONTENT_TYPES = Sets
+      .newHashSet("sakai/pooled-content");
 
   @Reference(target="(type=sparse)")
   protected ResourceIndexingService resourceIndexingService;
@@ -88,23 +87,27 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
     builder.put(FilesConstants.POOLED_CONTENT_USER_VIEWER, "viewer");
     builder.put(FilesConstants.POOLED_CONTENT_FILENAME, "filename");
     builder.put(FilesConstants.POOLED_NEEDS_PROCESSING, "needsprocessing");
+    builder.put(FilesConstants.POOLED_CONTENT_MIMETYPE, "mimeType");
     builder.put(FilesConstants.SAKAI_FILE, "file");
     builder.put(FilesConstants.SAKAI_TAG_NAME, "tagname");
     builder.put(FilesConstants.SAKAI_TAG_UUIDS, "taguuid");
     builder.put(FilesConstants.SAKAI_TAGS, "tag");
+    builder.put(FilesConstants.SAKAI_PAGE_COUNT, "pagecount");
     builder.put(FilesConstants.LAST_MODIFIED, FilesConstants.LAST_MODIFIED);
     builder.put(FilesConstants.LAST_MODIFIED_BY, FilesConstants.LAST_MODIFIED_BY);
     builder.put(FilesConstants.CREATED, FilesConstants.CREATED);
     builder.put(FilesConstants.CREATED_BY, FilesConstants.CREATED_BY);
     builder.put(FilesConstants.LINK_PATHS, FilesConstants.LINK_PATHS);
     builder.put(FilesConstants.SAKAI_DESCRIPTION, "description");
+    builder.put(FilesConstants.POOLED_CONTENT_COMMENT, "comment");
+    builder.put(FilesConstants.POOLED_CONTENT_HAS_PREVIEW, "hasPreview");
     return builder.build();
   }
 
   // ---------- SCR integration-------------------------------------------------
 
   @Activate
-  public void activate(BundleContext bundleContext, Map<String, Object> properties) throws Exception {
+  public void activate(Map<String, Object> properties) throws Exception {
     for (String type : CONTENT_TYPES) {
       resourceIndexingService.addHandler(type, this);
     }
@@ -138,31 +141,44 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
         ContentManager contentManager = session.getContentManager();
         Content content = contentManager.get(path);
         if (content != null) {
+          if (!CONTENT_TYPES.contains(content.getProperty("sling:resourceType"))) {
+            return documents;
+          }
+
           SolrInputDocument doc = new SolrInputDocument();
 
           Map<String, Object> properties = content.getProperties();
 
-          for (Entry<String, Object> p : properties.entrySet()) {
-            String indexName = index(p);
-            if (indexName != null) {
-              for (Object o : convertToIndex(p)) {
-                doc.addField(indexName, o);
+          if (properties.get("sakai:pooled-content-file-name") == null) {
+            // KERN-2004: Don't return documents unless upload has completed and file name
+            // has been set
+            LOGGER
+                .debug(
+                    "Skipping document return for pooled content {} at event {}; file upload is incomplete",
+                    path, event);
+          } else {
+            for (Entry<String, Object> p : properties.entrySet()) {
+              String indexName = index(p);
+              if (indexName != null) {
+                for (Object o : convertToIndex(p)) {
+                  doc.addField(indexName, o);
+                }
               }
             }
-          }
 
-          InputStream contentStream = contentManager.getInputStream(path);
-          if (contentStream != null) {
-            try {
-              String extracted = tika.parseToString(contentStream);
-              doc.addField("content", extracted);
-            } catch (TikaException e) {
-              LOGGER.warn(e.getMessage(), e);
+            InputStream contentStream = contentManager.getInputStream(path);
+            if (contentStream != null) {
+              try {
+                String extracted = tika.parseToString(contentStream);
+                doc.addField("content", extracted);
+              } catch (TikaException e) {
+                LOGGER.warn(e.getMessage(), e);
+              }
             }
-          }
 
-          doc.addField(_DOC_SOURCE_OBJECT, content);
-          documents.add(doc);
+            doc.addField(_DOC_SOURCE_OBJECT, content);
+            documents.add(doc);
+          }
         }
       } catch (ClientPoolException e) {
         LOGGER.warn(e.getMessage(), e);
@@ -201,14 +217,17 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
    *      org.osgi.service.event.Event)
    */
   public Collection<String> getDeleteQueries(RepositorySession repositorySession, Event event) {
+    List<String> retval = Collections.emptyList();
     LOGGER.debug("GetDelete for {} ", event);
-    String path = (String) event.getProperty("path");
+    String path = (String) event.getProperty(FIELD_PATH);
     boolean ignore = ignorePath(path);
-    if ( ignore ) {
-      return Collections.emptyList();
-    } else {
-      return ImmutableList.of(FIELD_ID + ":" + ClientUtils.escapeQueryChars(path));
+    if ( !ignore ) {
+      String resourceType = (String) event.getProperty("resourceType");
+      if (CONTENT_TYPES.contains(resourceType)) {
+        retval = ImmutableList.of("id:" + ClientUtils.escapeQueryChars(path));
+      }
     }
+    return retval;
   }
 
   public void setResourceIndexingService(ResourceIndexingService resourceIndexingService) {

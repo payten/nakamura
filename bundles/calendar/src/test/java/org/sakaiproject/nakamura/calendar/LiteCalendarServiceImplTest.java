@@ -23,7 +23,6 @@ import static org.junit.Assert.assertNotNull;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
-import edu.emory.mathcs.backport.java.util.Collections;
 
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.ParserException;
@@ -47,10 +46,14 @@ import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
 import org.sakaiproject.nakamura.util.IOUtils;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.List;
 
 public class LiteCalendarServiceImplTest {
@@ -64,7 +67,7 @@ public class LiteCalendarServiceImplTest {
   }
 
   @Before
-  public void setUp() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException {
+  public void setUp() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException, IOException {
     BaseMemoryRepository baseMemoryRepository = new BaseMemoryRepository();
     repository = baseMemoryRepository.getRepository();
     session = repository.loginAdministrative();
@@ -147,10 +150,11 @@ public class LiteCalendarServiceImplTest {
   }
 
   @Test
-  public void testStoreAsReader() throws CalendarException, IOException, ParserException {
+  public void testStoreAsReader() throws CalendarException, IOException, ParserException, URISyntaxException {
     Calendar inputCalendar = loadTestCalendar();
-    String fileName = getClass().getClassLoader().getResource("home.ics").getFile();
-    Reader calendarReader = new FileReader(fileName);
+    URI fileUri = getClass().getClassLoader().getResource("home.ics").toURI();
+    File file = new File(fileUri);
+    Reader calendarReader = new FileReader(file);
     String calendarPath = testKey + "/store-as-calendar";
     Content createdContent = liteCalendarService.store(calendarReader, session, calendarPath);
     checkStoredCalendar(inputCalendar, createdContent);

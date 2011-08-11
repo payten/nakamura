@@ -32,6 +32,14 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -41,6 +49,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.util.ActivityUtils;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 
@@ -55,6 +64,26 @@ import javax.servlet.http.HttpServletResponse;
 /**
  *
  */
+@ServiceDocumentation(name = "LiteGroupJoinRequestServlet documentation", okForVersion = "0.11",
+  shortDescription = "Servlet to make a request to join a group",
+  description = "Servlet to make a request to join a group, responding to nodes of type sparse/joinrequests",
+  bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sparse/joinrequests",
+    selectors = @ServiceSelector(name = "create", description = ""),
+    extensions = { @ServiceExtension(name = "json") }),
+  methods = {
+    @ServiceMethod(name = "POST", description = {
+      "Create a new join request.",
+      "curl --referer http://localhost:8080 -u suzy:password -Fuserid=suzy http://localhost:8080/~math101/joinrequests.create.json"
+    },
+      parameters = {
+        @ServiceParameter(name = "userid", description = "The user to join the group.")
+      },
+      response = {
+        @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
+        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
+        @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.")
+      })
+})
 @Component(immediate = true, label = "%group.joinServlet.label", description = "%group.joinServlet.desc")
 @SlingServlet(resourceTypes = "sparse/joinrequests", methods = "POST", selectors = "create", generateComponent = false)
 public class LiteGroupJoinRequestServlet extends SlingAllMethodsServlet {
@@ -134,8 +163,10 @@ public class LiteGroupJoinRequestServlet extends SlingAllMethodsServlet {
       case yes:
         // membership is automatically granted
         targetGroup.addMember(userId);
+        authorizableManager.updateAuthorizable(targetGroup);
         Dictionary<String, Object> eventProps = new Hashtable<String, Object>();
         eventAdmin.postEvent(new Event(GroupEvent.joinedSite.getTopic(), eventProps));
+        ActivityUtils.postActivity(eventAdmin, userId, group.getPath(), "Content", "default", "pooled content", "JOINED_GROUP", null);
         break;
       case withauth:
         // check to see if this user is already there

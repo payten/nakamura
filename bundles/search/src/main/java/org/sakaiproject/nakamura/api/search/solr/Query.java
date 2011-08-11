@@ -26,16 +26,26 @@ import java.util.Map;
  * greater ease when parsing as templates and for building the SolrQuery object.
  */
 public class Query {
+  public static final String SPARSE = "sparse";
+  public static final String SOLR = "solr";
 
-  public enum Type {
-    SOLR, SPARSE
-  }
-
-  private Type type;
+  private String type;
 
   private String queryString;
 
   private Map<String, String> options;
+
+  private String name;
+
+  public Query(String queryString) {
+    if (StringUtils.isBlank(queryString)) {
+      throw new IllegalArgumentException("'queryString' must be provided to query");
+    }
+
+    this.type = Query.SOLR;
+    this.queryString = queryString;
+    this.name = null;
+  }
 
   /**
    * Create a query with a query string and optional properties to use Solr for searching.
@@ -44,13 +54,10 @@ public class Query {
    * @param options
    */
   public Query(String queryString, Map<String, String> options) {
-    if (StringUtils.isBlank(queryString)) {
-      throw new IllegalArgumentException("'queryString' must be provided to query");
-    }
+    this(queryString);
 
-    this.type = Type.SOLR;
-    this.queryString = queryString;
     this.options = options;
+    this.name = null;
   }
 
   /**
@@ -58,19 +65,25 @@ public class Query {
    *
    * @param properties
    */
-  public Query(Type type, String queryString, Map<String, String> options) {
+  public Query(String type, String queryString, Map<String, String> options) {
     this(queryString, options);
 
     this.type = type;
+    this.name = null;
   }
 
+
+  public Query(String name, String type, String queryString, Map<String, String> options) {
+    this(type, queryString, options);
+    this.name = name;
+  }
   /**
    * Get the type of query this is.
    *
    * @return SOLR, SPARSE
    * @see Type
    */
-  public Type getType() {
+  public String getType() {
     return type;
   }
 
@@ -99,5 +112,9 @@ public class Query {
       retval += "; options::" + options.toString();
     }
     return retval;
+  }
+
+  public String getName() {
+    return name;
   }
 }

@@ -1,11 +1,12 @@
 {
-  "sakai:query-template": "path:${_pNodePath}/activity AND resourceType:sakai/activity",
+  "sakai:query-template": "path:${_pNodePath}/activity AND resourceType:sakai/activity-post",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
   "sortOn": "_created",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
+  "sakai:resultprocessor": "ActivityFeed", // this is in the activity bundle
   "sakai:propertyprovider" : "PooledContentNode",
   "sakai:title": "Pooled Content - Activity Feed",
   "sakai:shortDescription": "Returns recent activity nodes under a Pooled Content node.",

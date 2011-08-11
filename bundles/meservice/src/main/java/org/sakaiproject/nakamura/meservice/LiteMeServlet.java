@@ -55,10 +55,11 @@ import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
+import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +78,7 @@ import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "MeServlet",
+@ServiceDocumentation(name = "MeServlet", okForVersion = "0.11",
     shortDescription = "Returns information about the current active user.",
     description = "Presents information about current user in JSON format.",
     bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/me"),
@@ -86,17 +87,36 @@ import javax.servlet.http.HttpServletResponse;
         response = {
     @ServiceResponse(code = 200, description = "Request for information was successful. <br />"
         + "A JSON representation of the current user is returned. E.g. for an anonymous user:"
-        + "<pre>{\"user\":\n"
-        + "{\"anon\":true,\"subjects\":[],\"superUser\":false},\n"
-        + "\"profile\":{\n"
-        + "\"jcr:path\":\"/_user/a/an/anonymous/public/authprofile\",\n"
-        + "\"jcr:name\":\"authprofile\",\n"
-        + "\"rep:userId\":\"anonymous\",\n"
-        + "\"sling:resourceType\":\"sakai/user-profile\",\n"
-        + "\"jcr:uuid\":\"4af50bac-dca3-4517-81e0-1b83208f3f1d\",\n"
-        + "\"jcr:mixinTypes\":[\"mix:referenceable\"],\n"
-        + "\"path\":\"/a/an/anonymous\",\n"
-        + "\"jcr:primaryType\":\"nt:unstructured\"}\n" + "}<pre>"),
+        + "<pre>{\n" +
+      "    \"user\": {\n" +
+      "        \"anon\": true,\n" +
+      "        \"subjects\": [],\n" +
+      "        \"superUser\": false\n" +
+      "    },\n" +
+      "    \"eventbus\": \"http://localhost:8080/system/uievent/default?token=YW5vbnltb3VzOzEzMGYzMmU3NDM3O2RlZmF1bHQ7ZXdLeUlvQ3phUnNXRlBXMHFyVFlsKzFQVkMwPQ&server=2324-Zachs-Mac.local&user=anonymous\",\n" +
+      "    \"profile\": {\n" +
+      "        \"basic\": {\n" +
+      "            \"access\": \"everybody\",\n" +
+      "            \"elements\": {\n" +
+      "                \"lastName\": {\n" +
+      "                    \"value\": \"User\"\n" +
+      "                },\n" +
+      "                \"email\": {\n" +
+      "                    \"value\": \"anon@sakai.invalid\"\n" +
+      "                },\n" +
+      "                \"firstName\": {\n" +
+      "                    \"value\": \"Anonymous\"\n" +
+      "                }\n" +
+      "            }\n" +
+      "        },\n" +
+      "        \"rep:userId\": \"anonymous\"\n" +
+      "    },\n" +
+      "    \"messages\": {\n" +
+      "        \"unread\": 0\n" +
+      "    },\n" +
+      "    \"contacts\": {},\n" +
+      "    \"groups\": []\n" +
+      "}<pre>"),
     @ServiceResponse(code = 401, description = "Unauthorized: credentials provided were not acceptable to return information for."),
     @ServiceResponse(code = 500, description = "Unable to return information about current user.") }))
 @SlingServlet(paths = { "/system/me" }, generateComponent = true, generateService = true, methods = { "GET" })
@@ -121,6 +141,8 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
 
   @Reference
   SolrSearchServiceFactory searchServiceFactory;
+  @Reference
+  BasicUserInfoService basicUserInfoService;
 
   /**
    * {@inheritDoc}
@@ -223,35 +245,38 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
    * @param writer
    * @param session
    * @param au
+   * @param jcrSession
    * @throws JSONException
-   * @throws StorageClientException 
-   * @throws AccessDeniedException 
-   * @throws RepositoryException 
+   * @throws StorageClientException
+   * @throws AccessDeniedException
+   * @throws RepositoryException
    */
   protected void writeGroups(ExtendedJSONWriter writer, Session session, Authorizable au, javax.jcr.Session jcrSession)
-      throws JSONException, StorageClientException, AccessDeniedException, RepositoryException {
+      throws JSONException, StorageClientException, AccessDeniedException {
     AuthorizableManager authorizableManager = session.getAuthorizableManager();
     writer.array();
     if (!UserConstants.ANON_USERID.equals(au.getId())) {
-      // It might be better to just use au.declaredMemberOf() .
-      // au.memberOf will fetch ALL the groups this user is a member of, including
-      // indirect ones.
-      String[] principals = au.getPrincipals();
-      for(String principal : principals) {
-        Authorizable group = authorizableManager.findAuthorizable(principal);
-        if (group == null || !(group instanceof Group) || group.getId().equals(Group.EVERYONE)) {
+      // KERN-1831 changed from getPrincipals to memberOf to drill down list
+      for (Iterator<Group> memberOf = au.memberOf(authorizableManager); memberOf.hasNext(); ) {
+//      this is the old code for outputting only direct memberships. might be needed later if such a flag is added.
+//      String[] principals = au.getPrincipals();
+//      for(String principal : principals) {
+//        Authorizable group = authorizableManager.findAuthorizable(principal);
+        Authorizable group = memberOf.next();
+        if (group == null
+            || !(group instanceof Group)
+            || Group.EVERYONE.equals(group.getId())) {
           // we don't want the "everyone" group in this feed
           continue;
         }
-        if (group.hasProperty("sakai:managed-group")) {
+        if (group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
           // fetch the group that the manager group manages
-          group = authorizableManager.findAuthorizable((String) group.getProperty("sakai:managed-group"));
+          group = authorizableManager.findAuthorizable((String) group.getProperty(UserConstants.PROP_MANAGED_GROUP));
           if (group == null || !(group instanceof Group)) {
             continue;
           }
         }
-        BasicUserInfo basicUserInfo = new BasicUserInfo();
-        ValueMap groupProfile = new ValueMapDecorator(basicUserInfo.getProperties(group));
+        ValueMap groupProfile = new ValueMapDecorator(basicUserInfoService.getProperties(group));
         if (groupProfile != null) {
           writer.valueMap(groupProfile);
         }
@@ -294,7 +319,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
           + ConnectionConstants.CONTACT_STORE_NAME;
       store = ISO9075.encodePath(store);
       String queryString = "path:" + ClientUtils.escapeQueryChars(store) + " AND resourceType:sakai/contact AND state:(ACCEPTED OR INVITED OR PENDING)";
-      Query query = new Query(queryString, null);
+      Query query = new Query(queryString);
       LOG.debug("Submitting Query {} ", query);
       SolrSearchResultSet resultSet = searchServiceFactory.getSearchResultSet(
           request, query, false);
@@ -353,15 +378,11 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
       store = ISO9075.encodePath(store);
       store = store.substring(0, store.length() - 1);
       String queryString = "path:" + ClientUtils.escapeQueryChars(store) + " AND resourceType:sakai/message AND type:internal AND messagebox:inbox AND read:false";
-      Query query = new Query(queryString, null);
+      Query query = new Query(queryString);
       LOG.debug("Submitting Query {} ", query);
       SolrSearchResultSet resultSet = searchServiceFactory.getSearchResultSet(
           request, query, false);
-      Iterator<Result> resultIterator = resultSet.getResultSetIterator();
-      while (resultIterator.hasNext()) {
-        count++;
-        resultIterator.next();
-      }
+      count = resultSet.getSize();
     } finally {
       writer.value(count);
     }
@@ -485,7 +506,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
     // back.
     write.value("~" + user.getId() + "/");
     write.key("userProfilePath");
-    write.value(LitePersonalUtils.getProfilePath(user.getId()));
+    write.value(PathUtils.translateAuthorizablePath(LitePersonalUtils.getProfilePath(user.getId())));
     write.key("superUser");
     write.value(subjects.contains("administrators"));
     write.key("properties");

@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
@@ -116,14 +117,21 @@ import javax.servlet.http.HttpServletResponse;
         "EEE MMM dd yyyy HH:mm:ss 'GMT'Z", "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
         "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd", "dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy" }),
     @Property(name = "self.registration.enabled", boolValue = true) })
-@ServiceDocumentation(name = "Create User Servlet", description = "Creates a new user. Maps on to nodes of resourceType sling/users like "
-    + "/rep:system/rep:userManager/rep:users mapped to a resource url /system/userManager/user. "
-    + "This servlet responds at /system/userManager/user.create.html", shortDescription = "Creates a new user", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/userManager", selectors = { @ServiceSelector(name = "create", description = "binds to this servlet for user creation") }, extensions = { @ServiceExtension(name = "html", description = "All post operations produce HTML") }),
-
-methods = @ServiceMethod(name = "POST", description = {
+@ServiceDocumentation(name = "Create User Servlet", okForVersion = "0.11",
+  description = "Creates a new user. Maps on to nodes of resourceType sparse/users like "
+    + "/system/userManager/user. "
+    + "This servlet responds at /system/userManager/user.create.html",
+  shortDescription = "Creates a new user",
+  bindings =  {
+    @ServiceBinding(type = BindingType.PATH,
+      bindings = "/system/userManager/user",
+      selectors = { @ServiceSelector(name = "create", description = "binds to this servlet for user creation") },
+      extensions = { @ServiceExtension(name = "html", description = "All post operations produce HTML") })
+  },
+  methods = @ServiceMethod(name = "POST", description = {
     "Creates a new user with a name :name, and password pwd, "
         + "storing additional parameters as properties of the new user.",
-    "Example<br><pre>curl -F:name=username -Fpwd=password -FpwdConfirm=password "
+    "Example<br><pre>curl --referer http://localhost:8080 -F:name=username -Fpwd=password -FpwdConfirm=password "
         + "-Fproperty1=value1 http://localhost:8080/system/userManager/user.create.html</pre>" }, parameters = {
     @ServiceParameter(name = ":name", description = "The name of the new user (required)"),
     @ServiceParameter(name = "pwd", description = "The password of the new user (required)"),
@@ -225,12 +233,7 @@ public class LiteCreateSakaiUserServlet extends LiteAbstractUserPostServlet {
   protected void activate(ComponentContext componentContext) {
     super.activate(componentContext);
     Dictionary<?, ?> props = componentContext.getProperties();
-    Object propValue = props.get(PROP_SELF_REGISTRATION_ENABLED);
-    if (propValue instanceof String) {
-      selfRegistrationEnabled = Boolean.parseBoolean((String) propValue);
-    } else {
-      selfRegistrationEnabled = DEFAULT_SELF_REGISTRATION_ENABLED;
-    }
+    selfRegistrationEnabled = OsgiUtil.toBoolean(props.get(PROP_SELF_REGISTRATION_ENABLED), DEFAULT_SELF_REGISTRATION_ENABLED);
   }
 
   /*
@@ -249,9 +252,11 @@ public class LiteCreateSakaiUserServlet extends LiteAbstractUserPostServlet {
     try {
       Session currentSession = StorageClientUtils.adaptToSession(request
           .getResourceResolver().adaptTo(javax.jcr.Session.class));
-      administrator = User.ADMIN_USER.equals(currentSession.getUserId());
+      AuthorizableManager authorizableManager = currentSession.getAuthorizableManager();
+      User currentUser = (User)authorizableManager.findAuthorizable(currentSession.getUserId());
+      administrator = currentUser.isAdmin();
     } catch (Exception ex) {
-      log.warn("Failed to determin if the user is an admin, assuming not. Cause: "
+      log.warn("Failed to determine if the user is an admin, assuming not. Cause: "
           + ex.getMessage());
       administrator = false;
     }

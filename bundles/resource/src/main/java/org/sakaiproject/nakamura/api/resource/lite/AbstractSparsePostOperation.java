@@ -25,6 +25,7 @@ import org.apache.sling.api.wrappers.SlingRequestPaths;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.apache.sling.servlets.post.VersioningConfiguration;
+import org.sakaiproject.nakamura.api.lite.DataFormatException;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
@@ -42,6 +43,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import javax.jcr.RepositoryException;
+import javax.servlet.http.HttpServletResponse;
 
 
 /**
@@ -140,11 +142,16 @@ public abstract class AbstractSparsePostOperation implements SparsePostOperation
         } catch ( AccessDeniedException e ) {
             log.error("Access Denied {} ",e.getMessage());
             log.debug("Access Denied Cause ", e);
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN, "Access denied for " + request.getRequestURI());
             response.setError(e);
         } catch (Exception e) {
 
-            log.error("Exception during response processing.", e);
-            response.setError(e);
+            if(e.getCause() instanceof DataFormatException) {
+              response.setStatus(HttpServletResponse.SC_BAD_REQUEST, e.getLocalizedMessage());
+            } else {
+              log.error("Exception during response processing.", e);
+            }
+          response.setError(e);
         }
 
     }

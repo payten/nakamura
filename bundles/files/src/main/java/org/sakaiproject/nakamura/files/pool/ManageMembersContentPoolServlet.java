@@ -58,7 +58,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -74,24 +74,107 @@ import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "Manage Members Content Pool Servlet", description = "List and manage the managers and viewers for a file in the content pool.", bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = { "sakai/pooled-content" }, selectors = {
-    @ServiceSelector(name = "members", description = "Binds to the selector members."),
-    @ServiceSelector(name = "detailed", description = "(optional) Provides more detailed profile information."),
-    @ServiceSelector(name = "tidy", description = "(optional) Provideds 'tidy' (formatted) JSON output.") }) }, methods = {
-    @ServiceMethod(name = "GET", description = "Retrieves a list of members.", response = {
-        @ServiceResponse(code = 200, description = "All processing finished successfully.  Output is in the JSON format."),
-        @ServiceResponse(code = 500, description = "Any exceptions encountered during processing.") }),
-    @ServiceMethod(name = "POST", description = "Manipulate the member list for a file.", parameters = {
-        @ServiceParameter(name = ":manager", description = "Set the managers on the ACL of a file."),
-        @ServiceParameter(name = ":viewer", description = "Set the viewers on the ACL of a file.") }, response = {
-        @ServiceResponse(code = 200, description = "All processing finished successfully."),
-        @ServiceResponse(code = 401, description = "POST by anonymous user."),
-        @ServiceResponse(code = 500, description = "Any exceptions encountered during processing.") }) })
 @SlingServlet(methods = { "GET", "POST" }, resourceTypes = { "sakai/pooled-content" }, selectors = { "members" })
 @Properties(value = {
-    @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "service.description", value = "Manages the Managers and Viewers for pooled content.") })
-public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
+  @Property(name = "service.vendor", value = "The Sakai Foundation"),
+  @Property(name = "service.description", value = "Manages the Managers and Viewers for pooled content.") })
+@ServiceDocumentation(name = "Manage Members Content Pool Servlet", okForVersion = "0.11",
+  shortDescription = "List and manage the managers and viewers for a file in the content pool.",
+  description = "List and manage the managers and viewers for a file in the content pool.",
+  bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = { "sakai/pooled-content" },
+    selectors = {
+      @ServiceSelector(name = "members", description = "Binds to the selector members."),
+      @ServiceSelector(name = "detailed", description = "(optional) Provides more detailed profile information."),
+      @ServiceSelector(name = "tidy", description = "(optional) Provides formatted JSON output.")
+    })
+  },
+  methods = {
+    @ServiceMethod(name = "GET",
+      description = {
+        "Retrieves a list of members for this pooled content item.",
+        "<pre>curl http://localhost:8080/p/hESoXumAT.members.tidy.json</pre>",
+        "<pre>{\n" +
+          "    \"managers\": [{\n" +
+          "        \"hash\": \"suzy\",\n" +
+          "        \"basic\": {\n" +
+          "            \"access\": \"everybody\",\n" +
+          "            \"elements\": {\n" +
+          "                \"picture\": {\n" +
+          "                    \"value\": \"{\\\"name\\\":\\\"256x256_tmp1309269939493.jpg\\\",\\\"_name\\\":\\\"tmp1309269939493.jpg\\\",\\\"_charset_\\\":\\\"utf-8\\\",\\\"selectedx1\\\":0,\\\"selectedy1\\\":3,\\\"selectedx2\\\":85,\\\"selectedy2\\\":88}\"\n" +
+          "                },\n" +
+          "                \"lastName\": {\n" +
+          "                    \"value\": \"Queue\"\n" +
+          "                },\n" +
+          "                \"email\": {\n" +
+          "                    \"value\": \"suzy@aeroplanesoftware.com\"\n" +
+          "                },\n" +
+          "                \"firstName\": {\n" +
+          "                    \"value\": \"Suzy\"\n" +
+          "                }\n" +
+          "            }\n" +
+          "        },\n" +
+          "        \"rep:userId\": \"suzy\",\n" +
+          "        \"userid\": \"suzy\",\n" +
+          "        \"counts\": {\n" +
+          "            \"contactsCount\": 0,\n" +
+          "            \"membershipsCount\": 0,\n" +
+          "            \"contentCount\": 3,\n" +
+          "            \"countLastUpdate\": 1309287542572\n" +
+          "        },\n" +
+          "        \"sakai:excludeSearch\": false\n" +
+          "    }],\n" +
+          "    \"viewers\": [{\n" +
+          "        \"basic\": {\n" +
+          "            \"access\": \"everybody\",\n" +
+          "            \"elements\": {\n" +
+          "                \"lastName\": {\n" +
+          "                    \"value\": \"User\"\n" +
+          "                },\n" +
+          "                \"email\": {\n" +
+          "                    \"value\": \"anon@sakai.invalid\"\n" +
+          "                },\n" +
+          "                \"firstName\": {\n" +
+          "                    \"value\": \"Anonymous\"\n" +
+          "                }\n" +
+          "            }\n" +
+          "        },\n" +
+          "        \"rep:userId\": \"anonymous\"\n" +
+          "    },\n" +
+          "    {\n" +
+          "        \"sakai:category\": null,\n" +
+          "        \"sakai:group-description\": null,\n" +
+          "        \"sakai:group-id\": \"everyone\",\n" +
+          "        \"createdBy\": null,\n" +
+          "        \"lastModified\": null,\n" +
+          "        \"sakai:group-title\": null,\n" +
+          "        \"created\": null,\n" +
+          "        \"basic\": {\n" +
+          "            \"access\": \"everybody\",\n" +
+          "            \"elements\": {}\n" +
+          "        },\n" +
+          "        \"lastModifiedBy\": null,\n" +
+          "        \"groupid\": \"everyone\",\n" +
+          "        \"counts\": {},\n" +
+          "        \"sakai:excludeSearch\": false\n" +
+          "    }]\n" +
+          "}</pre>"
+      },
+      response = {
+        @ServiceResponse(code = 200, description = "All processing finished successfully.  Output is in the JSON format."),
+        @ServiceResponse(code = 500, description = "Any exceptions encountered during processing.")
+      }),
+    @ServiceMethod(name = "POST", description = "Manipulate the member list for a pooled content item.",
+      parameters = {
+        @ServiceParameter(name = ":manager", description = "Set the managers on the ACL of a file."),
+        @ServiceParameter(name = ":viewer", description = "Set the viewers on the ACL of a file.")
+      },
+      response = {
+        @ServiceResponse(code = 200, description = "All processing finished successfully."),
+        @ServiceResponse(code = 401, description = "POST by anonymous user, or current user doesn't have permission to update this content."),
+        @ServiceResponse(code = 500, description = "Any exceptions encountered during processing.")
+      })
+  })
+  public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
 
   private static final long serialVersionUID = 3385014961034481906L;
   private static final Logger LOGGER = LoggerFactory
@@ -100,6 +183,8 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
 
   @Reference
   protected transient ProfileService profileService;
+  @Reference
+  protected transient BasicUserInfoService basicUserInfoService;
 
   /**
    * Retrieves the list of members.
@@ -152,13 +237,21 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       writer.key("managers");
       writer.array();
       for (String manager : StorageClientUtils.nonNullStringArray(managers)) {
-        writeProfileMap(jcrSession, am, writer, manager, detailed);
+        try {
+          writeProfileMap(jcrSession, am, writer, manager, detailed);
+        } catch (AccessDeniedException e) {
+          LOGGER.debug("Skipping private manager [{}]", manager);
+        }
       }
       writer.endArray();
       writer.key("viewers");
       writer.array();
       for (String viewer : StorageClientUtils.nonNullStringArray(viewers)) {
-        writeProfileMap(jcrSession, am, writer, viewer, detailed);
+        try {
+          writeProfileMap(jcrSession, am, writer, viewer, detailed);
+        } catch (AccessDeniedException e) {
+          LOGGER.debug("Skipping private viewer [{}]", viewer);
+        }
       }
       writer.endArray();
       writer.endObject();
@@ -187,8 +280,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       if (detailed) {
         profileMap = profileService.getProfileMap(au, jcrSession);
       } else {
-        BasicUserInfo basicUserInfo = new BasicUserInfo();
-        profileMap = new ValueMapDecorator(basicUserInfo.getProperties(au));
+        profileMap = new ValueMapDecorator(basicUserInfoService.getProperties(au));
       }
       if (profileMap != null) {
         writer.valueMap(profileMap);

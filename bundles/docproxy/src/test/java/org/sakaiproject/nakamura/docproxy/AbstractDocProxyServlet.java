@@ -22,6 +22,8 @@ import static org.easymock.EasyMock.expect;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_LOCATION;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_PROCESSOR;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY_DOCUMENT;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.EXTERNAL_ID;
 
 import org.apache.sling.commons.testing.jcr.MockNode;
 import org.easymock.EasyMock;
@@ -34,7 +36,9 @@ import org.sakaiproject.nakamura.docproxy.disk.DiskProcessorTest;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
@@ -46,6 +50,7 @@ import javax.jcr.Session;
  */
 public class AbstractDocProxyServlet extends AbstractEasyMockTest {
   protected MockNode proxyNode;
+  protected MockNode documentNode;
   protected String currPath;
   protected ExternalRepositoryProcessorTracker tracker;
   protected BundleContext bundleContext;
@@ -63,13 +68,23 @@ public class AbstractDocProxyServlet extends AbstractEasyMockTest {
     super.setUp();
 
     // Setup a proxy node.
-    String readmePath = getClass().getClassLoader().getResource("README").getPath();
-    currPath = readmePath.substring(0, readmePath.lastIndexOf("/"));
+    URI readmeUri = getClass().getClassLoader().getResource("README").toURI();
+    File readmeFile = new File(readmeUri);
+    String readmePath = readmeFile.getPath();
+    currPath = readmePath.substring(0, readmePath.lastIndexOf(File.separator));
 
     proxyNode = new MockNode("/docproxy/disk");
     proxyNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, RT_EXTERNAL_REPOSITORY);
     proxyNode.setProperty(REPOSITORY_PROCESSOR, "disk");
     proxyNode.setProperty(REPOSITORY_LOCATION, currPath);
+
+    // added proxy node for actual content - points to README
+    documentNode = new MockNode("/docproxy/disk/READMEproxy");
+    documentNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, RT_EXTERNAL_REPOSITORY_DOCUMENT);
+    documentNode.setProperty(REPOSITORY_PROCESSOR,"disk");
+    // disk processor requires REPOSITORY_LOCATION
+    documentNode.setProperty(REPOSITORY_LOCATION,currPath);
+    documentNode.setProperty(EXTERNAL_ID,"README");
 
     session = createProxySession();
     proxyNode.setSession(session);

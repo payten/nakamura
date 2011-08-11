@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require 'ruby-lib-dir.rb'
+require './ruby-lib-dir.rb'
 
 require 'sling/test'
 require 'test/unit.rb'
@@ -120,7 +120,7 @@ class TC_Kern330Test < Test::Unit::TestCase
     assert_equal("#{adminHome}/public/foo/bar", jsonRes[0]["url"])
     stat = jsonRes[0]["status"]
     body = jsonRes[0]["body"]
-    assert_equal(500, jsonRes[0]["status"], "Expexted access denied. #{stat} #{body} ")
+    assert_equal(403, jsonRes[0]["status"], "Expected access denied. #{stat} #{body} ")
     assert_equal("#{user2Home}/private/foo/bar", jsonRes[1]["url"])
     stat = jsonRes[1]["status"]
     body = jsonRes[1]["body"]

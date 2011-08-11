@@ -232,6 +232,11 @@ public class FileUtils {
   public static void writeFileNode(Content content,
       org.sakaiproject.nakamura.api.lite.Session session, JSONWriter write, int maxDepth)
       throws JSONException, StorageClientException {
+    if (content == null) {
+      log.warn("Can't output null content.");
+      return;
+    }
+
     write.object();
 
     // dump all the properties.
@@ -335,6 +340,11 @@ public class FileUtils {
   private static void writePermissions(Content content,
       org.sakaiproject.nakamura.api.lite.Session session, JSONWriter writer)
       throws StorageClientException, JSONException {
+    if (content == null) {
+      log.warn("Can't output permissions of null content.");
+      return;
+    }
+
     AccessControlManager acm = session.getAccessControlManager();
     String path = content.getPath();
 
@@ -394,9 +404,26 @@ public class FileUtils {
    * @throws RepositoryException
    */
   public static boolean isTag(Node node) throws RepositoryException {
-    if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
+    if (node != null && node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
         && FilesConstants.RT_SAKAI_TAG.equals(node.getProperty(
             JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString())) {
+      return true;
+    }
+    return false;
+  }
+  
+  /**
+   * Check if a node is a proper sakai tag.
+   *
+   * @param node
+   *          The node to check if it is a tag.
+   * @return true if the node is a tag, false if it is not.
+   * @throws RepositoryException
+   */
+  public static boolean isTag(Content node) throws RepositoryException {
+    if (node != null && node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
+        && FilesConstants.RT_SAKAI_TAG.equals(node.getProperty(
+            JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))) {
       return true;
     }
     return false;
@@ -483,7 +510,7 @@ public class FileUtils {
   }
   
   private static String[] getTags(Content tagNode) {
-    String tagUuid = (String) tagNode.getProperty(Content.UUID_FIELD);
+    String tagUuid = (String) tagNode.getProperty(Content.getUuidField());
     String tagName = "";
     if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
       tagName = (String) tagNode.getProperty(SAKAI_TAG_NAME);

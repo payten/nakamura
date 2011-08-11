@@ -31,10 +31,11 @@ import org.sakaiproject.nakamura.connections.ConnectionUtils;
 import java.util.Map;
 
 @Component(label = "ConnectionSearchPropertyProvider", description= "Provides properties to handle connection searches.")
-@Service
+@Service({ SolrSearchPropertyProvider.class, ConnectionSearchPropertyProvider.class })
 @Properties({
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "sakai.search.provider", value="Connection")})
+    @Property(name = "sakai.search.provider", value="Connection")
+})
 public class ConnectionSearchPropertyProvider implements SolrSearchPropertyProvider {
 
   /**

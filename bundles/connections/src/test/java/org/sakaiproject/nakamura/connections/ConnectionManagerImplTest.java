@@ -42,6 +42,7 @@ import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
 import org.sakaiproject.nakamura.lite.RepositoryImpl;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,7 +56,7 @@ public class ConnectionManagerImplTest {
   private RepositoryImpl repository;
 
   @Before
-  public void setUp() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException {
+  public void setUp() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException, IOException {
     BaseMemoryRepository baseMemoryRepository = new BaseMemoryRepository();
     repository = baseMemoryRepository.getRepository();
     connectionManager = new ConnectionManagerImpl();
@@ -189,10 +190,11 @@ public class ConnectionManagerImplTest {
   public void testGetConnectionState() throws ConnectionException, ClientPoolException, StorageClientException, AccessDeniedException {
     // Passing in null
     try {
-      connectionManager.getConnectionState(null);
-      fail("Passing in null should result in exception.");
-    } catch (IllegalArgumentException e) {
-      // Swallow it and continue with the test.
+      final ConnectionState state = connectionManager.getConnectionState(null);
+      assertEquals("Passing in null should return ConnectionState.NONE",
+          ConnectionState.NONE, state);
+    } catch (Exception e) {
+      fail("Passing in null should return ConnectionState.NONE.");
     }
 
     Session session = repository.loginAdministrative();

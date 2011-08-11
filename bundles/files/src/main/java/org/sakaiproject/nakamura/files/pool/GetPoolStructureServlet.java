@@ -3,7 +3,6 @@ package org.sakaiproject.nakamura.files.pool;
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.scr.annotations.Services;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestPathInfo;
@@ -24,13 +23,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@Services(value={
-    @Service(value=ServerProtectionVeto.class),
-    @Service(value=DefaultServletDelegate.class)
-})
+@Service({ ServerProtectionVeto.class, DefaultServletDelegate.class })
 @Component(immediate=true, enabled=true, metatype=true)
 public class GetPoolStructureServlet extends SlingSafeMethodsServlet implements
     DefaultServletDelegate, ServerProtectionVeto {
@@ -63,7 +60,13 @@ public class GetPoolStructureServlet extends SlingSafeMethodsServlet implements
           if (contentManager.hasBody(resourcePath, null)) {
             LOGGER.debug("Getting Resource Path {} Has Body", resourcePath);
              StreamHelper streamHelper = new StreamHelper();
-             streamHelper.stream(request, contentManager, resourceContent, null, response, resource, getServletContext());
+             ServletContext sc = null;
+             try {
+               sc = getServletContext();
+             } catch ( IllegalStateException e ) {
+               LOGGER.debug(e.getMessage(), e);
+             }
+             streamHelper.stream(request, contentManager, resourceContent, null, response, resource, sc);
           } else {
             LOGGER.debug("Getting Resource Path {} No Body", resourcePath);
             response.setContentType("application/json");
@@ -95,9 +98,12 @@ public class GetPoolStructureServlet extends SlingSafeMethodsServlet implements
           String contentPathInfo = getContentPathInfo(request, content);
           LOGGER.debug("Content Path Info is {} ", contentPathInfo);
           if ( contentPathInfo != null && contentPathInfo.length() > 0 ) {
-            String structureId = FilesConstants.STRUCTURE_FIELD_STEM + StringUtils.split(contentPathInfo, "/", 2)[0];
-            if (content.hasProperty(structureId)) {
+            String[] contentPathInfoSplit = StringUtils.split(contentPathInfo, "/", 2);
+            if (contentPathInfoSplit.length > 0) {
+              String structureId = FilesConstants.STRUCTURE_FIELD_STEM + contentPathInfoSplit[0];
+              if (content.hasProperty(structureId)) {
                 return content.getProperty(structureId) != null;
+              }
             }
           }
         }
@@ -161,8 +167,10 @@ public class GetPoolStructureServlet extends SlingSafeMethodsServlet implements
       if (resource != null) {
         if (FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceType())
             || FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceSuperType())) {
-          LOGGER.debug("Will Veto this request");
-          return true;
+          if ( accepts(srequest) ) {
+            LOGGER.debug("Will Veto this request");
+            return true;
+          }
         } else {
           LOGGER.debug("No Veto, No the right resource type {}", resource.getResourceType());
         }

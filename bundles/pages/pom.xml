@@ -2,7 +2,7 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.10</version>
+    <version>0.11-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -13,7 +13,7 @@
     Module to initialize a branch of structured content, based on a template, and with its
     access rights typically managed as a unit.
   </description>
-  <version>0.10</version>
+  <version>0.11-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <build>
     <plugins>
@@ -23,7 +23,6 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Export-Package>org.sakaiproject.nakamura.api.pages</Export-Package>
             <Private-Package>org.sakaiproject.nakamura.pages.*</Private-Package>
             <Sling-Initial-Content>SLING-INF/content;overwriteProperties:=true;uninstall:=false</Sling-Initial-Content>
           </instructions>
@@ -72,31 +71,31 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.personal</artifactId>
-      <version>0.10</version>
+      <version>0.11-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.user</artifactId>
-      <version>0.10</version>
+      <version>0.11-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.search</artifactId>
-      <version>0.10</version>
+      <version>0.11-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.solr</artifactId>
-      <version>0.10</version>
+      <version>1.0-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.tika</artifactId>
-      <version>0.7-0.10</version>
+      <version>0.9-0.11-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -131,7 +130,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-      <version>0.10</version>
+      <version>0.11-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

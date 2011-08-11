@@ -55,7 +55,6 @@ import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.message.internal.InternalCreateMessagePreProcessor;
-import org.sakaiproject.nakamura.resource.lite.LiteResourceResolver;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,9 +82,9 @@ import javax.servlet.http.HttpServletResponse;
     @Property(name = "service.description", value = "Endpoint to create a message") })
 @Reference(name = "createMessagePreProcessor", referenceInterface = CreateMessagePreProcessor.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
 @ServiceDocumentation(
-    name = "CreateMessageServlet",
+    name = "CreateMessageServlet", okForVersion = "0.11",
     shortDescription = "Create a message.",
-    description = "Create a message by doing a POST to messagestore.create.html . By default there are stores at /_user/u/us/user/message and /_group/g/gr/group/message",
+    description = "Create a message by doing a POST to messagestore.create.html . By default there are stores at /~user/message and /~group/message",
     bindings = @ServiceBinding(type = BindingType.TYPE,
         bindings = "sakai/messagestore",
         selectors = @ServiceSelector(name = "create")),
@@ -246,7 +245,7 @@ public class LiteCreateMessageServlet extends SlingAllMethodsServlet {
        */
       @Override
       public String getResourceType() {
-        return "sparse/Content";
+        return "sparse/wrappedResource"; // the super type will handle routing this cant be a sparse/Content resource as it will create a cyclic resource type.
       }
 
       /**

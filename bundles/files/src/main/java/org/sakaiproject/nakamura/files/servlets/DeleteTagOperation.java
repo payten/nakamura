@@ -17,7 +17,7 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
-import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
 
 import com.google.common.collect.Sets;
 
@@ -41,7 +41,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.files.FileUtils;
-import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.files.FilesConstants;import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
@@ -57,18 +57,18 @@ import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.jcr.Node;
-import javax.jcr.RepositoryException;
+import javax.jcr.NodeIterator;import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "DeleteTagOperation", shortDescription = "Delete a tag from node", description = { "Delete a tag from a node." }, methods = { @ServiceMethod(name = "POST", description = { "This operation should be performed on the node you wish to tag. Tagging on any item will be performed by adding a weak reference to the content item. Put simply a sakai:tag-uuid property with the UUID of the tag node. We use the UUID to uniquely identify the tag in question, a string of the tag name is not sufficient. This allows the tag to be renamed and moved without breaking the relationship. Additionally for convenience purposes we may put the name of the tag at the time of tagging in sakai:tag although this will not be actively maintained. " }, parameters = {
+@ServiceDocumentation(name = "DeleteTagOperation", okForVersion = "0.11",
+  shortDescription = "Delete a tag from node", description = { "Delete a tag from a content node." }, methods = { @ServiceMethod(name = "POST", description = { "This operation should be performed on the node you wish to tag. Tagging on any item will be performed by adding a weak reference to the content item. Put simply a sakai:tag-uuid property with the UUID of the tag node. We use the UUID to uniquely identify the tag in question, a string of the tag name is not sufficient. This allows the tag to be renamed and moved without breaking the relationship. Additionally for convenience purposes we may put the name of the tag at the time of tagging in sakai:tag although this will not be actively maintained. " }, parameters = {
     @ServiceParameter(name = ":operation", description = "The value HAS TO BE <i>tag</i>."),
     @ServiceParameter(name = "key", description = "Can be either 1) A fully qualified path, 2) UUID, or 3) a content poolId.") }, response = {
-    @ServiceResponse(code = 201, description = "The tag was added to the node."),
+    @ServiceResponse(code = 201, description = "The tag was added to the content node."),
     @ServiceResponse(code = 400, description = "The request did not have sufficient information to perform the tagging, probably a missing parameter or the uuid does not point to an existing tag."),
     @ServiceResponse(code = 403, description = "Anonymous users can't tag anything, other people can tag <i>every</i> node in the repository where they have READ on."),
     @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Requested Node  for given key could not be found."),
@@ -80,6 +80,8 @@ import javax.servlet.http.HttpServletResponse;
     @Property(name = "service.description", value = "Creates an internal link to a file."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
 public class DeleteTagOperation extends AbstractSparsePostOperation {
+
+  private static final String SAKAI_TAG_NAME = "sakai:tag-name";
 
   @Reference
   protected transient SlingRepository slingRepository;
@@ -149,6 +151,8 @@ public class DeleteTagOperation extends AbstractSparsePostOperation {
 
     try {
       String uuid = tagNode.getIdentifier();
+      String tagName = tagNode.getProperty(SAKAI_TAG_NAME).getString();
+
       // We check if the node already has this tag.
       // If it does, we ignore it..
       if (node != null && hasUuid(node, uuid)) {
@@ -170,6 +174,24 @@ public class DeleteTagOperation extends AbstractSparsePostOperation {
         }
       } else if ( content != null ) {
         FileUtils.deleteTag(contentManager, content, tagNode);
+        javax.jcr.Session adminSession = null;
+        try {
+          adminSession = slingRepository.loginAdministrative(null);
+          Node adminTagNode = adminSession.getNode(tagNode.getPath());
+          String[] tagNames = StorageClientUtils.nonNullStringArray((String[]) content.getProperty(FilesConstants.SAKAI_TAGS));
+          String resourceType = (String) content.getProperty("sling:resourceType");
+          boolean isProfile = "sakai/user-profile".equals(resourceType) || "sakai/group-profile".equals(resourceType);
+          if (!isProfile) {
+            decrementTagCounts(adminTagNode, tagNames, false);
+          }
+          if (adminSession.hasPendingChanges()) {
+            adminSession.save();
+          }
+        } finally {
+          if (adminSession != null) {
+            adminSession.logout();
+          }
+        }
         // keep authz in sync with authprofile
         final Session session = StorageClientUtils.adaptToSession(request.getResource()
             .getResourceResolver().adaptTo(javax.jcr.Session.class));
@@ -182,12 +204,20 @@ public class DeleteTagOperation extends AbstractSparsePostOperation {
           final String azId = PathUtils.getAuthorizableId(content.getPath());
           final Authorizable authorizable = authManager.findAuthorizable(azId);
           if (authorizable != null) {
-            final Set<String> nameSet = Sets
+            final Set<String> uuidSet = Sets
                 .newHashSet(StorageClientUtils.nonNullStringArray((String[]) authorizable
                     .getProperty(SAKAI_TAG_UUIDS)));
-            nameSet.remove(uuid);
+            uuidSet.remove(uuid);
             authorizable.setProperty(SAKAI_TAG_UUIDS,
+                uuidSet.toArray(new String[uuidSet.size()]));
+
+            final Set<String> nameSet = Sets
+                .newHashSet(StorageClientUtils.nonNullStringArray((String[]) authorizable
+                    .getProperty(SAKAI_TAGS)));
+            nameSet.remove(tagName);
+            authorizable.setProperty(SAKAI_TAGS,
                 nameSet.toArray(new String[nameSet.size()]));
+
             authManager.updateAuthorizable(authorizable);
           }
         }
@@ -206,6 +236,70 @@ public class DeleteTagOperation extends AbstractSparsePostOperation {
 
   }
 
+  private void decrementTagCounts(Node nodeTag, String[] tagNames, boolean calledByAChild) throws RepositoryException {
+      if (calledByAChild || !alreadyTaggedBelowThisLevel(nodeTag, tagNames)) {
+        Long tagCount = 0L;
+        if (nodeTag.hasProperty(FilesConstants.SAKAI_TAG_COUNT)) {
+          tagCount = nodeTag.getProperty(FilesConstants.SAKAI_TAG_COUNT).getLong();
+          tagCount--;
+        }
+        nodeTag.setProperty(FilesConstants.SAKAI_TAG_COUNT, tagCount);
+      }
+
+      // if this node's parent is not the root, we keep going up
+      List<String> peerTags = new ArrayList<String>();
+      peerTags.addAll(ancestorTags(nodeTag));
+      NodeIterator nodeIterator = nodeTag.getParent().getNodes();
+      while(nodeIterator.hasNext()) {
+        Node peer = nodeIterator.nextNode();
+        if (FileUtils.isTag(peer) && !nodeTag.isSame(peer)) {
+          peerTags.add(peer.getProperty(SAKAI_TAG_NAME).getString());
+        }
+      }
+      if (!isChildOfRoot(nodeTag) && !alreadyTaggedAtOrAboveThisLevel(tagNames, peerTags)) {
+        decrementTagCounts(nodeTag.getParent(), tagNames, true);
+      }
+  }
+
+  private boolean alreadyTaggedBelowThisLevel(Node tagNode, String[] tagNames) throws RepositoryException {
+    List<String> tagNamesList = Arrays.asList(tagNames);
+    NodeIterator childNodes = tagNode.getNodes();
+    while(childNodes.hasNext()){
+      Node child = childNodes.nextNode();
+      if (alreadyTaggedBelowThisLevel(child, tagNames)) {
+        return true;
+      }
+      if (FileUtils.isTag(child) && tagNamesList.contains(child.getProperty(SAKAI_TAG_NAME).getString())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean alreadyTaggedAtOrAboveThisLevel(String[] tagNames, List<String>peerTags) {
+    for(String tagName : tagNames) {
+      if(peerTags.contains(tagName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private Collection<String> ancestorTags(Node tagNode) throws RepositoryException {
+      Collection<String> rv = new ArrayList<String>();
+      if(!isChildOfRoot(tagNode)) {
+        Node parentNode = tagNode.getParent();
+        if (FileUtils.isTag(parentNode)) {
+          rv.add(parentNode.getProperty(SAKAI_TAG_NAME).getString());
+        }
+        rv.addAll(ancestorTags(parentNode));
+      }
+      return rv;
+  }
+
+  private boolean isChildOfRoot(Node node) throws RepositoryException {
+    return node.getParent().isSame(node.getSession().getRootNode());
+  }
   /**
    * Checks if the node already has the uuid in it's properties.
    *

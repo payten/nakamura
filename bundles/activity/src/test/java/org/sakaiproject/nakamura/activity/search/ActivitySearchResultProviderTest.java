@@ -68,19 +68,26 @@ public class ActivitySearchResultProviderTest extends AbstractEasyMockTest {
   }
 
   @Test
-  public void testAnonLoadPRoperties() {
+  public void testAnonLoadProperties() throws RepositoryException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    expect(request.getRemoteUser()).andReturn(UserConstants.ANON_USERID);
+    expect(request.getRemoteUser()).andReturn("anonymous");
+
+    JackrabbitSession session = createMock(JackrabbitSession.class);
+    Authorizable anonymous = createAuthorizable("anonymous", false, true);
+    UserManager um = createUserManager(null, true, anonymous);
+    ResourceResolver resolver = createMock(ResourceResolver.class);
+    expect(session.getUserManager()).andReturn(um);
+    expect(request.getResourceResolver()).andReturn(resolver);
+    expect(resolver.adaptTo(Session.class)).andReturn(session);
 
     replay();
     ActivitySearchPropertyProvider provider = new ActivitySearchPropertyProvider();
     Map<String, String> propertiesMap = new HashMap<String, String>();
-    try {
-      provider.loadUserProperties(request, propertiesMap);
-      fail("Anonymous users can't request an activity feed.");
-    } catch (IllegalStateException e) {
-
-    }
+    provider.loadUserProperties(request, propertiesMap);
+    String actual = propertiesMap.get("_myFeed");
+    String expected = ClientUtils.escapeQueryChars(LitePersonalUtils.PATH_AUTHORIZABLE
+        + "anonymous/private/" + ActivityConstants.ACTIVITY_FEED_NAME);
+    assertEquals(expected, actual);
   }
 
 }

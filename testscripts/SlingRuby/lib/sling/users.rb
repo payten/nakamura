@@ -218,7 +218,7 @@ module SlingUsers
 
     def initialize(sling)
       @sling = sling
-      @date = Time.now().strftime("%Y%m%d%H%M%S")
+      @date = Time.now().strftime("%Y%m%d%H%M%S%3N")
       @log = Logger.new(STDOUT)
       @log.level = Logger::WARN
     end
@@ -260,7 +260,7 @@ module SlingUsers
       }
       if (!firstname.nil? and !lastname.nil?)
         data[":sakai:profile-import"] = "{'basic': {'access': 'everybody', 'elements': {'email': {'value': '#{username}@sakai.invalid'}, 'firstName': {'value': '#{firstname}'}, 'lastName': {'value': '#{lastname}'}}}}"
-        data[":sakai:pages-template"] = "/var/templates/site/defaultuser"
+        # data[":sakai:pages-template"] = "/var/templates/site/defaultuser"
       end
       result = @sling.execute_post(@sling.url_for("#{$USER_URI}"), data)
       if (result.code.to_i > 299)
@@ -279,7 +279,7 @@ module SlingUsers
       end
       params['sakai:group-description'] = ''
       params['sakai:group-id'] = groupname
-      params[':sakai:pages-template'] = '/var/templates/site/defaultgroup'
+#      params[':sakai:pages-template'] = '/var/templates/site/defaultgroup'
       params['sakai:pages-visible'] = 'public'
       params['sakai:group-joinable'] = 'yes'
       result = @sling.execute_post(@sling.url_for($GROUP_URI), params)

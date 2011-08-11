@@ -28,10 +28,13 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.apache.solr.client.solrj.util.ClientUtils;
+import org.osgi.framework.Constants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -41,14 +44,19 @@ import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
+import org.sakaiproject.nakamura.api.search.SearchConstants;
+import org.sakaiproject.nakamura.api.search.SearchResponseDecorator;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -58,23 +66,29 @@ import javax.jcr.RepositoryException;
 /**
  * Formats message node search results
  */
-@Component(immediate = true, label = "MessageSearchResultProcessor", description = "Processor for message search results.")
+@Component
 @Service
 @Properties(value = {
-    @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "service.description", value = "Processor for message search results."),
-    @Property(name = "sakai.search.processor", value = "Message"),
-    @Property(name = "sakai.seach.resourcetype", value = "sakai/message") })
-public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
+    @Property(name = Constants.SERVICE_VENDOR, value = "The Sakai Foundation"),
+    @Property(name = Constants.SERVICE_DESCRIPTION, value = "Processor for message search results."),
+    @Property(name = SearchConstants.REG_PROCESSOR_NAMES, value = "Message")
+})
+public class MessageSearchResultProcessor implements SolrSearchResultProcessor, SearchResponseDecorator {
+
+  enum ProfileType {
+    TO, FROM
+  }
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(MessageSearchResultProcessor.class);
 
   @Reference
-  LiteMessagingService messagingService;
+  protected LiteMessagingService messagingService;
 
   @Reference
-  SolrSearchServiceFactory searchServiceFactory;
+  protected SolrSearchServiceFactory searchServiceFactory;
 
   @Reference(referenceInterface = LiteMessageProfileWriter.class, cardinality = ReferenceCardinality.MANDATORY_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-  Map<String, LiteMessageProfileWriter> writers = new ConcurrentHashMap<String, LiteMessageProfileWriter>();
+  protected Map<String, LiteMessageProfileWriter> writers = new ConcurrentHashMap<String, LiteMessageProfileWriter>();
 
   public void bindWriters(LiteMessageProfileWriter writer) {
     writers.put(writer.getType(), writer);
@@ -88,7 +102,7 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
    * Parses the message to a usable JSON format for the UI.
    *
    * @param write
-   * @param resultNode
+   * @param result
    * @throws JSONException
    * @throws RepositoryException
    */
@@ -104,7 +118,9 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
         // there is nothing to write
         return;
       }
+      write.object();
       writeContent(request, write, content);
+      write.endObject();
     } catch (StorageClientException e) {
       throw new JSONException(e);
     } catch (AccessDeniedException e) {
@@ -113,9 +129,8 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
   }
 
   public void writeContent(SlingHttpServletRequest request, JSONWriter write,
-      Content content) throws JSONException {
-
-    write.object();
+      Content content) throws AccessDeniedException, StorageClientException,
+      JSONException {
 
     // Write out all the properties on the message.
     ExtendedJSONWriter.writeNodeContentsToWriter(write, content);
@@ -132,7 +147,7 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
     // We always return this as an array, even if it is only 1 recipient.
     LiteMessageProfileWriter defaultProfileWriter = writers.get("internal");
     if (content.hasProperty(PROP_SAKAI_TO)) {
-      String toVal = (String) content.getProperty(PROP_SAKAI_TO);
+      String toVal = String.valueOf(content.getProperty(PROP_SAKAI_TO));
       String[] rcpts = StringUtils.split(toVal, ',');
       write.key("userTo");
       write.array();
@@ -149,7 +164,10 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
         if (writer == null) {
           writer = defaultProfileWriter;
         }
-        writer.writeProfileInformation(session, user, write, jcrSession);
+        write.object();
+        writer.writeProfileInformation(session, user, write);
+        decorateProfile(ProfileType.TO, session, user, write);
+        write.endObject();
       }
       write.endArray();
     }
@@ -158,12 +176,15 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
     // We add in the option to support multiple cases.
     // For now we expect it to always be the user who sends the message.
     if (content.hasProperty(PROP_SAKAI_FROM)) {
-      String fromVal = (String) content.getProperty(PROP_SAKAI_FROM);
+      String fromVal = String.valueOf(content.getProperty(PROP_SAKAI_FROM));
       String[] senders = StringUtils.split(fromVal, ',');
       write.key("userFrom");
       write.array();
       for (String sender : senders) {
-        defaultProfileWriter.writeProfileInformation(session, sender, write, jcrSession);
+        write.object();
+        defaultProfileWriter.writeProfileInformation(session, sender, write);
+        decorateProfile(ProfileType.FROM, session, sender, write);
+        write.endObject();
       }
       write.endArray();
     }
@@ -173,18 +194,21 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
       write.key("previousMessage");
       parsePreviousMessages(request, write, content);
     }
-    write.endObject();
+  }
+
+  protected void decorateProfile(ProfileType profileType, Session session,
+      String otherUser, JSONWriter write) throws AccessDeniedException,
+      StorageClientException, JSONException {
+    // default method has nothing to do. this is for subclassing
   }
 
   /**
    * Parse a message we have replied on.
    *
    * @param request
-   * @param node
    * @param write
-   * @param excerpt
+   * @param content
    * @throws JSONException
-   * @throws RepositoryException
    */
   private void parsePreviousMessages(SlingHttpServletRequest request, JSONWriter write,
       Content content) throws JSONException {
@@ -196,7 +220,13 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
         .getProperty(PROP_SAKAI_PREVIOUS_MESSAGE);
     try {
       Content previousMessage = searchMailboxes(userId, session, id);
-      writeContent(request, write, previousMessage);
+      if ( previousMessage != null ) {
+        write.object();
+        writeContent(request, write, previousMessage);
+        write.endObject();
+      } else {
+        write.value(false);
+      }
     } catch (StorageClientException e) {
       throw new JSONException("Couldn't write search results because couldn't get message with id " + id);
     } catch (AccessDeniedException e) {
@@ -225,4 +255,34 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
     return searchServiceFactory.getSearchResultSet(request, query);
   }
 
+  public void decorateSearchResponse(SlingHttpServletRequest request, JSONWriter writer)
+    throws JSONException {
+    writer.key("unread");
+
+    long count = 0;
+    // We don't do queries for anonymous users. (Possible ddos hole).
+    String userID = request.getRemoteUser();
+    if (UserConstants.ANON_USERID.equals(userID)) {
+      writer.value(count);
+      return;
+    }
+
+    try {
+      final Session session = StorageClientUtils.adaptToSession(request
+          .getResourceResolver().adaptTo(javax.jcr.Session.class));
+      String store = messagingService.getFullPathToStore(userID, session);
+      store = ISO9075.encodePath(store);
+      store = store.substring(0, store.length() - 1);
+      String queryString = "path:" + ClientUtils.escapeQueryChars(store) +
+        " AND resourceType:sakai/message AND type:internal AND messagebox:inbox AND read:false";
+      Query query = new Query(queryString);
+      SolrSearchResultSet resultSet = searchServiceFactory.getSearchResultSet(
+          request, query, false);
+      count = resultSet.getSize();
+    } catch (SolrSearchException e) {
+      LOGGER.error(e.getMessage());
+    } finally {
+      writer.value(count);
+    }
+  }
 }

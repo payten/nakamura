@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require 'ruby-lib-dir.rb'
+require './ruby-lib-dir.rb'
 
 require 'sling/test'
 require 'sling/file'
@@ -31,7 +31,7 @@ class TC_Kern1372Test < Test::Unit::TestCase
       res = @fm.upload_pooled_file(filename, "Plain content", "text/plain")
       assert_equal("201", res.code, "Expected to be able to create pooled content")
       json = JSON.parse(res.body)
-      contentid = json[filename]
+      contentid = json[filename]['poolId']
       res = @s.execute_post(@s.url_for("/p/#{contentid}"), {
         "sakai:permissions" => "everyone"
       })
@@ -105,7 +105,7 @@ class TC_Kern1372Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Related feed not working")
     relateds = JSON.parse(res.body)
     assert_equal(1, relateds.size)
-    assert_equal(otherfileids[0], relateds[0]["jcr:name"])
+    assert_equal(otherfileids[0], relateds[0]["_path"])
     res = @s.execute_get("#{fileurl}.relatedpublic.json")
     assert_equal("200", res.code, "Related feed not working")
     relateds = JSON.parse(res.body)
@@ -134,13 +134,13 @@ class TC_Kern1372Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Related feed not working")
     relateds = JSON.parse(res.body)
     assert_equal(2, relateds.size)
-    assert_equal(otherfileids[1], relateds[0]["jcr:name"])
-    assert_equal(otherfileids[0], relateds[1]["jcr:name"])
+    assert_equal(otherfileids[1], relateds[0]["_path"])
+    assert_equal(otherfileids[0], relateds[1]["_path"])
     res = @s.execute_get("#{fileurl}.relatedpublic.json")
     assert_equal("200", res.code, "Related feed not working")
     relateds = JSON.parse(res.body)
     assert_equal(1, relateds.size)
-    assert_equal(otherfileids[1], relateds[0]["jcr:name"])
+    assert_equal(otherfileids[1], relateds[0]["_path"])
   end
 
   def test_related_by_directory
@@ -183,8 +183,8 @@ class TC_Kern1372Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Related feed not working")
     relateds = JSON.parse(res.body)
     assert_equal(2, relateds.size)
-    assert_equal(otherfileids[1], relateds[0]["jcr:name"])
-    assert_equal(otherfileids[0], relateds[1]["jcr:name"])
+    assert_equal(otherfileids[1], relateds[0]["_path"])
+    assert_equal(otherfileids[0], relateds[1]["_path"])
   end
 
 

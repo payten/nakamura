@@ -64,6 +64,10 @@ public interface FilesConstants {
    */
   public static final String SAKAI_LINK = "sakai:link";
   /**
+   * sakai:pagecount
+   */
+  public static final String SAKAI_PAGE_COUNT = "sakai:pagecount";
+  /**
    * The mixin required on the node to do a tag.
    */
   public static final String REQUIRED_MIXIN = "sakai:propertiesmix";
@@ -115,9 +119,25 @@ public interface FilesConstants {
   public static final String POOLED_CONTENT_FILENAME = "sakai:pooled-content-file-name";
 
   /**
+   * The name of the property that holds the mimetype
+   */
+  public static final String POOLED_CONTENT_MIMETYPE = "_mimeType";
+
+  /**
+   * The name of the property that holds the comment.
+   */
+  public static final String POOLED_CONTENT_COMMENT = "comment";
+
+  /**
    * Property on the file node indicating who the content was created for.
    */
   public static final String POOLED_CONTENT_CREATED_FOR = "sakai:pool-content-created-for";
+
+  /**
+   * Property showing that a content item has a preview generated and stored.
+   * Expected to be populated by the preview processor script.
+   */
+  public static final String POOLED_CONTENT_HAS_PREVIEW = "sakai:hasPreview";
 
   /**
    * Selector for feed of related content which is accessible by any logged-in user.
@@ -162,7 +182,7 @@ public interface FilesConstants {
   public static final String STRUCTURE_FIELD_STEM = "structure";
 
   /**
-   * Resource ID referneces in structures.
+   * Resource ID references in structures.
    */
   public static final String RESOURCE_REFERENCE_FIELD = "_ref";
   
@@ -172,4 +192,4 @@ public interface FilesConstants {
       POOLED_CONTENT_USER_MANAGER, POOLED_NEEDS_PROCESSING,
       Content.MIMETYPE_FIELD);
 
-}
+String SAKAI_TAG_COUNT = "sakai:tag-count";}

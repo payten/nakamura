@@ -31,6 +31,7 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.api.security.user.AuthorizableExistsException;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
@@ -122,12 +123,11 @@ import javax.servlet.http.HttpServletResponse;
                 "yyyy-MM-dd", 
                 "dd.MM.yyyy HH:mm:ss",
                 "dd.MM.yyyy"})})
-@ServiceDocumentation(name="Create Group Servlet",
-    description="Creates a new group. Maps on to nodes of resourceType sling/groups like " +
-    		"/rep:system/rep:userManager/rep:groups mapped to a resource url " +
+@ServiceDocumentation(name="Create Group Servlet", okForVersion = "0.11",
+    description="Creates a new group. Maps on to nodes of resourceType sparse/groups like " +
     		"/system/userManager/group. This servlet responds at /system/userManager/group.create.html",
     shortDescription="Creates a new group",
-    bindings=@ServiceBinding(type=BindingType.PATH,bindings="/system/userManager/group.create.html",
+    bindings=@ServiceBinding(type=BindingType.PATH,bindings="/system/userManager/group",
         selectors=@ServiceSelector(name="create", description="Creates a new group"),
         extensions=@ServiceExtension(name="html", description="Posts produce html containing the update status")),
     methods=@ServiceMethod(name="POST",
@@ -362,8 +362,8 @@ public class LiteCreateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServl
   @Override
   protected void activate(ComponentContext componentContext) {
     super.activate(componentContext);
-    String groupList = (String) componentContext.getProperties().get(
-        GROUP_AUTHORISED_TOCREATE);
+    String groupList = OsgiUtil.toString(componentContext.getProperties().get(
+        GROUP_AUTHORISED_TOCREATE), null);
     if (groupList != null) {
       authorizedGroups = ImmutableSet.of(StringUtils.split(groupList, ','));
     }

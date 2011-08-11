@@ -121,33 +121,58 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "BasicLTIConsumerServlet", shortDescription = "Performs all activities related to BasicLTI functionality.", description = "Performs all activities related to BasicLTI functionality.", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/basiclti", extensions = {
-    @ServiceExtension(name = "json", description = "This is the default return type if none is specified."),
-    @ServiceExtension(name = "html", description = "Useful only in the context of a .launch selector and the preferred return type in that case.") }, selectors = @ServiceSelector(name = "launch", description = "Used to retrieve the launch data for a BasicLTI launch (i.e. invocation of the service).")), methods = {
-    @ServiceMethod(name = "GET", description = "Get information about a sakai/basiclti resource.", parameters = { @ServiceParameter(name = "None", description = "No parameters are required.") }, response = {
-        @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
-        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
-        @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.") }),
-    @ServiceMethod(name = "POST", description = "Create or update LTI launch parameters or widget settings.", parameters = {
-        @ServiceParameter(name = LTI_KEY, description = "The opaque key given by the LTI provider."),
-        @ServiceParameter(name = LTI_SECRET, description = "The shared secret given by the LTI provider."),
-        @ServiceParameter(name = LTI_URL, description = "The LTI end point of the LTI provider."),
-        @ServiceParameter(name = LTI_VTOOL_ID, description = "The virtualToolId if acting as a virtual tool."),
-        @ServiceParameter(name = RELEASE_EMAIL, description = "Controls privacy of email address in launch data."),
-        @ServiceParameter(name = RELEASE_NAMES, description = "Controls privacy of first/last name in launch data."),
-        @ServiceParameter(name = RELEASE_PRINCIPAL_NAME, description = "Controls privacy of username in launch data."),
-        @ServiceParameter(name = "*", description = "The service will try to persist any parameter that is available in the POST data. Some keys will be ignored if unsupported."),
-        @ServiceParameter(name = "*@TypeHint", description = "The service adheres to the @TypeHint sling conventions as much as possible.") }, response = {
-        @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
-        @ServiceResponse(code = HttpServletResponse.SC_BAD_REQUEST, description = "Multi-valued parameters are not supported."),
-        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
-        @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.") }),
-    @ServiceMethod(name = "PUT", description = "The PUT method is not supported for sakai/basiclti nodes.", response = { @ServiceResponse(code = HttpServletResponse.SC_METHOD_NOT_ALLOWED, description = "PUT method not allowed.") }),
-    @ServiceMethod(name = "DELETE", description = "Delete a sakai/basiclti node and its corresponding data.", parameters = { @ServiceParameter(name = "None", description = "No parameters are required.") }, response = {
-        @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Everything was deleted as expected"),
-        @ServiceResponse(code = HttpServletResponse.SC_FORBIDDEN, description = "Unauthorized: The current user does not have permissions to delete the data."),
-        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
-        @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to delete the node due to a runtime error.") }) })
+@ServiceDocumentation(name = "BasicLTIConsumerServlet", okForVersion = "0.11",
+    shortDescription = "Performs all activities related to BasicLTI functionality.",
+    description = "Performs all activities related to BasicLTI functionality.",
+    bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/basiclti",
+      extensions = {
+        @ServiceExtension(name = "json", description = "This is the default return type if none is specified."),
+        @ServiceExtension(name = "html", description = "Useful only in the context of a .launch selector and the preferred return type in that case.")
+      },
+      selectors = @ServiceSelector(name = "launch", description = "Used to retrieve the launch data for a BasicLTI launch (i.e. invocation of the service).")),
+    methods = {
+      @ServiceMethod(name = "GET", description = "Get information about a sakai/basiclti resource.",
+        parameters = {
+          @ServiceParameter(name = "None", description = "No parameters are required.")
+        },
+        response = {
+          @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
+          @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
+          @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.")
+        }),
+      @ServiceMethod(name = "POST", description = "Create or update LTI launch parameters or widget settings.",
+        parameters = {
+          @ServiceParameter(name = LTI_KEY, description = "The opaque key given by the LTI provider."),
+          @ServiceParameter(name = LTI_SECRET, description = "The shared secret given by the LTI provider."),
+          @ServiceParameter(name = LTI_URL, description = "The LTI end point of the LTI provider."),
+          @ServiceParameter(name = LTI_VTOOL_ID, description = "The virtualToolId if acting as a virtual tool."),
+          @ServiceParameter(name = RELEASE_EMAIL, description = "Controls privacy of email address in launch data."),
+          @ServiceParameter(name = RELEASE_NAMES, description = "Controls privacy of first/last name in launch data."),
+          @ServiceParameter(name = RELEASE_PRINCIPAL_NAME, description = "Controls privacy of username in launch data."),
+          @ServiceParameter(name = "*", description = "The service will try to persist any parameter that is available in the POST data. Some keys will be ignored if unsupported."),
+          @ServiceParameter(name = "*@TypeHint", description = "The service adheres to the @TypeHint sling conventions as much as possible.")
+        },
+        response = {
+          @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
+          @ServiceResponse(code = HttpServletResponse.SC_BAD_REQUEST, description = "Multi-valued parameters are not supported."),
+          @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
+          @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.")
+        }),
+      @ServiceMethod(name = "PUT", description = "The PUT method is not supported for sakai/basiclti nodes.",
+        response = {
+          @ServiceResponse(code = HttpServletResponse.SC_METHOD_NOT_ALLOWED, description = "PUT method not allowed.")
+        }),
+      @ServiceMethod(name = "DELETE", description = "Delete a sakai/basiclti node and its corresponding data.",
+        parameters = {
+          @ServiceParameter(name = "None", description = "No parameters are required.")
+        },
+        response = {
+          @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Everything was deleted as expected"),
+          @ServiceResponse(code = HttpServletResponse.SC_FORBIDDEN, description = "Unauthorized: The current user does not have permissions to delete the data."),
+          @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
+          @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to delete the node due to a runtime error.")
+        })
+    })
 @SlingServlet(methods = { "GET", "POST", "PUT", "DELETE" }, resourceTypes = { "sakai/basiclti" })
 public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = 5985490994324951127L;
@@ -417,26 +442,39 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
         launchProps.put(USER_ID, az.getId());
       }
 
-      final Content groupHomeNode = findGroupHomeNode(node, session);
-      if (groupHomeNode == null) {
+      final Content pooledContentNode = findPooledContentNode(node, session);
+      if (pooledContentNode == null) {
         final String message = "Could not locate group home node.";
         sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message,
             new IllegalStateException(message), response);
         return;
       }
-      final String sitePath = groupHomeNode.getPath();
-      final String contextId = contextIdResolver.resolveContextId(groupHomeNode);
+      final String sitePath = pooledContentNode.getPath();
+      final String contextId = contextIdResolver.resolveContextId(pooledContentNode);
       if (contextId == null) {
         throw new IllegalStateException("Could not resolve context_id!");
       }
-      Content groupProfileNode = session.getContentManager().get(
-          groupHomeNode.getPath() + "/public/authprofile");
-      // Content groupProfileNode = groupHomeNode.getNode("public/authprofile");
       launchProps.put(CONTEXT_ID, contextId);
-      launchProps.put(CONTEXT_TITLE,
-          (String)groupProfileNode.getProperty("sakai:group-title"));
-      launchProps.put(CONTEXT_LABEL,
-          (String)groupProfileNode.getProperty("sakai:group-id"));
+      if ("sakai/pooled-content".equals(pooledContentNode
+          .getProperty("sling:resourceType"))) {
+        launchProps.put(CONTEXT_TITLE,
+            (String) pooledContentNode.getProperty("sakai:pooled-content-file-name"));
+        launchProps.put(CONTEXT_LABEL,
+            (String) pooledContentNode.getProperty("sakai:description"));
+      } else { // sakai/group-home
+        final Content groupProfileNode = session.getContentManager().get(
+            pooledContentNode.getPath() + "/public/authprofile");
+        if (groupProfileNode != null) {
+          launchProps.put(CONTEXT_TITLE,
+              (String) groupProfileNode.getProperty("sakai:group-title"));
+          launchProps.put(CONTEXT_LABEL,
+              (String) groupProfileNode.getProperty("sakai:group-id"));
+        } else {
+          // cannot find group profile data
+          launchProps.put(CONTEXT_TITLE, (String) pooledContentNode.getProperty("_path"));
+          launchProps.put(CONTEXT_LABEL, (String) pooledContentNode.getProperty("_path"));
+        }
+      }
 
       // FIXME how to determine site type?
       // CourseSection probably satisfies 90% of our use cases.
@@ -521,6 +559,7 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
     } catch (Throwable e) {
       sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage(), e,
           response);
+      return;
     }
     response.setStatus(HttpServletResponse.SC_OK);
   }
@@ -1183,8 +1222,9 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
   }
 
   /**
-   * Utility method to start walking back up the hierarchy looking for the containing Site
-   * node. If the Site node cannot be found, null is returned.
+   * Utility method to start walking back up the hierarchy looking for the 
+   * containing pooled content node. If the pooled content node cannot be found, 
+   * null is returned.
    * 
    * @param startingNode
    * @param session
@@ -1192,7 +1232,7 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
    * @throws org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException
    * @throws StorageClientException
    */
-  private Content findGroupHomeNode(final Content startingNode, Session session)
+  private Content findPooledContentNode(final Content startingNode, Session session)
       throws StorageClientException,
       org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException {
     Content returnNode = null;
@@ -1202,17 +1242,24 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
       final String traversalPath = traversalNode.getPath();
       lastSlash = traversalPath.lastIndexOf("/");
       if (traversalNode.hasProperty("sling:resourceType")) {
-        if ("sakai/group-home".equals((String)traversalNode
-            .getProperty("sling:resourceType"))) {
+        final String resourceType = (String) traversalNode
+            .getProperty("sling:resourceType");
+        if ("sakai/pooled-content".equals(resourceType)
+            || "sakai/group-home".equals(resourceType)) {
           // found the parent site node
           returnNode = traversalNode;
           break;
         }
       }
       // ~group/foo/bar
-      final String parentPath = traversalPath.substring(0, lastSlash);
-      traversalNode = session.getContentManager().get(parentPath);
-      if (traversalNode == null) {
+      if (lastSlash > 0) {
+        final String parentPath = traversalPath.substring(0, lastSlash);
+        traversalNode = session.getContentManager().get(parentPath);
+        if (traversalNode == null) {
+          break;
+        }
+      } else {
+        // we have walked all the way up and not found a match
         break;
       }
     }

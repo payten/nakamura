@@ -31,7 +31,6 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.sakaiproject.nakamura.api.calendar.CalendarException;
-import org.sakaiproject.nakamura.api.calendar.CalendarService;
 import org.sakaiproject.nakamura.api.calendar.LiteCalendarService;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -40,10 +39,11 @@ import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-import javax.jcr.Node;
 import javax.servlet.ServletException;
 
 @ServiceDocumentation(
@@ -60,9 +60,9 @@ import javax.servlet.ServletException;
         @ServiceMethod(
             name = "GET",
             description = {
-                "This servlet will generate the underlying JCR node structure into a valid ical format.",
+                "This servlet will generate the underlying JCR node structure into a valid iCal format.",
                 "If no selector is specified it will output components of type VEvent.",
-                "More components can be looked for by adding in the type as a selecter.",
+                "More components can be looked for by adding in the type as a selector.",
                 "eg: http://localhost:8080/path/to/calendar.vevent.vtodo.vjournal.ics"
             },
             response = {
@@ -72,19 +72,21 @@ import javax.servlet.ServletException;
         ) 
     },
     name = "CalendarServlet",
-    description = "Serializes an underlying JCR structure into valid icalendar data",
-    shortDescription = "Serializes an underlying JCR structure into valid icalendar data"
+    description = "Serializes an underlying JCR structure into valid iCalendar data",
+    shortDescription = "Serializes an underlying JCR structure into valid iCalendar data",
+    okForVersion = "0.11"
 )
 @SlingServlet(methods = { "GET" }, resourceTypes = { "sakai/calendar" }, extensions = { "ics" }, selectors = {}, generateComponent = true, generateService = true)
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "service.description", value = "Serializes a JCR node structure into ical.") })
+    @Property(name = "service.description", value = "Serializes a JCR node structure into iCal.") })
 public class CalendarIcsServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = -3279889579407055346L;
 
-  @Reference
-  protected transient CalendarService calendarService;
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(CalendarIcsServlet.class);
+
 
   @Reference
   protected transient LiteCalendarService liteCalendarService;
@@ -103,26 +105,23 @@ public class CalendarIcsServlet extends SlingSafeMethodsServlet {
     response.setCharacterEncoding("UTF-8");
 
     String[] types = getSelectors(request);
-    Calendar iCal = null;
     Resource resource = request.getResource();
     try {
       Content content = resource.adaptTo(Content.class);
       if (content != null) {
         // Construct the Calendar from the content tree.
-        iCal = liteCalendarService.export(null, content, types);
+        Calendar iCal = liteCalendarService.export(null, content, types);
+        // Output the calendar, we don't do any validation.
+        CalendarOutputter outputter = new CalendarOutputter(false);
+        outputter.output(iCal, response.getOutputStream());
       } else {
-        Node node = resource.adaptTo(Node.class);
-        // Construct the Calendar from the node structure.
-        iCal = calendarService.export(node, types);
+        response.sendError(404);
       }
-      // Output the calendar, we don't do any validation.
-      CalendarOutputter outputter = new CalendarOutputter(false);
-      outputter.output(iCal, response.getOutputStream());
     } catch (CalendarException e) {
-      e.printStackTrace();
+      LOGGER.warn(e.getMessage(),e);
       response.sendError(e.getCode(), e.getMessage());
     } catch (ValidationException e) {
-      e.printStackTrace();
+      LOGGER.warn(e.getMessage(),e);
       response.sendError(500, "Failed to output proper ical.");
     }
 

@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.connections;
 
+import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.SAKAI_CONNECTION_STATE;
+import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.SAKAI_CONNECTION_TYPES;
+
 import static org.sakaiproject.nakamura.api.connections.ConnectionOperation.accept;
 import static org.sakaiproject.nakamura.api.connections.ConnectionOperation.block;
 import static org.sakaiproject.nakamura.api.connections.ConnectionOperation.cancel;
@@ -42,6 +45,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.connections.ConnectionException;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
@@ -64,6 +68,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,6 +80,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
 
 
 
@@ -177,13 +183,11 @@ public class ConnectionManagerImpl implements ConnectionManager {
    *          the node to check (should be a user contact node)
    * @return the connection state (may be NONE)
    * @throws ConnectionException
-   * @throws RepositoryException
    */
   protected ConnectionState getConnectionState(Content userContactNode)
       throws ConnectionException {
     if (userContactNode == null) {
-      throw new IllegalArgumentException(
-          "Node cannot be null to check for connection state");
+      return ConnectionState.NONE;
     }
     try {
       if (userContactNode.hasProperty(ConnectionConstants.SAKAI_CONNECTION_STATE)) {
@@ -192,6 +196,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
             ConnectionConstants.SAKAI_CONNECTION_STATE));
       }
     } catch (Exception e) {
+      LOGGER.error(e.getLocalizedMessage(), e);
     }
     return ConnectionState.NONE;
   }
@@ -229,6 +234,12 @@ public class ConnectionManagerImpl implements ConnectionManager {
       // get the contact userstore nodes
       Content thisNode = getOrCreateConnectionNode(adminSession, thisAu, otherAu);
       Content otherNode = getOrCreateConnectionNode(adminSession, otherAu, thisAu);
+      if ( thisNode == null ) {
+        throw new ConnectionException(400,"Failed to connect users, no connection for "+thisUserId );
+      }
+      if ( otherNode == null ) {
+        throw new ConnectionException(400,"Failed to connect users, no connection for "+otherUserId );
+      }
 
       // check the current states
       ConnectionState thisState = getConnectionState(thisNode);
@@ -295,6 +306,36 @@ public class ConnectionManagerImpl implements ConnectionManager {
   }
 
   /**
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.nakamura.api.connections.ConnectionManager#getConnectionDetails(org.apache.sling.api.SlingHttpServletRequest,
+   *      java.lang.String, java.lang.String)
+   */
+  public Content getConnectionDetails(Session session, String thisUser, String otherUser)
+      throws StorageClientException, AccessDeniedException {
+    String connPath = ConnectionUtils.getConnectionPath(thisUser, otherUser);
+    ContentManager cm = session.getContentManager();
+
+    Content connection = cm.get(connPath);
+    return connection;
+  }
+
+  public boolean writeConnectionInfo(ExtendedJSONWriter exWriter, Session session,
+      String thisUser, String otherUser) throws AccessDeniedException,
+      StorageClientException, JSONException {
+    //add contact information if appropriate
+    Content connection = getConnectionDetails(session, thisUser, otherUser);
+    if (connection != null) {
+      // add sakai:state and sakai:types
+      exWriter.key(SAKAI_CONNECTION_STATE);
+      exWriter.value(connection.getProperty(SAKAI_CONNECTION_STATE), false);
+      exWriter.key(SAKAI_CONNECTION_TYPES);
+      exWriter.value(connection.getProperty(SAKAI_CONNECTION_TYPES), false);
+    }
+    return connection != null;
+  }
+
+  /**
    * Removes a member from a group
    *
    * @param thisAu
@@ -306,7 +347,6 @@ public class ConnectionManagerImpl implements ConnectionManager {
    *          A session that can be used to modify a group.
    * @throws StorageClientException 
    * @throws AccessDeniedException 
-   * @throws RepositoryException
    */
   protected void removeUserFromGroup(Authorizable thisAu, Authorizable otherAu,
       Session session) throws StorageClientException, AccessDeniedException {
@@ -329,7 +369,6 @@ public class ConnectionManagerImpl implements ConnectionManager {
    *          The session that can be used to locate and manipulate the group
    * @throws StorageClientException 
    * @throws AccessDeniedException 
-   * @throws RepositoryException
    */
   protected void addUserToGroup(Authorizable thisAu, Authorizable otherAu, Session session) throws StorageClientException, AccessDeniedException {
     AuthorizableManager authorizableManager = session.getAuthorizableManager();
@@ -360,7 +399,11 @@ public class ConnectionManagerImpl implements ConnectionManager {
       if (content != null) {
         for ( Content connection : content.listChildren() ) {
           String resourceType = (String) connection.getProperty("sling:resourceType");
-          ConnectionState connectionState = ConnectionState.valueOf((String) connection.getProperty(ConnectionConstants.SAKAI_CONNECTION_STATE));
+          String connectionStateValue = (String) connection.getProperty(ConnectionConstants.SAKAI_CONNECTION_STATE);
+          ConnectionState connectionState = ConnectionState.NONE;
+          if (connectionStateValue != null ) {
+            connectionState = ConnectionState.valueOf(connectionStateValue);
+          }
           if ( ConnectionConstants.SAKAI_CONTACT_RT.equals(resourceType) && state.equals(connectionState)) {
             connections.add(StorageClientUtils.getObjectName(connection.getPath()));
           }
@@ -379,10 +422,23 @@ public class ConnectionManagerImpl implements ConnectionManager {
     String nodePath = ConnectionUtils.getConnectionPath(fromUser, toUser);
     ContentManager contentManager = session.getContentManager();
     if (!contentManager.exists(nodePath)) {
+      // Add auth name for sorting (KERN-1924)
+      String firstName = "";
+      String lastName = "";
+      if (toUser.getProperty("firstName") != null) {
+        firstName = (String) toUser.getProperty("firstName");
+      }
+      if (toUser.getProperty("lastName") != null) {
+        lastName = (String) toUser.getProperty("lastName");
+      }
+
       contentManager.update(new Content(nodePath, ImmutableMap.of("sling:resourceType",
           (Object)ConnectionConstants.SAKAI_CONTACT_RT,
             "reference", LitePersonalUtils.getProfilePath(toUser.getId()),
-            "sakai:contactstorepath", ConnectionUtils.getConnectionPathBase(fromUser))));
+ "sakai:contactstorepath",
+          ConnectionUtils.getConnectionPathBase(fromUser), "firstName",
+ firstName,
+          "lastName", lastName)));
     }
     return contentManager.get(nodePath);
   }
@@ -426,7 +482,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
    */
   protected void addArbitraryProperties(Content node, Map<String, Object> properties) {
     for (Entry<String, Object> param : properties.entrySet()) {
-        node.setProperty(param.getKey(), param.getValue());
+        if ( param != null && param.getKey() != null && param.getValue() != null ) {
+          node.setProperty(param.getKey(), param.getValue());
+        }
     }
   }
 

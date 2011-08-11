@@ -25,7 +25,6 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.scr.annotations.Services;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -46,7 +45,7 @@ import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,8 +56,7 @@ import java.io.IOException;
  * Handler for chat messages.
  */
 @Component(label = "LiteChatMessageHandler", description = "Handler for internally delivered chat messages.", immediate = true)
-@Services(value = { @Service(value = LiteMessageTransport.class),
-    @Service(value = LiteMessageProfileWriter.class) })
+@Service({ LiteMessageTransport.class, LiteMessageProfileWriter.class })
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Handler for internally delivered chat messages") })
@@ -76,6 +74,9 @@ public class LiteChatMessageHandler implements LiteMessageTransport,
 
   @Reference
   protected transient LiteMessagingService messagingService;
+
+  @Reference
+  protected transient BasicUserInfoService basicUserInfoService;
 
   /**
    * Default constructor
@@ -160,12 +161,11 @@ public class LiteChatMessageHandler implements LiteMessageTransport,
    * @see org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter#writeProfileInformation(Session,
    *      String, org.apache.sling.commons.json.io.JSONWriter)
    */
-  public void writeProfileInformation(Session session, String recipient, JSONWriter write, javax.jcr.Session jcrSession) {
+  public void writeProfileInformation(Session session, String recipient, JSONWriter write) {
     try {
       Authorizable au = session.getAuthorizableManager().findAuthorizable(recipient);
-      BasicUserInfo basicUserInfo = new BasicUserInfo();
-      ValueMap map = new ValueMapDecorator(basicUserInfo.getProperties(au));
-      ((ExtendedJSONWriter) write).valueMap(map);
+      ValueMap map = new ValueMapDecorator(basicUserInfoService.getProperties(au));
+      ExtendedJSONWriter.writeValueMapInternals(write, map);
     } catch (Exception e) {
       LOG.error("Failed to write profile information for " + recipient, e);
     }

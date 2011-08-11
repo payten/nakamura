@@ -31,15 +31,16 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.search.solr.Query;
-import org.sakaiproject.nakamura.api.search.solr.Query.Type;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,6 +97,31 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
             // or if the group path simply doesn't exist
             continue;
           }
+
+          // KERN-2125 determine if group should be excluded from search results
+          Authorizable authorizable = null;
+          try {
+            authorizable = session.getAuthorizableManager().findAuthorizable(resourceId);
+            // allow for not being able to find the authorizable for the group
+            if (authorizable == null) {
+              LOG.info("null authorizable found for group " + resourceId + ", group has been exclude from search results");
+              continue;
+            }
+          } catch (Exception e) {
+            // allow for not being able to find the authorizable for the group
+            LOG.info("no authorizable found for group " + resourceId + ", group has been exclude from search results",e);
+            continue;
+          }
+          if (authorizable != null) {
+            if (authorizable.hasProperty(UserConstants.SAKAI_EXCLUDE)) {
+              if (Boolean.parseBoolean(String.valueOf(authorizable.getProperty(UserConstants.SAKAI_EXCLUDE)))) {
+                // don't include groups in search results where property sakai:excludeSearch=true
+                LOG.debug("group {} has been excluded from search results because sakai:excludeSearch=true",resourceId);
+                continue;
+              }
+            }
+          }
+
           final String resourceName = (String) resourceContent
               .getProperty("sakai:group-title");
           resources.put(resourceId, new ResourceActivity(resourceId, 0, resourceName,
@@ -110,7 +136,7 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
     long totalCanRead = 0L;
     try {
       final String queryString = "resourceType:authorizable AND type:g";
-      final Query query = new Query(Type.SOLR, queryString, null);
+      final Query query = new Query(queryString);
       final SolrSearchResultSet rs = searchServiceFactory.getSearchResultSet(request,
           query);
       if (rs != null) {

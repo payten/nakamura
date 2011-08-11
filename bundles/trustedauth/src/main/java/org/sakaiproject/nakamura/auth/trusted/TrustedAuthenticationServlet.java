@@ -21,16 +21,31 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
+import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenTypes;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.text.MessageFormat;
 import java.util.Dictionary;
 
 import javax.servlet.ServletException;
@@ -53,6 +68,25 @@ import javax.servlet.http.HttpServletResponse;
  * simply store the trusted user in a a trusted token in the form of a cookie.
  * </p>
  */
+@ServiceDocumentation(name = "Trusted Authentication Servlet documentation", okForVersion = "0.11",
+  shortDescription = "Allows authentication by a trusted external source.",
+  description = "Allows authentication by a trusted external source. This servlet does not perform the authentication itself but looks for information in\n" +
+    " the request from the authentication authority. This information is then stored in the\n" +
+    " session for use by the authentication handler on subsequent calls." +
+    " This servlet is mounted outside sling. In essence we Trust the external authentication and \n" +
+    " simply store the trusted user in a trusted token in the form of a cookie.",
+  bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/trustedauth"),
+  methods = {
+    @ServiceMethod(name = "GET", description = "",
+      parameters = {
+        @ServiceParameter(name = "d", description = "The destination path to be redirected to after saving the authentication token.")
+      },
+      response = {
+        @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
+        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
+        @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.")
+      })
+})
 @Component(immediate = true, metatype = true)
 @Service
 public final class TrustedAuthenticationServlet extends HttpServlet implements HttpContext {
@@ -80,13 +114,25 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
   @Property(value = "/dev")
   static final String DEFAULT_DESTINATION = "sakai.auth.trusted.destination.default";
 
+  private static final String DEFAULT_NO_USER_REDIRECT_FORMAT = "/system/trustedauth-nouser?u={0}";
+
+  @Property(value = DEFAULT_NO_USER_REDIRECT_FORMAT)
+  private static final String NO_USER_REDIRECT_LOCATION_FORMAT = "sakai.auth.trusted.nouserlocationformat";
+
   private static final Logger LOGGER = LoggerFactory.getLogger(TrustedAuthenticationServlet.class);
+
+
+
+
 
   @Reference
   protected transient HttpService httpService;
 
   @Reference
   protected transient TrustedTokenService trustedTokenService;
+  
+  @Reference
+  protected transient Repository repository;
 
   /** The registration path for this servlet. */
   private String registrationPath;
@@ -94,15 +140,19 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
   /** The default destination to go to if none is specified. */
   private String defaultDestination;
 
+
+  private String noUserRedirectLocationFormat;
+
   @SuppressWarnings("rawtypes")
   @Activate
   protected void activate(ComponentContext context) {
     Dictionary props = context.getProperties();
-    registrationPath = (String) props.get(REGISTRATION_PATH);
-    defaultDestination = (String) props.get(DEFAULT_DESTINATION);
+    noUserRedirectLocationFormat = OsgiUtil.toString(props.get(NO_USER_REDIRECT_LOCATION_FORMAT), DEFAULT_NO_USER_REDIRECT_FORMAT);
+    registrationPath = OsgiUtil.toString(props.get(REGISTRATION_PATH), "/system/trustedauth");
+    defaultDestination = OsgiUtil.toString(props.get(DEFAULT_DESTINATION), "/dev");
     try {
       httpService.registerServlet(registrationPath, this, null, null);
-      LOGGER.info("Registerd {} at {} ",this,registrationPath);
+      LOGGER.info("Registered {} at {} ",this,registrationPath);
     } catch (ServletException e) {
       LOGGER.error(e.getMessage(),e);
     } catch (NamespaceException e) {
@@ -112,7 +162,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
 
   protected void deactivate(ComponentContext context) {
     httpService.unregister(registrationPath);
-    LOGGER.info("UnRegisterd {} from {} ",this,registrationPath);
+    LOGGER.info("Unregistered {} from {} ",this,registrationPath);
   }
 
   /**
@@ -127,15 +177,51 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
       throws ServletException, IOException {
     
     if (trustedTokenService instanceof TrustedTokenServiceImpl) {
-      ((TrustedTokenServiceImpl) trustedTokenService).injectToken(req, resp);
-      LOGGER.debug(" Might have Injected token ");
-      String destination = req.getParameter(PARAM_DESTINATION);
+      final AuthenticatedAction authAction = new AuthenticatedAction();
+      ((TrustedTokenServiceImpl) trustedTokenService).injectToken(req, resp, TrustedTokenTypes.AUTHENTICATED_TRUST, new UserValidator(){
 
+        public String validate(String userId) {
+          if ( userId != null ) {        
+            // we found a user, check if it really exists.
+            Session session = null;
+            try {
+              session = repository.loginAdministrative();
+              AuthorizableManager am = session.getAuthorizableManager();
+              Authorizable a = am.findAuthorizable(userId);
+              if ( a == null ) {
+                LOGGER.info("Authenticated User {} does not exist");
+                authAction.setAction(AuthenticatedAction.REDIRECT);
+                return null;
+              }
+            } catch (Exception e) {
+              LOGGER.warn("Failed to check user ",e);
+            } finally {
+              if ( session != null ) {
+                try {
+                  session.logout();
+                } catch (ClientPoolException e) {
+                  LOGGER.warn("Failed to close admin session ",e);
+                }
+              }
+            }
+          }
+          return userId;
+        }
+      });
+      String destination = req.getParameter(PARAM_DESTINATION);
       if (destination == null) {
         destination = defaultDestination;
       }
-      // ensure that the redirect is safe and not susceptible to
-      resp.sendRedirect(destination.replace('\n', ' ').replace('\r', ' '));
+      if ( authAction.isRedirect() ) {
+        String redirectLocation = MessageFormat.format(noUserRedirectLocationFormat, URLEncoder.encode(destination, "UTF-8"));
+        resp.sendRedirect(redirectLocation);
+      } else {
+        if (destination == null) {
+          destination = defaultDestination;
+        }
+        // ensure that the redirect is safe and not susceptible to
+        resp.sendRedirect(destination.replace('\n', ' ').replace('\r', ' '));
+      }
     } else {
       LOGGER.debug("Trusted Token Service is not the correct implementation and so cant inject tokens. ");
     }
@@ -151,7 +237,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
 
   /**
    * (non-Javadoc) This servlet handles its own security since it is going to trust the
-   * external remote user. If we dont do this the SLing handleSecurity takes over and causes problems.
+   * external remote user. If we don't do this the Sling handleSecurity takes over and causes problems.
    * 
    * @see org.osgi.service.http.HttpContext#handleSecurity(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse)
