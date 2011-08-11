@@ -63,6 +63,7 @@ public class GrouperNameManagerImpl extends AbstractOrderedService<GrouperNamePr
 
 	@Override
 	public String getGrouperName(String groupId) {
+		// Get the partial path to the grouper group.
 		String grouperName = null;
 		for (GrouperNameProvider gnp: orderedServices){
 			grouperName = gnp.getGrouperName(groupId);
@@ -75,6 +76,7 @@ public class GrouperNameManagerImpl extends AbstractOrderedService<GrouperNamePr
 			return null;
 		}
 
+		// Figure out which stem to put this group in.
 		try {
 			Session session = repository.loginAdministrative(config.getIgnoredUserId());
 			Group g = (Group)session.getAuthorizableManager().findAuthorizable(groupId);
