@@ -108,4 +108,12 @@ public interface GrouperConfiguration {
 	 * @return
 	 */
 	public abstract boolean getDeletesEnabled();
+
+	/**
+	 * Where the institutional courses are stored.
+	 * @return
+	 */
+	public abstract String getInstitutionalCourseGroupsStem();
+
+
 }

@@ -91,6 +91,10 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 	private static final String DEFAULT_COURSES_STEM = "edu:apps:sakaioae:courses:adhoc";
 	@Property(value = DEFAULT_COURSES_STEM)
 	public static final String PROP_COURSES_STEM = "grouper.nameprovider.courses.stem";
+	
+	private static final String DEFAULT_INSTITUTIONAL_COURSES_STEM = "inst:sis:courses";
+	@Property(value = DEFAULT_INSTITUTIONAL_COURSES_STEM)
+	public static final String PROP_INSTITUTIONAL_COURSES_STEM = "grouper.institutional.courses.stem";
 
 	private static final String[] DEFAULT_EXTENSION_OVERRIDES = new String[0];
 	@Property(value = {}, cardinality = 9999)
@@ -108,6 +112,7 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 
 	private String simpleGroupsStem;
 	private String coursesStem;
+	private String institutionalCourseStem;
 
 	// GrouperWS
 	private int httpTimeout;
@@ -125,7 +130,6 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 	private boolean deletesEnabled;
 
 	private boolean disableForTesting;
-
 
 	// -------------------------- Configuration Admin --------------------------
 	/**
@@ -150,6 +154,7 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 		contactsStem = cleanStem(OsgiUtil.toString(props.get(PROP_CONTACTS_STEM),DEFAULT_CONTACTS_STEM));
 		simpleGroupsStem = cleanStem(OsgiUtil.toString(props.get(PROP_SIMPLEGROUPS_STEM),DEFAULT_SIMPLEGROUPS_STEM));
 		coursesStem = cleanStem(OsgiUtil.toString(props.get(PROP_COURSES_STEM),DEFAULT_COURSES_STEM));
+		institutionalCourseStem = cleanStem(OsgiUtil.toString(props.get(PROP_INSTITUTIONAL_COURSES_STEM),DEFAULT_INSTITUTIONAL_COURSES_STEM));
 
 		httpTimeout = OsgiUtil.toInteger(props.get(PROP_TIMEOUT), Integer.parseInt(DEFAULT_TIMEOUT));
 
@@ -233,5 +238,9 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 
 	public boolean getDisableForTesting() {
 		return disableForTesting;
+	}
+
+	public String getInstitutionalCourseGroupsStem() {
+		return institutionalCourseStem;
 	}
 }
