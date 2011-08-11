@@ -300,7 +300,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   public void process(SlingHttpServletRequest request, Authorizable authorizable,
       Session session, Modification change, Map<String, Object[]> parameters)
       throws Exception {
-    LOGGER.debug("Default Prost processor on {} with {} ", authorizable.getId(), change);
+    LOGGER.debug("Default Post processor on {} with {} ", authorizable.getId(), change);
 
     ContentManager contentManager = session.getContentManager();
     AccessControlManager accessControlManager = session.getAccessControlManager();
@@ -878,11 +878,13 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
           // grant permission is present, but not present in managerSettings, manage
           // ability (which include read ability must be removed)
           if (viewerSettings.contains(principal)) {
+            aclModifications.add(new AclModification(AclModification.denyKey(principal), Permissions.ALL.getPermission(), Operation.OP_DEL));
             aclModifications.add(new AclModification(key, Permissions.CAN_READ
                 .getPermission(), Operation.OP_REPLACE));
           } else {
-            aclModifications.add(new AclModification(key, Permissions.CAN_MANAGE
-                .getPermission(), Operation.OP_XOR));
+            aclModifications.add(new AclModification(AclModification.grantKey(principal), Permissions.ALL.getPermission(), Operation.OP_DEL));
+            aclModifications.add(new AclModification(AclModification.denyKey(principal), Permissions.ALL
+                .getPermission(), Operation.OP_REPLACE));
           }
         }
       }
