@@ -232,10 +232,19 @@ public class Migrate extends SlingSafeMethodsServlet {
   }
 
 
-  private Content cloneContent(Content content) throws Exception
+  private Content makeContent(String path, Map<String,Object> properties) throws Exception
   {
-    return new Content(content.getPath(),
-                       content.getProperties());
+    Map<String,Object> props = new HashMap<String,Object>(properties);
+    props.remove("_id");
+    props.remove("_versionHistoryId");
+    props.remove("_readOnly");
+
+    return new Content(path, props);
+  }
+
+  private Content makeContent(Content content) throws Exception
+  {
+    return makeContent(content.getPath(), content.getProperties());
   }
 
 
@@ -296,20 +305,12 @@ public class Migrate extends SlingSafeMethodsServlet {
 
       Map<String,Object> props = new HashMap<String,Object>(version.getOriginalProperties());
 
-      if (versionCount == 0) {
-        // We're going to replay the versions in reverse order, but that
-        // generates a new bunch of version IDs.  Clear the version history UUID
-        // to create a new list.
-
-        props.remove("_versionHistoryId");
-      }
-
-      props.remove("_readOnly");
-      version = new Content(version.getPath(), props);
+      // props.remove("_readOnly");
+      version = makeContent(version.getPath(), props);
 
       versionCount++;
 
-      targetCM.update(cloneContent(version));
+      targetCM.update(makeContent(version));
 
       InputStream versionInputStream = sourceCM.getVersionInputStream(content.getPath(), versionId);
 
@@ -321,8 +322,7 @@ public class Migrate extends SlingSafeMethodsServlet {
       saveVersionWithTimestamp(content.getPath(), version.getProperty("_versionNumber"));
     }
 
-    // Finally, having written the versions (if any) write the most recent state of the object.
-    targetCM.update(cloneContent(content));
+    targetCM.update(makeContent(content));
     if (sourceCM.hasBody(content.getPath(), null)) {
       InputStream is = sourceCM.getInputStream(content.getPath());
       targetCM.writeBody(content.getPath(), is);
@@ -819,7 +819,7 @@ public class Migrate extends SlingSafeMethodsServlet {
     String nodeName = rootNode.getPath().substring(lastSlash + 1);
     String newPath = newRoot + "/" + nodeName;
 
-    targetCM.update(new Content(newPath, rootNode.getProperties()));
+    targetCM.update(makeContent(newPath, rootNode.getProperties()));
 
     for (Content child : rootNode.listChildren()) {
       migrateContentTree(child, newPath);
@@ -865,7 +865,7 @@ public class Migrate extends SlingSafeMethodsServlet {
                  .replaceAll("__CONTENT_ID__", contentId));
 
     // THINKE: does "permissions" need to be cleverer?
-    targetCM.update(new Content(poolId,
+    targetCM.update(makeContent(poolId,
                                 new ImmutableMap.Builder<String,Object>()
                                 .put("sakai:copyright", "creativecommons")
                                 .put("sakai:custom-mimetype", "x-sakai/document")
@@ -883,7 +883,7 @@ public class Migrate extends SlingSafeMethodsServlet {
 
     setWorldReadableGroupWritable(poolId, group);
 
-    targetCM.update(new Content(poolId + "/" + contentId,
+    targetCM.update(makeContent(poolId + "/" + contentId,
                                 new ImmutableMap.Builder<String,Object>()
                                 .put("page", getPageContent(content))
                                 .build()));
