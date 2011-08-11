@@ -210,23 +210,7 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
 
   private Group getPeerGroupOf(Group group, AuthorizableManager authorizableManager, Map<String, Object> toSave) throws AccessDeniedException, StorageClientException  {
     Group peerGroup = null;
-    if (group.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
-      String managersGroupId = (String) group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
-      if ( group.getId().equals(managersGroupId)) {
-        return group;
-      }
-      peerGroup = (Group) toSave.get(managersGroupId);
-      if ( peerGroup == null ) {
-        if (LOGGER.isDebugEnabled()) {
-          LOGGER.debug("For {} Not in toSave List loading Managers Group from store {} ",group.getId(),managersGroupId);
-        }
-        peerGroup = (Group) authorizableManager.findAuthorizable(managersGroupId);
-      } else {
-        if (LOGGER.isDebugEnabled()) {
-          LOGGER.debug("For {} got Managers Group from save list {} ",group.getId(),managersGroupId);
-        }
-      }
-    } else if (group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
+    if (group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
       String managedGroupId = (String) group.getProperty(UserConstants.PROP_MANAGED_GROUP);
       if ( group.getId().equals(managedGroupId)) {
         return group;
@@ -242,7 +226,24 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
           LOGGER.debug("For {} got Managed Group from save list {} ",group.getId(),managedGroupId);
         }
       }
-    }
+    } else if (group.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
+      String managersGroupId = (String) group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
+      if ( group.getId().equals(managersGroupId)) {
+        return group;
+      }
+      peerGroup = (Group) toSave.get(managersGroupId);
+      if ( peerGroup == null ) {
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("For {} Not in toSave List loading Managers Group from store {} ",group.getId(),managersGroupId);
+        }
+        peerGroup = (Group) authorizableManager.findAuthorizable(managersGroupId);
+      } else {
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("For {} got Managers Group from save list {} ",group.getId(),managersGroupId);
+        }
+      }
+    } 
+
     return peerGroup;
   }
 
@@ -330,15 +331,15 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
     if (group.hasProperty(propertyName)) {
       Object o = group.getProperty(propertyName);
 
-      String[] existingValues;
+      String[] existingProperties;
       if (o instanceof String) {
-        existingValues = new String[] { (String) o };
+        existingProperties = new String[] { (String) o };
       } else {
-        existingValues = (String[]) o;
+        existingProperties = (String[]) o;
       }
 
-      for (String existingValue : existingValues) {
-        propertyValueSet.add(existingValue);
+      for (String property : existingProperties) {
+        propertyValueSet.add(property);
       }
     }
 

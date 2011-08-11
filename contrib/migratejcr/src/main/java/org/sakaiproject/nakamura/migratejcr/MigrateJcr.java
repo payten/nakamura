@@ -596,7 +596,6 @@ public class MigrateJcr {
         String lastName;
         String email;
         List<String> tagList;
-        String picture = "";
         try {
           userId = profileNode.getProperty("rep:userId").getString();
           Node propNode = profileNode.getNode("basic/elements/firstName");
@@ -612,17 +611,13 @@ public class MigrateJcr {
               tagList.add(tagUuid.getString());
             }
           }
-          if (profileNode.hasNode("basic/elements/picture")) {
-            propNode = profileNode.getNode("basic/elements/picture");
-            picture = propNode.getProperty("value").getString();
-          }
         } catch (Exception e) {
           LOGGER.error("Failed getting basic profile information for profile {}. Won't create this user.", authHomeNode.getPath());
           return;
         }
         // TODO do we care about the password?
         if (authManager.createUser(userId, userId, "testuser", ImmutableMap.of(
-            "firstName", (Object) firstName, "lastName", lastName, "email", email, "picture", picture, "sakai:tag-uuid", tagList.toArray(new String[tagList.size()])))) {
+            "firstName", (Object) firstName, "lastName", lastName, "email", email, "sakai:tag-uuid", tagList.toArray(new String[tagList.size()])))) {
           LOGGER.info("Created user {} {} {} {}", new String[]{userId, firstName, lastName, email});
           String contactsGroupName = "g-contacts-" + userId;
           authManager.createGroup(contactsGroupName, contactsGroupName, null);

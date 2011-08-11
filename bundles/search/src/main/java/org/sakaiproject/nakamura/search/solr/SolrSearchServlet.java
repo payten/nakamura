@@ -852,4 +852,24 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     }
     return false;
   }
+
+  /**
+   * Stolen from org.apache.solr.client.solrj.util.ClientUtils
+   * See: <a href="http://lucene.apache.org/java/docs/nightly/queryparsersyntax.html#Escaping%20Special%20Characters">Escaping Special Characters</a>
+   * Removed escaping for *, " and whitespace.
+   */
+  protected String escapeQueryChars(String s) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      // These characters are part of the query syntax and must be escaped
+      if (c == '\\' || c == '+' || c == '-' || c == '!'  || c == '(' || c == ')'|| c == ':'
+        || c == '^' || c == '[' || c == ']' || c == '{' || c == '}' || c == '~'
+        || c == '?' || c == '|' || c == '&' || c == ';') {
+        sb.append('\\');
+      }
+      sb.append(c);
+    }
+    return sb.toString();
+  }
 }
