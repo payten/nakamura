@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 @Properties(value = { 
 		@Property(name = "service.ranking", intValue = 0)
 })
-public class ContactsGrouperNameProviderImpl implements GrouperNameProvider {
+public class ContactsGrouperNameProviderImpl extends BaseGrouperNameProvider implements GrouperNameProvider {
 
 	private static final Logger log = LoggerFactory.getLogger(ContactsGrouperNameProviderImpl.class);
 
@@ -56,7 +56,7 @@ public class ContactsGrouperNameProviderImpl implements GrouperNameProvider {
 		}
 		StringBuilder gn = new StringBuilder(groupId.substring(CONTACTS_GROUPID_PREFIX.length() + 1)); 
 		gn.append(":");
-		gn.append(BaseGrouperNameProvider.getGrouperExtension(groupId, config));
+		gn.append(getGrouperExtension(groupId, config));
 		String name = gn.toString();
 		log.debug("{} => {}", groupId, name);
 		return name;

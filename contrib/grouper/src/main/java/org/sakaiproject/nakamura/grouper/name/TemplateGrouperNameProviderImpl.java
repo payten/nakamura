@@ -60,7 +60,7 @@ import org.slf4j.LoggerFactory;
 @Properties(value = {
 		@Property(name = "service.ranking", intValue = 100)
 })
-public class TemplateGrouperNameProviderImpl implements GrouperNameProvider {
+public class TemplateGrouperNameProviderImpl extends BaseGrouperNameProvider implements GrouperNameProvider {
 
 	private static final Logger log = LoggerFactory.getLogger(TemplateGrouperNameProviderImpl.class);
 
@@ -128,7 +128,7 @@ public class TemplateGrouperNameProviderImpl implements GrouperNameProvider {
 		}
 		VelocityContext context = new VelocityContext();
 		context.put("g", g);
-		context.put("extension", BaseGrouperNameProvider.getGrouperExtension(groupId, config));
+		context.put("extension", getGrouperExtension(groupId, config));
 
 		StringWriter sw = new StringWriter();
 		template.merge(context, sw);
