@@ -24,8 +24,7 @@ package org.sakaiproject.nakamura.grouper.name.api;
  */
 public interface GrouperNameManager {
 	/**
-	 * @param baseStem the folder in Grouper for sakai3
-	 * @param the authorizableId of the Group
+	 * @param groupId the authorizableId of the Group
 	 * @return the fully qualified name of this group in Grouper
 	 */
 	public String getGrouperName(String groupId);
