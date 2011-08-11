@@ -331,6 +331,17 @@ public class Migrate extends SlingSafeMethodsServlet {
 
     migrateContentACL(content);
 
+    // migrate any comments
+    String commentsPath = content.getPath() + "/comments";
+    Content sourceComments = sourceCM.get(commentsPath);
+    if (sourceComments != null) {
+        Content targetComments = new Content(commentsPath, new HashMap<String, Object>());
+        targetCM.update(targetComments);
+        for (Content obj : allChildren(sourceCM.get(commentsPath))) {
+            targetCM.update(makeContent(obj.getPath(), obj.getOriginalProperties()));        
+        }        
+    }
+    
     return true;
   }
 
