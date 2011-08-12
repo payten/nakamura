@@ -110,8 +110,7 @@
     <profile>
        <id>nyu</id>
        <modules>
-        <module>contrib/ldapauth</module>
-        <module>contrib/ldap</module>
+        <module>contrib/samlauth</module>
         <module>contrib/oracle-jdbc</module>
         <module>contrib/nyu</module>
        </modules>
