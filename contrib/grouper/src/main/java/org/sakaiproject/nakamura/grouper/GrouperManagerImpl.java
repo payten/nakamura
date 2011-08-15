@@ -20,7 +20,9 @@ package org.sakaiproject.nakamura.grouper;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import net.sf.json.JSONObject;
 
@@ -53,14 +55,17 @@ import org.slf4j.LoggerFactory;
 
 import edu.internet2.middleware.grouperClient.ws.beans.WsAddMemberResults;
 import edu.internet2.middleware.grouperClient.ws.beans.WsDeleteMemberResults;
+import edu.internet2.middleware.grouperClient.ws.beans.WsFindGroupsResults;
 import edu.internet2.middleware.grouperClient.ws.beans.WsGroup;
 import edu.internet2.middleware.grouperClient.ws.beans.WsGroupDeleteResults;
 import edu.internet2.middleware.grouperClient.ws.beans.WsGroupDetail;
 import edu.internet2.middleware.grouperClient.ws.beans.WsGroupLookup;
 import edu.internet2.middleware.grouperClient.ws.beans.WsGroupSaveResults;
 import edu.internet2.middleware.grouperClient.ws.beans.WsGroupToSave;
+import edu.internet2.middleware.grouperClient.ws.beans.WsQueryFilter;
 import edu.internet2.middleware.grouperClient.ws.beans.WsRestAddMemberRequest;
 import edu.internet2.middleware.grouperClient.ws.beans.WsRestDeleteMemberRequest;
+import edu.internet2.middleware.grouperClient.ws.beans.WsRestFindGroupsRequest;
 import edu.internet2.middleware.grouperClient.ws.beans.WsRestGroupDeleteRequest;
 import edu.internet2.middleware.grouperClient.ws.beans.WsRestGroupSaveRequest;
 import edu.internet2.middleware.grouperClient.ws.beans.WsSubjectLookup;
@@ -116,7 +121,23 @@ public class GrouperManagerImpl implements GrouperManager {
 					grouperName, groupId);
 
 			String description = (String)authorizable.getProperty("sakai:group-description");
-			internalCreateGroup(grouperName, groupId, description);
+			if (GroupUtil.isContactsGroup(groupId)){
+				internalCreateGroup(grouperName, description, false);
+			}
+			else {
+				// This actually create grouperName_systemOfRecord
+				JSONObject result = internalCreateGroup(grouperName, description, true);
+				if (result != null){
+					// Look up the grouper UUID for grouperName
+					WsGroup findResult = findGroup(grouperName);
+					String groupUUID = findResult.getUuid();
+					// Create the :all group
+					String allName = StringUtils.substringBeforeLast(grouperName, ":") + ":" + "all";
+					internalCreateGroup(allName, description, false);
+					// Add this group to the all group.
+					internalAddMemberships(allName, null, groupUUID);
+				}
+			}
 
 			authorizable.setProperty(GROUPER_NAME_PROP, grouperName);
 			authorizableManager.updateAuthorizable(authorizable);
@@ -132,9 +153,10 @@ public class GrouperManagerImpl implements GrouperManager {
 			throw new GrouperException("Unable to fetch authorizable for " + groupId + ". Access Denied.", ade);
 		}
 	}
-	
-	private void internalCreateGroup(String grouperName, String groupId, String description) throws GrouperException {
-		
+
+	private JSONObject internalCreateGroup(String grouperName, String description, boolean addIncludeExclude) throws GrouperException {
+
+		JSONObject result = null;
 		String grouperExtension = StringUtils.substringAfterLast(grouperName, ":");
 
 		// Fill out the group save request beans
@@ -147,7 +169,7 @@ public class GrouperManagerImpl implements GrouperManager {
 		wsGroup.setExtension(grouperExtension);
 		wsGroup.setName(grouperName);
 
-		if (!GroupUtil.isContactsGroup(groupId)){
+		if (addIncludeExclude){
 			// More detailed group info
 			WsGroupDetail groupDetail = new WsGroupDetail();
 			groupDetail.setTypeNames(new String[] { INCLUDE_EXCLUDE_GROUP_TYPE });
@@ -177,6 +199,10 @@ public class GrouperManagerImpl implements GrouperManager {
 				throw new GrouperWSException(results);
 			}
 		}
+		else {
+			result = response;
+		}
+		return result;
 	}
 
 	/**
@@ -244,41 +270,50 @@ public class GrouperManagerImpl implements GrouperManager {
 	 */
 	public void addMemberships(String groupId, Collection<String> membersToAdd) throws GrouperException{
 		checkGroupId(groupId);
+		membersToAdd = cleanMemberNames(membersToAdd);
 
 		// Resolve the grouper name
 		String grouperName = grouperNameManager.getGrouperName(groupId);
-		String membersString = StringUtils.join(membersToAdd, ',');
-		log.debug("Adding members: Group = {} members = {}", grouperName, membersString);
+		log.debug("Adding members: Group = {} members = {}", grouperName, StringUtils.join(membersToAdd, ','));
 
 		if (GroupUtil.isContactsGroup(groupId)){
-			internalAddMemberships(grouperName, membersToAdd);
+			internalAddMemberships(grouperName, membersToAdd, null);
 		}
 		else {
 			// Add the members to the includes group, then remove them from the excludes.
-			internalAddMemberships(grouperName + INCLUDE_SUFFIX, membersToAdd);
-			internalRemoveMemberships(grouperName + EXCLUDE_SUFFIX, membersToAdd);
+			internalAddMemberships(grouperName + INCLUDE_SUFFIX, membersToAdd, null);
+			internalRemoveMemberships(grouperName + EXCLUDE_SUFFIX, membersToAdd, null);
 		}
 	}
 
-	private void internalAddMemberships(String grouperName, Collection<String> membersToAdd) throws GrouperException{
+	/**
+	 * Add a membership in Grouper
+	 * @param grouperName the group to add the member to.
+	 * @param subjectsToAdd a list of subjects to add.
+	 * @param groupToAdd a group name to add as a member
+	 * @throws GrouperException
+	 */
+	private void internalAddMemberships(String grouperName, Collection<String> subjectsToAdd, String groupToAdd) throws GrouperException{
 
-		// Clean the list of principles/subjects to be added.
-		Collection<String> cleanedMembersToAdd = cleanMemberNames(membersToAdd);
+		WsRestAddMemberRequest addMembers = new WsRestAddMemberRequest();
+		Set<WsSubjectLookup> subjectLookups = new HashSet<WsSubjectLookup>();
 
-		if (!cleanedMembersToAdd.isEmpty()){
+		if (subjectsToAdd != null && !subjectsToAdd.isEmpty()){
 			// Each subjectId must have a lookup
-			WsSubjectLookup[] subjectLookups = new WsSubjectLookup[membersToAdd.size()];
-			int  i = 0;
-			for (String subjectId: membersToAdd){
-				// TODO - Specify the Grouper subject source in the lookup.
-				subjectLookups[i] = new WsSubjectLookup(subjectId, null, null);
-				i++;
+			for (String subjectId: subjectsToAdd){
+				subjectLookups.add(new WsSubjectLookup(subjectId, null, null));
 			}
+		}
 
-			WsRestAddMemberRequest addMembers = new WsRestAddMemberRequest();
+		// Supporting one group for now since that's what the Grouper WS API supports.
+		if (groupToAdd != null){
+			subjectLookups.add(new WsSubjectLookup(groupToAdd, "g:gsa", null));
+		}
+
+		if (!subjectLookups.isEmpty()){
+			addMembers.setSubjectLookups(subjectLookups.toArray(new WsSubjectLookup[subjectLookups.size()]));
 			// Don't overwrite the entire group membership. just add to it.
 			addMembers.setReplaceAllExisting("F");
-			addMembers.setSubjectLookups(subjectLookups);
 
 			String urlPath = "/groups/" + grouperName + "/members";
 			urlPath = urlPath.replace(":", "%3A");
@@ -289,8 +324,11 @@ public class GrouperManagerImpl implements GrouperManager {
 			if (!"T".equals(results.getResultMetadata().getSuccess())) {
 					throw new GrouperWSException(results);
 			}
-			log.debug("Success! Added members: Group = {} members = {}",
-					grouperName, StringUtils.join(membersToAdd.toArray(), ","));
+			log.debug("Success! Added members: Group = {} members = {}, {}",
+					new String[]{ grouperName, StringUtils.join(subjectsToAdd.toArray(), ","), groupToAdd } );
+		}
+		else {
+			log.error("No members to add.");
 		}
 	}
 
@@ -300,39 +338,51 @@ public class GrouperManagerImpl implements GrouperManager {
 	public void removeMemberships(String groupId, Collection<String> membersToRemove) throws GrouperException {
 		checkGroupId(groupId);
 
-		String grouperName = grouperNameManager.getGrouperName(groupId) + INCLUDE_SUFFIX;
-		String membersString = StringUtils.join(membersToRemove, ',');
-		log.debug("Removing members: Group = {} members = {}", grouperName, membersString);
+		String grouperName = grouperNameManager.getGrouperName(groupId);
+		membersToRemove = cleanMemberNames(membersToRemove);
+		log.debug("Removing members: Group = {} members = {}", grouperName, StringUtils.join(membersToRemove, ','));
 
 		if (GroupUtil.isContactsGroup(groupId)){
-			internalRemoveMemberships(grouperName, membersToRemove);
+			internalRemoveMemberships(grouperName, membersToRemove, null);
 		}
 		else {
-			internalRemoveMemberships(grouperName + INCLUDE_SUFFIX, membersToRemove);
-			internalAddMemberships(grouperName + EXCLUDE_SUFFIX, membersToRemove);
+			internalRemoveMemberships(grouperName + INCLUDE_SUFFIX, membersToRemove, null);
+			internalAddMemberships(grouperName + EXCLUDE_SUFFIX, membersToRemove, null);
 		}
 	}
 
-	private void internalRemoveMemberships(String grouperName, Collection<String> membersToRemove) throws GrouperException {
+	/**
+	 * Remove a member from a group in Grouper.
+	 * @param grouperName the group we're removing from
+	 * @param subjectsToRemove the members to remove
+	 * @param groupToRemove a group to remove.
+	 * @throws GrouperException
+	 */
+	private void internalRemoveMemberships(String grouperName, Collection<String> subjectsToRemove, String groupToRemove) throws GrouperException {
+		log.debug("Removing members: Group = {} members = {}", grouperName, StringUtils.join(subjectsToRemove, ','));
 
-		String membersString = StringUtils.join(membersToRemove, ',');
-		log.debug("Removing members: Group = {} members = {}", grouperName, membersString);
+		boolean haveUpdates = false;
+		WsRestDeleteMemberRequest deleteMembers = new WsRestDeleteMemberRequest();
 
-		membersToRemove = cleanMemberNames(membersToRemove);
-
-		if (!membersToRemove.isEmpty()){
-
-			WsRestDeleteMemberRequest deleteMembers = new WsRestDeleteMemberRequest();
-			// Each subjectId must have a lookup
-			WsSubjectLookup[] subjectLookups = new WsSubjectLookup[membersToRemove.size()];
+		if (subjectsToRemove != null && !subjectsToRemove.isEmpty()){
+			haveUpdates = true;
+			WsSubjectLookup[] subjectLookups = new WsSubjectLookup[subjectsToRemove.size()];
 			int  i = 0;
-			for (String subjectId: membersToRemove){
+			for (String subjectId: subjectsToRemove){
 				subjectLookups[i] = new WsSubjectLookup(subjectId, null, null);
 				i++;
 			}
-
-			// Delete the members from the _include group
 			deleteMembers.setSubjectLookups(subjectLookups);
+		}
+
+		if (groupToRemove != null){
+			haveUpdates = true;
+			WsGroupLookup wsGroupLookup = new WsGroupLookup();
+			wsGroupLookup.setGroupName(groupToRemove);
+			deleteMembers.setWsGroupLookup(wsGroupLookup);
+		}
+
+		if (haveUpdates){
 			String urlPath = "/groups/" + grouperName + "/members";
 			urlPath = urlPath.replace(":", "%3A");
 			JSONObject response = post(urlPath, deleteMembers);
@@ -344,8 +394,31 @@ public class GrouperManagerImpl implements GrouperManager {
 			}
 
 			log.debug("Success! Removed members: Group = {} members = {}",
-					grouperName, membersString);
+					grouperName, StringUtils.join(subjectsToRemove, ','));
 		}
+	}
+
+	private WsGroup findGroup(String grouperName) throws GrouperException {
+
+		WsGroup result = null;
+
+		// Fill out the group save request beans
+		WsRestFindGroupsRequest groupFind = new WsRestFindGroupsRequest();
+		WsQueryFilter wsQueryFilter = new WsQueryFilter();
+	    wsQueryFilter.setGroupName(grouperName);
+	    wsQueryFilter.setQueryFilterType("FIND_BY_GROUP_NAME_EXACT");
+	    groupFind.setWsQueryFilter(wsQueryFilter);
+
+		// POST and parse the response
+		JSONObject response = post("/groups", groupFind);
+		WsFindGroupsResults results = (WsFindGroupsResults)JSONObject.toBean(
+				response.getJSONObject("WsFindGroupsResults"), WsFindGroupsResults.class);
+
+		// Error handling is a bit awkward. If the group already exists its not a problem
+		if ("T".equals(results.getResultMetadata().getSuccess())) {
+			result = results.getGroupResults()[0];
+		}
+		return result;
 	}
 
 	private void checkGroupId(String groupId) throws InvalidGroupIdException, GrouperException{
@@ -436,6 +509,7 @@ public class GrouperManagerImpl implements GrouperManager {
 		    	log.info("POST to {} : {}", grouperWsRestUrl, responseCode);
 		    	String responseString = IOUtils.toString(method.getResponseBodyAsStream());
 		    	response = JSONObject.fromObject(responseString);
+		    	log.debug(responseString);
 		    }
 		    else {
 		    	response =  new JSONObject();
