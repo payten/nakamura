@@ -37,11 +37,6 @@ public interface GrouperManager {
 	 */
 	public void createGroup(String groupId) throws GrouperException;
 
-	/**
-	 * Delete a Grouper group because this group is being deleted by nakmura.
-	 * @param groupId the id of the {@link Authorizable} for this group
-	 */
-	public void deleteGroup(String groupId) throws GrouperException;
 
 	/**
 	 * Delete a group from Grouper.

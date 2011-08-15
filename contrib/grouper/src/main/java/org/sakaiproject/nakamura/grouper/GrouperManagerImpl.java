@@ -91,7 +91,6 @@ public class GrouperManagerImpl implements GrouperManager {
 	private static final String INCLUDE_EXCLUDE_GROUP_TYPE = "addIncludeExclude";
 	private static final String INCLUDE_SUFFIX = "_includes";
 	private static final String EXCLUDE_SUFFIX = "_excludes";
-
 	private static final String SYSTEM_OF_RECORD_SUFFIX = "_systemOfRecord";
 
 	@Reference
@@ -170,7 +169,7 @@ public class GrouperManagerImpl implements GrouperManager {
 		wsGroup.setName(grouperName);
 
 		if (addIncludeExclude){
-			// More detailed group info
+			// More detailed group info for the addIncludeExclude group type
 			WsGroupDetail groupDetail = new WsGroupDetail();
 			groupDetail.setTypeNames(new String[] { INCLUDE_EXCLUDE_GROUP_TYPE });
 			wsGroup.setDetail(groupDetail);
@@ -217,40 +216,31 @@ public class GrouperManagerImpl implements GrouperManager {
 		if (attributes != null ){
 			grouperName = (String)attributes.get(GROUPER_NAME_PROP);
 		}
+		if (grouperName == null){
+			grouperName = grouperNameManager.getGrouperName(nakamuraGroupId);
+		}
 		if (grouperName != null){
-			deleteFromGrouper(grouperName);
-		}
-		else {
-			deleteGroup(nakamuraGroupId);
+			internalDeleteGroup(grouperName);
 		}
 	}
 
 	/**
-	 * @{inheritDoc}
-	 */
-	public void deleteGroup(String nakamuraGroupId) throws GrouperException {
-		String grouperName = grouperNameManager.getGrouperName(nakamuraGroupId);
-		deleteFromGrouper(grouperName);
-		log.debug("Deleted Grouper Group = {} for sakai authorizableId = {}", grouperName, nakamuraGroupId);
-	}
-
-	/**
-	 *
-	 * @param groupIdentifier either the grouper name or uuid
+	 * Delete a group from Grouper.
+	 * @param grouperName the full name of the group
 	 * @throws GrouperException
 	 */
-	private void deleteFromGrouper(String groupIdentifier) throws GrouperException{
+	private void internalDeleteGroup(String grouperName) throws GrouperException{
 		try {
 			// Fill out the group delete request beans
 			WsRestGroupDeleteRequest groupDelete = new WsRestGroupDeleteRequest();
-			if (GroupUtil.isContactsGroup(groupIdentifier)){
-				groupDelete.setWsGroupLookups(new WsGroupLookup[]{new WsGroupLookup(groupIdentifier, null)});
+			if (GroupUtil.isContactsGroup(grouperName)){
+				groupDelete.setWsGroupLookups(new WsGroupLookup[]{new WsGroupLookup(grouperName, null)});
 			}
 			else {
 				groupDelete.setWsGroupLookups(new WsGroupLookup[]{
-					new WsGroupLookup(groupIdentifier, null),
-					new WsGroupLookup(groupIdentifier + INCLUDE_SUFFIX, null),
-					new WsGroupLookup(groupIdentifier + EXCLUDE_SUFFIX, null) });
+					new WsGroupLookup(grouperName, null),
+					new WsGroupLookup(grouperName + INCLUDE_SUFFIX, null),
+					new WsGroupLookup(grouperName + EXCLUDE_SUFFIX, null) });
 			}
 			// Send the request and parse the result, throwing an exception on failure.
 			JSONObject response = post("/groups", groupDelete);
