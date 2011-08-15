@@ -44,7 +44,6 @@ import org.sakaiproject.nakamura.grouper.api.GrouperManager;
 import org.sakaiproject.nakamura.grouper.exception.GrouperException;
 import org.sakaiproject.nakamura.grouper.exception.GrouperWSException;
 import org.sakaiproject.nakamura.grouper.exception.InvalidGroupIdException;
-import org.sakaiproject.nakamura.grouper.name.BaseGrouperNameProvider;
 import org.sakaiproject.nakamura.grouper.name.api.GrouperNameManager;
 import org.sakaiproject.nakamura.grouper.util.GroupUtil;
 import org.sakaiproject.nakamura.grouper.util.GrouperHttpUtil;
@@ -103,63 +102,21 @@ public class GrouperManagerImpl implements GrouperManager {
 	 * @{inheritDoc}
 	 */
 	public void createGroup(String groupId) throws GrouperException {
+
+		checkGroupId(groupId);
+
 		try {
 			// Check if the groupid corresponds to a group.
 			Session session = repository.loginAdministrative(grouperConfiguration.getIgnoredUserId());
 			AuthorizableManager authorizableManager = session.getAuthorizableManager();
 			Authorizable authorizable = authorizableManager.findAuthorizable(groupId);
 
-			if (!authorizable.isGroup()){
-				log.error("{} is not a group", authorizable.getId());
-				return;
-			}
-
 			String grouperName = grouperNameManager.getGrouperName(groupId);
-			String grouperExtension = BaseGrouperNameProvider.getGrouperExtension(groupId, grouperConfiguration);
-
 			log.debug("Creating a new Grouper Group = {} for sakai authorizableId = {}",
 					grouperName, groupId);
 
-			// Fill out the group save request beans
-			WsRestGroupSaveRequest groupSave = new WsRestGroupSaveRequest();
-			WsGroupToSave wsGroupToSave = new WsGroupToSave();
-			wsGroupToSave.setWsGroupLookup(new WsGroupLookup(grouperName, null));
-			WsGroup wsGroup = new WsGroup();
-			wsGroup.setDescription((String)authorizable.getProperty("sakai:group-description"));
-			wsGroup.setDisplayExtension(grouperExtension);
-			wsGroup.setExtension(grouperExtension);
-			wsGroup.setName(grouperName);
-
-			if (!GroupUtil.isContactsGroup(groupId)){
-				// More detailed group info
-				WsGroupDetail groupDetail = new WsGroupDetail();
-				groupDetail.setTypeNames(new String[] { INCLUDE_EXCLUDE_GROUP_TYPE });
-				wsGroup.setDetail(groupDetail);
-				wsGroup.setName(grouperName + SYSTEM_OF_RECORD_SUFFIX);
-				wsGroup.setDisplayExtension(grouperExtension + SYSTEM_OF_RECORD_SUFFIX);
-				wsGroup.setExtension(grouperExtension + SYSTEM_OF_RECORD_SUFFIX);
-			}
-
-			// Package up the request
-			wsGroupToSave.setWsGroup(wsGroup);
-			wsGroupToSave.setCreateParentStemsIfNotExist("T");
-			groupSave.setWsGroupToSaves(new WsGroupToSave[]{ wsGroupToSave });
-
-			// POST and parse the response
-			JSONObject response = post("/groups", groupSave);
-			WsGroupSaveResults results = (WsGroupSaveResults)JSONObject.toBean(
-					response.getJSONObject("WsGroupSaveResults"), WsGroupSaveResults.class);
-
-			// Error handling is a bit awkward. If the group already exists its not a problem
-			if (!"T".equals(results.getResultMetadata().getSuccess())) {
-				if (results.getResults().length > 0 &&
-						results.getResults()[0].getResultMetadata().getResultMessage().contains("already exists")){
-					log.debug("Group already existed in grouper at {}", grouperName);
-				}
-				else {
-					throw new GrouperWSException(results);
-				}
-			}
+			String description = (String)authorizable.getProperty("sakai:group-description");
+			internalCreateGroup(grouperName, groupId, description);
 
 			authorizable.setProperty(GROUPER_NAME_PROP, grouperName);
 			authorizableManager.updateAuthorizable(authorizable);
@@ -175,6 +132,52 @@ public class GrouperManagerImpl implements GrouperManager {
 			throw new GrouperException("Unable to fetch authorizable for " + groupId + ". Access Denied.", ade);
 		}
 	}
+	
+	private void internalCreateGroup(String grouperName, String groupId, String description) throws GrouperException {
+		
+		String grouperExtension = StringUtils.substringAfterLast(grouperName, ":");
+
+		// Fill out the group save request beans
+		WsRestGroupSaveRequest groupSave = new WsRestGroupSaveRequest();
+		WsGroupToSave wsGroupToSave = new WsGroupToSave();
+		wsGroupToSave.setWsGroupLookup(new WsGroupLookup(grouperName, null));
+		WsGroup wsGroup = new WsGroup();
+		wsGroup.setDescription(description);
+		wsGroup.setDisplayExtension(grouperExtension);
+		wsGroup.setExtension(grouperExtension);
+		wsGroup.setName(grouperName);
+
+		if (!GroupUtil.isContactsGroup(groupId)){
+			// More detailed group info
+			WsGroupDetail groupDetail = new WsGroupDetail();
+			groupDetail.setTypeNames(new String[] { INCLUDE_EXCLUDE_GROUP_TYPE });
+			wsGroup.setDetail(groupDetail);
+			wsGroup.setName(grouperName + SYSTEM_OF_RECORD_SUFFIX);
+			wsGroup.setDisplayExtension(grouperExtension + SYSTEM_OF_RECORD_SUFFIX);
+			wsGroup.setExtension(grouperExtension + SYSTEM_OF_RECORD_SUFFIX);
+		}
+
+		// Package up the request
+		wsGroupToSave.setWsGroup(wsGroup);
+		wsGroupToSave.setCreateParentStemsIfNotExist("T");
+		groupSave.setWsGroupToSaves(new WsGroupToSave[]{ wsGroupToSave });
+
+		// POST and parse the response
+		JSONObject response = post("/groups", groupSave);
+		WsGroupSaveResults results = (WsGroupSaveResults)JSONObject.toBean(
+				response.getJSONObject("WsGroupSaveResults"), WsGroupSaveResults.class);
+
+		// Error handling is a bit awkward. If the group already exists its not a problem
+		if (!"T".equals(results.getResultMetadata().getSuccess())) {
+			if (results.getResults().length > 0 &&
+					results.getResults()[0].getResultMetadata().getResultMessage().contains("already exists")){
+				log.debug("Group already existed in grouper at {}", grouperName);
+			}
+			else {
+				throw new GrouperWSException(results);
+			}
+		}
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -183,7 +186,7 @@ public class GrouperManagerImpl implements GrouperManager {
 	 * Else call delete(groupid) which will try to resolve the grouper name with the GrouperNameManager
 	 *
 	 */
-	public void deleteGroup(String nakamuraGroupId, Map<String, Object> attributes) throws GrouperException{
+	public void deleteGroup(String nakamuraGroupId, Map<String, Object> attributes) throws GrouperException {
 		String grouperName = null;
 		if (attributes != null ){
 			grouperName = (String)attributes.get(GROUPER_NAME_PROP);
@@ -248,16 +251,16 @@ public class GrouperManagerImpl implements GrouperManager {
 		log.debug("Adding members: Group = {} members = {}", grouperName, membersString);
 
 		if (GroupUtil.isContactsGroup(groupId)){
-			addMembershipsSimple(groupId, grouperName, membersToAdd);
+			internalAddMemberships(grouperName, membersToAdd);
 		}
 		else {
 			// Add the members to the includes group, then remove them from the excludes.
-			addMembershipsSimple(groupId, grouperName + INCLUDE_SUFFIX, membersToAdd);
-			removeMembershipsSimple(groupId, grouperName + EXCLUDE_SUFFIX, membersToAdd);
+			internalAddMemberships(grouperName + INCLUDE_SUFFIX, membersToAdd);
+			internalRemoveMemberships(grouperName + EXCLUDE_SUFFIX, membersToAdd);
 		}
 	}
 
-	private void addMembershipsSimple(String groupId, String grouperName, Collection<String> membersToAdd) throws GrouperException{
+	private void internalAddMemberships(String grouperName, Collection<String> membersToAdd) throws GrouperException{
 
 		// Clean the list of principles/subjects to be added.
 		Collection<String> cleanedMembersToAdd = cleanMemberNames(membersToAdd);
@@ -302,16 +305,15 @@ public class GrouperManagerImpl implements GrouperManager {
 		log.debug("Removing members: Group = {} members = {}", grouperName, membersString);
 
 		if (GroupUtil.isContactsGroup(groupId)){
-			removeMembershipsSimple(groupId, grouperName, membersToRemove);
+			internalRemoveMemberships(grouperName, membersToRemove);
 		}
 		else {
-			removeMembershipsSimple(groupId, grouperName + INCLUDE_SUFFIX, membersToRemove);
-			addMembershipsSimple(groupId, grouperName + EXCLUDE_SUFFIX, membersToRemove);
+			internalRemoveMemberships(grouperName + INCLUDE_SUFFIX, membersToRemove);
+			internalAddMemberships(grouperName + EXCLUDE_SUFFIX, membersToRemove);
 		}
 	}
 
-	private void removeMembershipsSimple(String groupId, String grouperName, Collection<String> membersToRemove) throws GrouperException {
-		checkGroupId(groupId);
+	private void internalRemoveMemberships(String grouperName, Collection<String> membersToRemove) throws GrouperException {
 
 		String membersString = StringUtils.join(membersToRemove, ',');
 		log.debug("Removing members: Group = {} members = {}", grouperName, membersString);
