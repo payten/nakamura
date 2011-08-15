@@ -41,6 +41,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.grouper.api.GrouperConfiguration;
 import org.sakaiproject.nakamura.grouper.api.GrouperManager;
 import org.sakaiproject.nakamura.grouper.exception.GrouperException;
@@ -93,6 +94,9 @@ public class GrouperManagerImpl implements GrouperManager {
 	private static final String EXCLUDE_SUFFIX = "_excludes";
 	private static final String SYSTEM_OF_RECORD_SUFFIX = "_systemOfRecord";
 
+	private static final String SAKAI_DESCRIPTION_PROPERTY = "sakai:group-description";
+	private static final String PROVISIONED_PROPERTY = "grouper:provisioned";
+
 	@Reference
 	protected GrouperConfiguration grouperConfiguration;
 
@@ -115,11 +119,13 @@ public class GrouperManagerImpl implements GrouperManager {
 			AuthorizableManager authorizableManager = session.getAuthorizableManager();
 			Authorizable authorizable = authorizableManager.findAuthorizable(groupId);
 
+			String description = (String)authorizable.getProperty(SAKAI_DESCRIPTION_PROPERTY);
+			boolean isProvisioned = authorizable.getProperty(PROVISIONED_PROPERTY) != null;
+
 			String grouperName = grouperNameManager.getGrouperName(groupId);
 			log.debug("Creating a new Grouper Group = {} for sakai authorizableId = {}",
 					grouperName, groupId);
 
-			String description = (String)authorizable.getProperty("sakai:group-description");
 			if (GroupUtil.isContactsGroup(groupId)){
 				internalCreateGroup(grouperName, description, false);
 			}
@@ -133,8 +139,26 @@ public class GrouperManagerImpl implements GrouperManager {
 					// Create the :all group
 					String allName = StringUtils.substringBeforeLast(grouperName, ":") + ":" + "all";
 					internalCreateGroup(allName, description, false);
+					log.info("Created All roll-up group {}", allName);
 					// Add this group to the all group.
 					internalAddMemberships(allName, null, groupUUID);
+				}
+
+				// Add inst:sis:courses:group:name:students as a member of
+				// app:atlas:{adhoc|provisioned}:courses:group:name:students_systemOfRecord
+				if (isProvisioned && GroupUtil.isCourseGroup((Group)authorizable, session)){
+					String systemOfRecord = grouperName + SYSTEM_OF_RECORD_SUFFIX;
+					String institutionalSystemOfRecord = grouperName.replaceFirst(
+							grouperConfiguration.getCoursesStem(), grouperConfiguration.getInstitutionalCourseGroupsStem());
+					WsGroup institutional = findGroup(institutionalSystemOfRecord);
+					if (institutional != null){
+						String instUUID = institutional.getUuid();
+						internalAddMemberships(systemOfRecord, null, instUUID);
+						log.info("Added {} to {}", institutionalSystemOfRecord, systemOfRecord);
+					}
+					else {
+						log.debug("No institutional group at {} for {}", institutionalSystemOfRecord, systemOfRecord);
+					}
 				}
 			}
 
@@ -315,7 +339,7 @@ public class GrouperManagerImpl implements GrouperManager {
 					throw new GrouperWSException(results);
 			}
 			log.debug("Success! Added members: Group = {} members = {}, {}",
-					new String[]{ grouperName, StringUtils.join(subjectsToAdd.toArray(), ","), groupToAdd } );
+					new String[]{ grouperName, StringUtils.join(subjectLookups.toArray(), ","), groupToAdd } );
 		}
 		else {
 			log.error("No members to add.");
@@ -384,7 +408,7 @@ public class GrouperManagerImpl implements GrouperManager {
 			}
 
 			log.debug("Success! Removed members: Group = {} members = {}",
-					grouperName, StringUtils.join(subjectsToRemove, ','));
+					grouperName, StringUtils.join(deleteMembers, ','));
 		}
 	}
 
