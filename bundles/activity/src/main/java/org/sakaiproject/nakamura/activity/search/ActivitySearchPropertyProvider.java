@@ -49,9 +49,7 @@ public class ActivitySearchPropertyProvider implements SolrSearchPropertyProvide
 
     // The current user his feed.
     String user = request.getRemoteUser();
-    if (user.equals(UserConstants.ANON_USERID)) {
-      throw new IllegalStateException("Anonymous users can't see the feed.");
-    }
+
     String path = ActivityUtils.getUserFeed(user);
     // Encode the path
     path = ClientUtils.escapeQueryChars(path);

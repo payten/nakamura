@@ -331,15 +331,15 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
     if (group.hasProperty(propertyName)) {
       Object o = group.getProperty(propertyName);
 
-      String[] existingProperties;
+      String[] existingValues;
       if (o instanceof String) {
-        existingProperties = new String[] { (String) o };
+        existingValues = new String[] { (String) o };
       } else {
-        existingProperties = (String[]) o;
+        existingValues = (String[]) o;
       }
 
-      for (String property : existingProperties) {
-        propertyValueSet.add(property);
+      for (String existingValue : existingValues) {
+        propertyValueSet.add(existingValue);
       }
     }
 

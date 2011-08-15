@@ -118,6 +118,7 @@ public class QoSFilter implements Filter {
         if (accepted) {
           request.setAttribute(suspendedAttributeName, Boolean.FALSE);
         } else {
+          LOGGER.debug("Suspending request");
           request.setAttribute(suspendedAttributeName, Boolean.TRUE);
           Continuation continuation = ContinuationSupport.getContinuation((HttpServletRequest)request, qoSToken.getMutex());
           continuation.suspend(qoSToken.getSuspendTime());
@@ -216,7 +217,7 @@ public class QoSFilter implements Filter {
             qoSControMap.put(settings[0], new QoSControl(priorityQueue, Integer.parseInt(settings[1]), Integer.parseInt(settings[2]), Long.parseLong(settings[3])));
           } else if ( settings.length > 2 ) {
             qoSControMap.put(settings[0], new QoSControl(priorityQueue, Integer.parseInt(settings[1]), Integer.parseInt(settings[2]), defaultTimeout));
-          } else if ( settings.length > 2 ) {
+          } else if ( settings.length > 1 ) {
             qoSControMap.put(settings[0], new QoSControl(priorityQueue, Integer.parseInt(settings[1]), maxPriorityNumber, defaultTimeout));
           }
         }

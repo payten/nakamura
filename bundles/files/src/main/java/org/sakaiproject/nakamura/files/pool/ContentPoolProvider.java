@@ -29,6 +29,7 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.content.Content;
@@ -148,6 +149,25 @@ public class ContentPoolProvider implements ResourceProvider {
             cpr.getResourceMetadata().put(CONTENT_RESOURCE_PROVIDER, this);
             LOGGER.debug("Resolved {} as {} ",path,cpr);
             return cpr;
+          } else if (possibleStructure != null && possibleStructure.length == 1) {
+            String[] possibleAltStream = StringUtils.split(resourceId, ".", 4);
+            if (possibleAltStream.length == 3) {
+              try {
+                Content altParent = contentManager.get(poolId + "/" + possibleAltStream[0]);
+                String altField = StorageClientUtils.getAltField(Content.BODY_CREATED_FIELD, possibleAltStream[1]);
+                if (altParent.hasProperty(altField)) {
+                  SparseContentResource cpr = new SparseContentResource(altParent, session,
+                      resourceResolver, path);
+                  cpr.getResourceMetadata().put(CONTENT_RESOURCE_PROVIDER, this);
+                  LOGGER.debug("Resolved {} as {} ",path,cpr);
+                  return cpr;
+                }
+              } catch (StorageClientException e) {
+                LOGGER.warn(e.getMessage(), e);
+              } catch (AccessDeniedException e) {
+                LOGGER.warn(e.getMessage(), e);
+              }
+            }
           }
         } else {
           SparseContentResource cpr = new SparseContentResource(content, session,

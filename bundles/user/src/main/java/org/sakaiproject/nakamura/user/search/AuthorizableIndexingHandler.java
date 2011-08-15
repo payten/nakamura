@@ -71,25 +71,30 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
   // list of properties to be indexed
   private static final Map<String, String> USER_WHITELISTED_PROPS;
   static {
-    Builder<String,String> builder = ImmutableMap.builder();
-    builder.put("firstName","firstName");
-    builder.put("lastName","lastName");
-    builder.put("email","email");
-    builder.put("type","type");
-    builder.put("sakai:tag-uuid","taguuid");
-    builder.put("sakai:tags","tag");
+    Builder<String, String> builder = ImmutableMap.builder();
+    builder.put(UserConstants.USER_FIRSTNAME_PROPERTY, "firstName");
+    builder.put(UserConstants.USER_LASTNAME_PROPERTY, "lastName");
+    builder.put(UserConstants.USER_EMAIL_PROPERTY, "email");
+    builder.put("type", "type");
+    builder.put("sakai:tag-uuid", "taguuid");
+    builder.put("sakai:tags", "tag");
+    builder.put(Authorizable.LASTMODIFIED_FIELD, Content.LASTMODIFIED_FIELD);
+    builder.put(UserConstants.COUNTS_LAST_UPDATE_PROP, "countLastUpdate");
     USER_WHITELISTED_PROPS = builder.build();
   }
 
-  private static final Map<String, String> GROUP_WHITELISTED_PROPS;
+  private final static Map<String, String> GROUP_WHITELISTED_PROPS;
   static {
-    Builder<String,String> builder = ImmutableMap.builder();
+    Builder<String, String> builder = ImmutableMap.builder();
     builder.put("name", "name");
     builder.put("type", "type");
-    builder.put("sakai:group-title", "title");
-    builder.put("sakai:group-description", "description");
-    builder.put("sakai:tag-uuid","taguuid");
-    builder.put("sakai:tags","tag");
+    builder.put(UserConstants.GROUP_TITLE_PROPERTY, "title");
+    builder.put(UserConstants.GROUP_DESCRIPTION_PROPERTY, "description");
+    builder.put("sakai:tag-uuid", "taguuid");
+    builder.put("sakai:tags", "tag");
+    builder.put("sakai:category", "category");
+    builder.put(Authorizable.LASTMODIFIED_FIELD, Content.LASTMODIFIED_FIELD);    
+    builder.put(UserConstants.COUNTS_LAST_UPDATE_PROP, "countLastUpdate");
     GROUP_WHITELISTED_PROPS = builder.build();
   }
 

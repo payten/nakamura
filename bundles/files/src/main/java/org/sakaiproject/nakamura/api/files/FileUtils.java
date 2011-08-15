@@ -510,7 +510,7 @@ public class FileUtils {
   }
   
   private static String[] getTags(Content tagNode) {
-    String tagUuid = (String) tagNode.getProperty(Content.UUID_FIELD);
+    String tagUuid = (String) tagNode.getProperty(Content.getUuidField());
     String tagName = "";
     if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
       tagName = (String) tagNode.getProperty(SAKAI_TAG_NAME);

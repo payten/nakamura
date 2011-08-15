@@ -166,7 +166,7 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
       }
       if (tagResource instanceof SparseContentResource) {
         Content contentTag = tagResource.adaptTo(Content.class);
-        tagUuid = (String) contentTag.getProperty(Content.UUID_FIELD);
+        tagUuid = (String) contentTag.getProperty(Content.getUuidField());
         tagName = tagContentWithContentTag(contentManager, content, contentTag);
       } else {
         Node nodeTag = tagResource.adaptTo(Node.class);
@@ -205,14 +205,12 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
         tagUuidSet.add(tagUuid);
         authorizable.setProperty(SAKAI_TAG_UUIDS,
             tagUuidSet.toArray(new String[tagUuidSet.size()]));
-
         // add tag names
         Set<String> tagNameSet = Sets.newHashSet(StorageClientUtils
             .nonNullStringArray((String[]) authorizable.getProperty(SAKAI_TAGS)));
         tagNameSet.add(tagName);
         authorizable.setProperty(SAKAI_TAGS,
             tagNameSet.toArray(new String[tagNameSet.size()]));
-
         authManager.updateAuthorizable(authorizable);
       }
     }

@@ -117,10 +117,12 @@ public interface FilesConstants {
    * The name of the property that holds the filename.
    */
   public static final String POOLED_CONTENT_FILENAME = "sakai:pooled-content-file-name";
+
   /**
-   * The name of the property that holds the custom mimetype.
+   * The name of the property that holds the mimetype
    */
-  public static final String POOLED_CONTENT_CUSTOM_MIMETYPE = "sakai:custom-mimetype";
+  public static final String POOLED_CONTENT_MIMETYPE = "_mimeType";
+
   /**
    * The name of the property that holds the comment.
    */
@@ -180,7 +182,7 @@ public interface FilesConstants {
   public static final String STRUCTURE_FIELD_STEM = "structure";
 
   /**
-   * Resource ID referneces in structures.
+   * Resource ID references in structures.
    */
   public static final String RESOURCE_REFERENCE_FIELD = "_ref";
   

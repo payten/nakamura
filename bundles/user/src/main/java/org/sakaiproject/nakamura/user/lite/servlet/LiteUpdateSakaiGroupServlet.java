@@ -43,7 +43,9 @@ import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.resource.RequestProperty;
@@ -212,6 +214,15 @@ public class LiteUpdateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServl
     if (session == null) {
       throw new StorageClientException("Sparse Session not found");
     }
+
+    // let's check permission right up front. KERN-2143
+    AccessControlManager accessControlManager = session.getAccessControlManager();
+    Authorizable currentUser = session.getAuthorizableManager().findAuthorizable(session.getUserId());
+    if (currentUser == null || !accessControlManager.can(currentUser, "AU", authorizable.getId(), Permissions.CAN_WRITE)) {
+      htmlResponse.setStatus(HttpServletResponse.SC_FORBIDDEN, "No permission to update authorizable:" + authorizable.getId());
+      return;
+    }
+
     String groupPath = LiteAuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
     + authorizable.getId();
 

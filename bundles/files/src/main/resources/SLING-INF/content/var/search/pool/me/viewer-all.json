@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": 'resourceType:sakai/pooled-content ${_meViewerGroups}',
+  "sakai:query-template": "(resourceType:sakai/pooled-content ${_meViewerGroups}) ${_mimetype}",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
@@ -7,7 +7,7 @@
   "sortOn": "score",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
-  "sakai:propertyprovider" : "PooledContent",
+  "sakai:propertyprovider" : ["PooledContent", "MimeMatch"],
   "sakai:title": "Pooled Content - Me - Viewer - All",
   "sakai:shortDescription": "Searches trough all the files of the current user that I manage.",
   "sakai:parameters" : [

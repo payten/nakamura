@@ -320,23 +320,6 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
         }
         write.endArray();
 
-
-        if (page > 0 || rs.getSize() == nitems) {
-          // the result set may have been truncated by paging, so lets get a fuller count
-          query.getOptions().put(PARAMS_ITEMS_PER_PAGE, Long.toString(0));
-          query.getOptions().put(PARAMS_PAGE, Long.toString(0));
-          try {
-            if (useBatch) {
-              rs = searchBatchProcessor.getSearchResultSet(request, query);
-            } else {
-              rs = searchProcessor.getSearchResultSet(request, query);
-            }
-          } catch (SolrSearchException e) {
-            response.sendError(e.getCode(), e.getMessage());
-            return;
-          }
-        }
-
         // write the total out after processing the list to give the underlying iterator
         // a chance to walk the results then report how many there were.
         write.key(TOTAL);
@@ -425,7 +408,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     // process the options as templates and check for missing params
     Map<String, String> options = processOptions(propertiesMap, queryOptions, queryType);
 
-    Query query = new Query(queryType, queryString, options);
+    Query query = new Query(queryNode.getPath(), queryType, queryString, options);
     return query;
   }
 
@@ -851,25 +834,5 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       }
     }
     return false;
-  }
-
-  /**
-   * Stolen from org.apache.solr.client.solrj.util.ClientUtils
-   * See: <a href="http://lucene.apache.org/java/docs/nightly/queryparsersyntax.html#Escaping%20Special%20Characters">Escaping Special Characters</a>
-   * Removed escaping for *, " and whitespace.
-   */
-  protected String escapeQueryChars(String s) {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < s.length(); i++) {
-      char c = s.charAt(i);
-      // These characters are part of the query syntax and must be escaped
-      if (c == '\\' || c == '+' || c == '-' || c == '!'  || c == '(' || c == ')'|| c == ':'
-        || c == '^' || c == '[' || c == ']' || c == '{' || c == '}' || c == '~'
-        || c == '?' || c == '|' || c == '&' || c == ';') {
-        sb.append('\\');
-      }
-      sb.append(c);
-    }
-    return sb.toString();
   }
 }

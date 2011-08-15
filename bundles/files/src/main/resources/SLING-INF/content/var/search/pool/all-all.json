@@ -1,12 +1,12 @@
 {
-  "sakai:query-template": 'resourceType:sakai/pooled-content${_taguuids}',
+  "sakai:query-template": "resourceType:sakai/pooled-content${_taguuids} ${_mimetype}",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
   "sortOn": "score",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
-  "sakai:propertyprovider" : "TagMatch",
+  "sakai:propertyprovider" : ["TagMatch", "MimeMatch"],
   "sakai:title": "Pooled Content - All",
   "sakai:shortDescription": "Search through all the pooled files.",
   "sakai:parameters" : [
