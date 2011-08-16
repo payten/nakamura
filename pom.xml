@@ -113,7 +113,6 @@
         <module>contrib/samlauth</module>
         <module>contrib/oracle-jdbc</module>
         <module>contrib/grouper</module>
-        <module>contrib/nyu</module>
        </modules>
     </profile>
     <profile>
