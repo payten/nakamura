@@ -84,7 +84,7 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 	@Property(value = DEFAULT_CONTACTS_STEM)
 	public static final String PROP_CONTACTS_STEM = "grouper.nameprovider.contacts.stem";
 
-	private static final String DEFAULT_SIMPLEGROUPS_STEM = "edu:apps:sakaioae:groups:adhoc";
+	private static final String DEFAULT_SIMPLEGROUPS_STEM = "edu:apps:sakaioae:simplegroups:adhoc";
 	@Property(value = DEFAULT_SIMPLEGROUPS_STEM)
 	public static final String PROP_SIMPLEGROUPS_STEM = "grouper.nameprovider.simplegroups.stem";
 
