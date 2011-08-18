@@ -261,10 +261,6 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
           // Pass in the presence.
           PresenceUtils.makePresenceJSON(write, au.getId(), presenceService, true);
         }
-      } else {
-        // No idea what this recipient is.
-        // Just output it.
-        write.value(recipient);
       }
     } catch (JSONException e) {
       LOG.error(e.getMessage(), e);

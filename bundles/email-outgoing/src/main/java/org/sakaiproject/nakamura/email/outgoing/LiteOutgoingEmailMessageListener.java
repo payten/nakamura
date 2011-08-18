@@ -276,14 +276,20 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
       PathNotFoundException, RepositoryException {
     MultiPartEmail email = new MultiPartEmail();
 
+
+    Set<String> toRecipients = new HashSet<String>();
+
+    toRecipients = setRecipients(recipients, sparseSession);
+
     String to = null;
     try {
       // set from: to the reply as address
       email.setFrom(replyAsAddress, replyAsName);
+      email.setAuthentication("user", "pass");
 
-      if (recipients.size() == 1) {
+      if (toRecipients.size() == 1) {
         // set to: to the rcpt if sending to just one person
-        to = convertToEmail(recipients.get(0), sparseSession);
+        to = convertToEmail(toRecipients.iterator().next(), sparseSession);
 
         email.setTo(Lists.newArrayList(new InternetAddress(to)));
       } else {
@@ -300,12 +306,13 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
 
     // if we're dealing with a group of recipients, add them to bcc: to hide email
     // addresses from the other recipients
-    if (recipients.size() > 1) {
-      Set<String> toRecipients = new HashSet<String>();
-
-      toRecipients = setRecipients(recipients, sparseSession);
+    if (toRecipients.size() > 1) {
       for (String r : toRecipients) {
         try {
+          // we don't need to copy the sender on the message
+          if (r.equals(contentNode.getProperty(MessageConstants.PROP_SAKAI_FROM))) {
+            continue;
+          }
           email.addBcc(convertToEmail(r, sparseSession));
         } catch (EmailException e) {
           throw new EmailDeliveryException("Invalid To Address [" + r
