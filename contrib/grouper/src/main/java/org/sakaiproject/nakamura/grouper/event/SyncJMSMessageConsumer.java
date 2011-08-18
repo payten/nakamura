@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.grouper.event;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import javax.jms.Connection;
@@ -38,9 +39,10 @@ import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.StoreListener;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
-import org.sakaiproject.nakamura.grouper.name.ContactsGrouperNameProviderImpl;
 import org.sakaiproject.nakamura.grouper.api.GrouperConfiguration;
 import org.sakaiproject.nakamura.grouper.api.GrouperManager;
+import org.sakaiproject.nakamura.grouper.exception.GrouperException;
+import org.sakaiproject.nakamura.grouper.name.ContactsGrouperNameProviderImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +83,7 @@ public class SyncJMSMessageConsumer implements MessageListener {
 			throw new RuntimeException (e);
 		}
 	}
-	
+
 	@Deactivate
 	public void deactivate(){
 		try {
@@ -99,7 +101,7 @@ public class SyncJMSMessageConsumer implements MessageListener {
 		finally {
 			jmsSession = null;
 		}
-		
+
 		try {
 			connection.close();
 		}
@@ -117,55 +119,53 @@ public class SyncJMSMessageConsumer implements MessageListener {
 		try {
 
 			String topic = message.getJMSType();
-			String groupId = (String) message.getStringProperty("path");
+			String groupId = message.getStringProperty("path");
 
 			StringBuilder operation = new StringBuilder();
 
 			// A group was DELETED
-			if ("org/sakaiproject/nakamura/lite/authorizables/DELETE".equals(topic) && config.getDeletesEnabled()){
+			if ("org/sakaiproject/nakamura/lite/authorizables/DELETE".equals(topic)
+					&& config.getDeletesEnabled()){
 				Map<String, Object> attributes = (Map<String,Object>)message.getObjectProperty(StoreListener.BEFORE_EVENT_PROPERTY);
-				grouperManager.deleteGroup(groupId, attributes);
+				doDeleteGroup(groupId, attributes);
 				operation.append("DELETED ");
 			}
 
 			// A new group was ADDED or an existing group was UPDATED
 			if ("org/sakaiproject/nakamura/lite/authorizables/ADDED".equals(topic)
 					|| "org/sakaiproject/nakamura/lite/authorizables/UPDATED".equals(topic) ){
+
+				org.sakaiproject.nakamura.api.lite.Session repositorySession = repository.loginAdministrative();
+				AuthorizableManager am = repositorySession.getAuthorizableManager();
+				Group group = (Group) am.findAuthorizable(groupId);
+
+				boolean isProvisioned = group.getProperty("grouper:provisioned") != null;
+
 				// These events should be under org/sakaiproject/nakamura/lite/authorizables/UPDATED
 				// http://jira.sakaiproject.org/browse/KERN-1795
-				String membersAdded = (String)message.getStringProperty(GrouperEventUtils.MEMBERS_ADDED_PROP);
+				String membersAdded = message.getStringProperty(GrouperEventUtils.MEMBERS_ADDED_PROP);
 				if (membersAdded != null){
-					// membership adds can be attached to the same event for the group add.
-					grouperManager.createGroup(groupId);
-					grouperManager.addMemberships(groupId,
-							Arrays.asList(StringUtils.split(membersAdded, ",")));
+					doAddMemberships(group, Arrays.asList(StringUtils.split(membersAdded, ",")));
 					operation.append("ADD_MEMBERS ");
 				}
 
-				String membersRemoved = (String)message.getStringProperty(GrouperEventUtils.MEMBERS_REMOVED_PROP);
+				String membersRemoved = message.getStringProperty(GrouperEventUtils.MEMBERS_REMOVED_PROP);
 				if (membersRemoved != null){
-					grouperManager.removeMemberships(groupId,
-							Arrays.asList(StringUtils.split(membersRemoved, ",")));
+					doRemoveMemberships(group, Arrays.asList(StringUtils.split(membersRemoved, ",")));
 					operation.append("REMOVE_MEMBERS ");
 				}
 
 				if (membersAdded == null && membersRemoved == null) {
-					org.sakaiproject.nakamura.api.lite.Session repositorySession = repository.loginAdministrative();
-					AuthorizableManager am = repositorySession.getAuthorizableManager();
-					Group group = (Group) am.findAuthorizable(groupId);
-					repositorySession.logout();
-
 					if (groupId.startsWith(ContactsGrouperNameProviderImpl.CONTACTS_GROUPID_PREFIX)){
-						// TODO Why are we not getting added and removed properties on the Message
-						grouperManager.createGroup(groupId);
-						grouperManager.addMemberships(groupId, Arrays.asList(group.getMembers()));
 						operation.append("UPDATE CONTACTS ");
-					} else {
-						grouperManager.createGroup(groupId);
-						grouperManager.addMemberships(groupId, Arrays.asList(group.getMembers()));
+						doCreateGroup(group);
+					} else if ("org/sakaiproject/nakamura/lite/authorizables/ADDED".equals(topic) && !isProvisioned){
 						operation.append("CREATE ");
+						doCreateGroup(group);
 					}
+
 				}
+				repositorySession.logout();
 			}
 
 			// The message was processed successfully. No exceptions were thrown.
@@ -180,7 +180,6 @@ public class SyncJMSMessageConsumer implements MessageListener {
 				log.info("Successfully processed and acknowledged. {}, {}", operation.toString(), groupId);
 				log.debug(message.toString());
 			}
-
 		}
 		catch (JMSException jmse){
 			log.error("JMSException while processing message.", jmse);
@@ -188,5 +187,26 @@ public class SyncJMSMessageConsumer implements MessageListener {
 		catch (Exception e){
 			log.error("Exception while processing message.", e);
 		}
+	}
+
+	private void doCreateGroup(Group group) throws GrouperException{
+		grouperManager.createGroup(group.getId());
+		grouperManager.addMemberships(group.getId(), Arrays.asList(group.getMembers()));
+	}
+
+	private void doDeleteGroup(String groupId, Map<String,Object> attributes) throws GrouperException{
+		String grouperName = (String)attributes.get("grouper:name");
+		if (grouperName != null) {
+			grouperManager.deleteGroup(groupId, attributes);
+		}
+	}
+
+	private void doAddMemberships(Group group, List<String> membersAdded) throws GrouperException{
+		grouperManager.createGroup(group.getId());
+		grouperManager.addMemberships(group.getId(), membersAdded);
+	}
+
+	private void doRemoveMemberships(Group group, List<String> membersRemoved) throws GrouperException{
+		grouperManager.removeMemberships(group.getId(), membersRemoved);
 	}
 }
