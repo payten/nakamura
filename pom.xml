@@ -83,7 +83,6 @@
     <profile>
        <id>withContrib</id>
        <modules>
-        <module>contrib/ldap</module>
         <module>contrib/import</module>
         <module>contrib/filters</module>
         <module>contrib/mailman</module>
@@ -110,6 +109,9 @@
     <profile>
        <id>nyu</id>
        <modules>
+        <!-- Can remove the LDAP contribs; these were put in to have have dual auths for NYU's production (saml) and various test (ldap) servers -->
+        <module>contrib/ldap</module>
+        <module>contrib/ldapauth</module>
         <module>contrib/samlauth</module>
         <module>contrib/oracle-jdbc</module>
         <module>contrib/grouper</module>
