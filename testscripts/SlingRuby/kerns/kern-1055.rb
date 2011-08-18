@@ -18,7 +18,7 @@ class TC_Kern1055Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Should have found user profile")
     json = JSON.parse(res.body)
     assert_equal(1, json["total"])
-    @um.delete_user(user.name)
+    assert_equal(true, @um.delete_user(user.name))
     res = @s.execute_get(@s.url_for(User.url_for(user.name) + ".json"))
     assert_equal("404", res.code, "Should have deleted Jackrabbit User")
     wait_for_indexer()
@@ -37,7 +37,7 @@ class TC_Kern1055Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Should have found group profile")
     json = JSON.parse(res.body)
     assert_equal(1, json["total"])
-    @um.delete_group(group.name)
+    assert_equal(true, @um.delete_group(group.name))
     res = @s.execute_get(@s.url_for(Group.url_for(group.name) + ".json"))
     assert_equal("404", res.code, "Should have deleted Jackrabbit Group")
     wait_for_indexer()
@@ -48,3 +48,4 @@ class TC_Kern1055Test < Test::Unit::TestCase
   end
 
 end
+

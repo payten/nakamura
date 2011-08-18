@@ -22,7 +22,10 @@ import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_PROFI
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_DESCRIPTION_PROPERTY;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_TITLE_PROPERTY;
 
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
@@ -32,6 +35,7 @@ import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
@@ -75,12 +79,22 @@ public class ProfileServiceImpl implements ProfileService {
   private Map<String, ProfileProvider> providers = new ConcurrentHashMap<String, ProfileProvider>();
   private ProviderSettingsFactory providerSettingsFactory = new ProviderSettingsFactory();
   public static final Logger LOG = LoggerFactory.getLogger(ProfileServiceImpl.class);
-  
 
-  
-  
+  @Property
+  static final String EMAIL_LOCATION = "sakai.profile.email.location";
+  private String emailLocation;
+
   @Reference
   private BasicUserInfoService basicUserInfoService;
+
+  @Activate @Modified
+  protected void activate(Map<?, ?> props) {
+    emailLocation = OsgiUtil.toString(props.get(EMAIL_LOCATION), null);
+  }
+
+  public String getEmailLocation() {
+    return emailLocation;
+  }
 
   /**
    * {@inheritDoc}

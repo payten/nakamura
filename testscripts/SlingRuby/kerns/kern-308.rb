@@ -48,6 +48,7 @@ class TC_Kern308Test < Test::Unit::TestCase
     @log.info "Delegated admin property updated"
     @s.switch_user(u1)
     res = g2.add_member(@s, u3.name, "user")
+    sleep(2)
     assert_equal("200", res.code, "Expected to be able to make change")
     assert(g2.has_member(@s, u3.name), "Expected foreign user to be able to modify group")
     @s.switch_user(u3)

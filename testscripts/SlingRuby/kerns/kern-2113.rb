@@ -58,7 +58,7 @@ class TC_Kern2113Test < Test::Unit::TestCase
       res = send_message(sender.name, recipient.name, i)
       assert_equal('200', res.code, "Should be able to send message: #{res}\n#{res.body}")
     end
-    sleep(2)
+    sleep(5)
     @s.switch_user(recipient)
     props["items"] = "50"
     props["page"] = "0"

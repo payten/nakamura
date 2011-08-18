@@ -34,7 +34,13 @@ import javax.jcr.Session;
  */
 public interface ProfileService {
 
-
+  /**
+   * Get the location of the email field. Profile fields can be moved to any area but
+   * "email" needs to be findable by the system so smtp messages can be sent to users.
+   *
+   * @return
+   */
+  String getEmailLocation();
 
   /**
    * Gets the compact profile information from JCR and expands external resources

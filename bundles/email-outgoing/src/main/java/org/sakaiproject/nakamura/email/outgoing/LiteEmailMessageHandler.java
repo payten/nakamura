@@ -42,7 +42,7 @@ import java.util.Properties;
 @Service
 public class LiteEmailMessageHandler implements LiteMessageTransport {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(EmailMessageHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(LiteEmailMessageHandler.class);
 
   @Reference
   protected EventAdmin eventAdmin;
@@ -85,9 +85,9 @@ public class LiteEmailMessageHandler implements LiteMessageTransport {
       props.put(EventDeliveryConstants.DELIVERY_MODE, EventDeliveryMode.P2P);
       // make the message persistent to survive restarts.
       props.put(EventDeliveryConstants.MESSAGE_MODE, EventMessageMode.PERSISTENT);
-      props.put(OutgoingEmailMessageListener.RECIPIENTS, recipients);
-      props.put(OutgoingEmailMessageListener.CONTENT_PATH_PROPERTY, message.getPath());
-      Event emailEvent = new Event(OutgoingEmailMessageListener.QUEUE_NAME, props);
+      props.put(LiteOutgoingEmailMessageListener.RECIPIENTS, recipients);
+      props.put(LiteOutgoingEmailMessageListener.CONTENT_PATH_PROPERTY, message.getPath());
+      Event emailEvent = new Event(LiteOutgoingEmailMessageListener.QUEUE_NAME, props);
 
       LOGGER.debug("Sending event [" + emailEvent + "]");
       eventAdmin.postEvent(emailEvent);

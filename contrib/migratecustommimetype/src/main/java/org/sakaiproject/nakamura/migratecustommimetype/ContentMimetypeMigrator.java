@@ -82,6 +82,10 @@ public class ContentMimetypeMigrator {
                   continue;
                 }
                 Content content = cm.get(id);
+                if ( content == null ) {
+                    log.warn("ID from solr doc not found {} ",id);
+                    continue;
+                }
                 String contentMimetype = (String)content.getProperty(OLD_MIME_FIELD);
                 if (contentMimetype != null){
                         content.setProperty(InternalContent.MIMETYPE_FIELD, contentMimetype);

@@ -319,7 +319,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     try {
       String[] values = templateParams.split("\\|");
       for (String pair : values) {
-        String[] keyValuePair = pair.split("=");
+        String[] keyValuePair = pair.split("=", 2);
         String key = keyValuePair[0];
         String value = keyValuePair[1];
       }

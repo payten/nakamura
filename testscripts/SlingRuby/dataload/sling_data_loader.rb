@@ -9,7 +9,7 @@ require 'sling/sling'
 require 'sling/users'
 require 'sling/file'
 require 'sling/contacts'
-require 'full_group_creator'
+require './full_group_creator'
 include SlingInterface
 include SlingUsers
 include SlingFile
