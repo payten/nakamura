@@ -159,7 +159,7 @@ public class SyncJMSMessageConsumer implements MessageListener {
 					if (groupId.startsWith(ContactsGrouperNameProviderImpl.CONTACTS_GROUPID_PREFIX)){
 						operation.append("UPDATE CONTACTS ");
 						doCreateGroup(group);
-					} else if ("org/sakaiproject/nakamura/lite/authorizables/ADDED".equals(topic) && !isProvisioned){
+					} else if (!isProvisioned){
 						operation.append("CREATE ");
 						doCreateGroup(group);
 					}
