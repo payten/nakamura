@@ -88,10 +88,14 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 	@Property(value = DEFAULT_SIMPLEGROUPS_STEM)
 	public static final String PROP_SIMPLEGROUPS_STEM = "grouper.nameprovider.simplegroups.stem";
 
-	private static final String DEFAULT_COURSES_STEM = "edu:apps:sakaioae:courses:adhoc";
-	@Property(value = DEFAULT_COURSES_STEM)
-	public static final String PROP_COURSES_STEM = "grouper.nameprovider.courses.stem";
-	
+	private static final String DEFAULT_ADHOC_COURSES_STEM = "edu:apps:sakaioae:adhoc:course";
+	@Property(value = DEFAULT_ADHOC_COURSES_STEM)
+	public static final String PROP_ADHOC_COURSES_STEM = "grouper.nameprovider.adhoc.courses.stem";
+
+	private static final String DEFAULT_PROVISIONED_COURSES_STEM = "edu:apps:sakaioae:provisioned:course";
+	@Property(value = DEFAULT_PROVISIONED_COURSES_STEM)
+	public static final String PROP_PROVISIONED_COURSES_STEM = "grouper.nameprovider.provisioned.courses.stem";
+
 	private static final String DEFAULT_INSTITUTIONAL_COURSES_STEM = "inst:sis:courses";
 	@Property(value = DEFAULT_INSTITUTIONAL_COURSES_STEM)
 	public static final String PROP_INSTITUTIONAL_COURSES_STEM = "grouper.institutional.courses.stem";
@@ -111,7 +115,8 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 	private String contactsStem;
 
 	private String simpleGroupsStem;
-	private String coursesStem;
+	private String adhocCoursesStem;
+	private String provisionedCoursesStem;
 	private String institutionalCourseStem;
 
 	// GrouperWS
@@ -153,7 +158,8 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 
 		contactsStem = cleanStem(OsgiUtil.toString(props.get(PROP_CONTACTS_STEM),DEFAULT_CONTACTS_STEM));
 		simpleGroupsStem = cleanStem(OsgiUtil.toString(props.get(PROP_SIMPLEGROUPS_STEM),DEFAULT_SIMPLEGROUPS_STEM));
-		coursesStem = cleanStem(OsgiUtil.toString(props.get(PROP_COURSES_STEM),DEFAULT_COURSES_STEM));
+		adhocCoursesStem = cleanStem(OsgiUtil.toString(props.get(PROP_ADHOC_COURSES_STEM), DEFAULT_ADHOC_COURSES_STEM));
+		provisionedCoursesStem = cleanStem(OsgiUtil.toString(props.get(PROP_PROVISIONED_COURSES_STEM), DEFAULT_PROVISIONED_COURSES_STEM));
 		institutionalCourseStem = cleanStem(OsgiUtil.toString(props.get(PROP_INSTITUTIONAL_COURSES_STEM),DEFAULT_INSTITUTIONAL_COURSES_STEM));
 
 		httpTimeout = OsgiUtil.toInteger(props.get(PROP_TIMEOUT), Integer.parseInt(DEFAULT_TIMEOUT));
@@ -224,8 +230,16 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 		return simpleGroupsStem;
 	}
 
-	public String getCoursesStem() {
-		return coursesStem;
+	public String getAdhocCoursesStem() {
+		return adhocCoursesStem;
+	}
+
+	public String getInstitutionalCoursesStem() {
+		return institutionalCourseStem;
+	}
+
+	public String getProvisionedCoursesStem() {
+		return provisionedCoursesStem;
 	}
 
 	public Map<String, String> getExtensionOverrides() {
@@ -238,9 +252,5 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 
 	public boolean getDisableForTesting() {
 		return disableForTesting;
-	}
-
-	public String getInstitutionalCourseGroupsStem() {
-		return institutionalCourseStem;
 	}
 }

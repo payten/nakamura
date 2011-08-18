@@ -148,16 +148,19 @@ public class GrouperManagerImpl implements GrouperManager {
 				// app:atlas:{adhoc|provisioned}:courses:group:name:students_systemOfRecord
 				if (isProvisioned && GroupUtil.isCourseGroup((Group)authorizable, session)){
 					String systemOfRecord = grouperName + SYSTEM_OF_RECORD_SUFFIX;
-					String institutionalSystemOfRecord = grouperName.replaceFirst(
-							grouperConfiguration.getCoursesStem(), grouperConfiguration.getInstitutionalCourseGroupsStem());
-					WsGroup institutional = findGroup(institutionalSystemOfRecord);
-					if (institutional != null){
-						String instUUID = institutional.getUuid();
-						internalAddMemberships(systemOfRecord, null, instUUID);
-						log.info("Added {} to {}", institutionalSystemOfRecord, systemOfRecord);
-					}
-					else {
-						log.debug("No institutional group at {} for {}", institutionalSystemOfRecord, systemOfRecord);
+					if (grouperName.startsWith(grouperConfiguration.getProvisionedCoursesStem())){
+						String institutionalSystemOfRecord = grouperName.replaceFirst(
+							grouperConfiguration.getProvisionedCoursesStem(),
+							grouperConfiguration.getInstitutionalCoursesStem());
+						WsGroup institutional = findGroup(institutionalSystemOfRecord);
+						if (institutional != null){
+							String instUUID = institutional.getUuid();
+							internalAddMemberships(systemOfRecord, null, instUUID);
+							log.info("Added {} to {}", institutionalSystemOfRecord, systemOfRecord);
+						}
+						else {
+							log.debug("No institutional group at {} for {}", institutionalSystemOfRecord, systemOfRecord);
+						}
 					}
 				}
 			}
@@ -425,7 +428,9 @@ public class GrouperManagerImpl implements GrouperManager {
 
 		// Error handling is a bit awkward. If the group already exists its not a problem
 		if ("T".equals(results.getResultMetadata().getSuccess())) {
-			result = results.getGroupResults()[0];
+			if (results.getGroupResults() != null){
+				result = results.getGroupResults()[0];
+			}
 		}
 		return result;
 	}

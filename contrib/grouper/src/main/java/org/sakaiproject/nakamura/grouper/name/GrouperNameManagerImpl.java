@@ -86,8 +86,12 @@ public class GrouperNameManagerImpl extends AbstractOrderedService<GrouperNamePr
 			else if (GroupUtil.isSimpleGroup(g, session) && !grouperName.startsWith(config.getSimpleGroupsStem())){
 				grouperName = config.getSimpleGroupsStem() + ":" + grouperName;
 			}
-			else if (GroupUtil.isCourseGroup(g, session)&& !grouperName.startsWith(config.getCoursesStem())){
-				grouperName = config.getCoursesStem() + ":" + grouperName;
+			else if (GroupUtil.isCourseGroup(g, session) &&
+						(!grouperName.startsWith(config.getAdhocCoursesStem())
+							&& !grouperName.startsWith(config.getProvisionedCoursesStem()))
+							&& !grouperName.startsWith(config.getInstitutionalCoursesStem())){
+					grouperName = config.getAdhocCoursesStem() + ":" + grouperName;
+
 			}
 			session.logout();
 		} catch (ClientPoolException e) {

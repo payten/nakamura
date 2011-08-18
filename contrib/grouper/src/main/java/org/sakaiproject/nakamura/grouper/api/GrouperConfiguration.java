@@ -94,12 +94,17 @@ public interface GrouperConfiguration {
 	public abstract String getSimpleGroupsStem();
 
 	/**
-	 * @return where in grouper the adhoc course groups are stored.
+	 * @return where in grouper the adhoc course groups are stored in grouper.
 	 */
-	public abstract String getCoursesStem();
+	public abstract String getAdhocCoursesStem();
 
 	/**
-	 * @return a map of extension names to use to override the poseudogroup extensions
+	 * @return where in grouper the provisioned course groups are stored in grouper.
+	 */
+	public abstract String getProvisionedCoursesStem();
+
+	/**
+	 * @return a map of extension names to use to override the psuedoGroup extensions
 	 */
 	public abstract Map<String,String> getExtensionOverrides();
 
@@ -113,7 +118,7 @@ public interface GrouperConfiguration {
 	 * Where the institutional courses are stored.
 	 * @return
 	 */
-	public abstract String getInstitutionalCourseGroupsStem();
+	public abstract String getInstitutionalCoursesStem();
 
 
 }
