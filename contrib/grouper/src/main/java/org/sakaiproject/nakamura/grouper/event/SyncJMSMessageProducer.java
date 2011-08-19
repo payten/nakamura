@@ -121,7 +121,7 @@ public class SyncJMSMessageProducer implements EventHandler {
 		producer.send(msg);
 
 		log.info("Sent: {} {} : messageId {}", new Object[] { event.getTopic(), event.getProperty("path"), msg.getJMSMessageID()});
-		log.debug("{} : {}", msg.getJMSMessageID(), msg);
+		log.trace("{} : {}", msg.getJMSMessageID(), msg);
 
 		try {
 			senderSession.close();
