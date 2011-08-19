@@ -88,7 +88,19 @@
                   <version>${ux.version}</version>
                   <startLevel>30</startLevel>
                 </bundle>
-                <!-- sandbox bundles -->
+		<bundle>
+		  <groupId>edu.internet2.middleware.grouper</groupId>
+		  <artifactId>grouperClient.osgi</artifactId>
+		  <version>1.7.0</version>
+		  <startLevel>25</startLevel>
+		</bundle>
+		<bundle>
+		  <groupId>org.sakaiproject.nakamura</groupId>
+		  <artifactId>org.sakaiproject.nakamura.grouper.sync</artifactId>
+		  <version>${nakamura.version}</version>
+		  <startLevel>30</startLevel>
+		</bundle>
+		<!-- sandbox bundles -->
               </additionalBundles>
             </configuration>
           </execution>
