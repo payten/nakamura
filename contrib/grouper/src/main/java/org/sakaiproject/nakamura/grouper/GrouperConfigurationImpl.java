@@ -104,6 +104,10 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 	@Property(value = {}, cardinality = 9999)
 	public static final String PROP_EXTENSION_OVERRIDES = "grouper.extension.overrides";
 
+	private static final String[] DEFAULT_INST_EXTENSION_OVERRIDES = new String[]{ "lecturers:instructors" };
+	@Property(value = {"lecturers:instructors"}, cardinality = 9999)
+	public static final String PROP_INST_EXTENSION_OVERRIDES = "grouper.institutional.extension.overrides";
+
 	private static final boolean DEFAULT_DELETES_ENABLED = true;
 	@Property(boolValue = DEFAULT_DELETES_ENABLED)
 	public static final String PROP_DELETES_ENABLED = "grouper.enable.deletes";
@@ -136,6 +140,8 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 
 	private boolean disableForTesting;
 
+	private Map<String, String> institutionalExtensionOverrides;
+
 	// -------------------------- Configuration Admin --------------------------
 	/**
 	 * Copy in the configuration from the config admin service.
@@ -147,7 +153,7 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 	 */
 	@Activate
 	@Modified
-	public void updated(Map<?, ?> props) throws ConfigurationException {
+	public void updated(Map<String, Object> props) throws ConfigurationException {
 		try {
 			url = new URL(OsgiUtil.toString(props.get(PROP_URL), DEFAULT_URL));
 		} catch (MalformedURLException mfe) {
@@ -171,16 +177,21 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 		deletesEnabled = OsgiUtil.toBoolean(props.get(PROP_DELETES_ENABLED), DEFAULT_DELETES_ENABLED);
 		disableForTesting = OsgiUtil.toBoolean(props.get(PROP_DISABLE_TESTING), false);
 
-		Builder<String, String> extentionOverridesBuilder = ImmutableMap.builder();
-		for (String exO: OsgiUtil.toStringArray(props.get(PROP_EXTENSION_OVERRIDES), DEFAULT_EXTENSION_OVERRIDES)){
-			String[] split = exO.split(":");
-			if (split.length == 2){
-				extentionOverridesBuilder.put(split[0], split[1]);
-			}
-		}
-		extensionOverrides = extentionOverridesBuilder.build();
+		extensionOverrides = getMap(props, PROP_EXTENSION_OVERRIDES, DEFAULT_EXTENSION_OVERRIDES);
+		institutionalExtensionOverrides = getMap(props, PROP_INST_EXTENSION_OVERRIDES, DEFAULT_INST_EXTENSION_OVERRIDES);
 
 		log.debug("Configured!");
+	}
+
+	private Map<String,String> getMap(Map<String, Object> props, String property, String[] defaultValue){
+		Builder<String, String> mapping = ImmutableMap.builder();
+		for (String propElement: OsgiUtil.toStringArray(props.get(property), defaultValue)){
+			String[] split = propElement.split(":");
+			if (split.length == 2){
+				mapping.put(split[0], split[1]);
+			}
+		}
+		return mapping.build();
 	}
 
 	private String cleanStem(String stem){
@@ -252,5 +263,10 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 
 	public boolean getDisableForTesting() {
 		return disableForTesting;
+	}
+
+	@Override
+	public Map<String, String> getInstitutionalExtensionOverrides() {
+		return institutionalExtensionOverrides;
 	}
 }

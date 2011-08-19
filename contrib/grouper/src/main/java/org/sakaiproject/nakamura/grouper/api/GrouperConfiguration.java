@@ -45,7 +45,6 @@ public interface GrouperConfiguration {
 	public abstract String getPassword();
 
 	/**
-	 * http://localhost:9090/grouper-ws
 	 * @return the {@link URL} of the Grouper WS
 	 */
 	public abstract URL getUrl();
@@ -104,13 +103,18 @@ public interface GrouperConfiguration {
 	public abstract String getProvisionedCoursesStem();
 
 	/**
-	 * @return a map of extension names to use to override the psuedoGroup extensions
+	 * @return a map of psuedoGroup extensions to grouper extensions.
 	 */
 	public abstract Map<String,String> getExtensionOverrides();
 
 	/**
-	 * @return if true groups will be deleted in Grouper when deleted in Sakai OAE
-	 * @return
+	 * This allows us to map group extensions in the institutional stems to the application stems.
+	 * @return the mapping of extensions from application groups to institutional groups.
+	 */
+	public abstract Map<String, String> getInstitutionalExtensionOverrides();
+
+	/**
+	 * @return if groups will be deleted in Grouper when deleted in Sakai OAE
 	 */
 	public abstract boolean getDeletesEnabled();
 
@@ -119,6 +123,4 @@ public interface GrouperConfiguration {
 	 * @return
 	 */
 	public abstract String getInstitutionalCoursesStem();
-
-
 }
