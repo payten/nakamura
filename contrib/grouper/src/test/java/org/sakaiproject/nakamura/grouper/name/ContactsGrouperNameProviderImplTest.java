@@ -36,7 +36,7 @@ public class ContactsGrouperNameProviderImplTest {
 	@Test
 	public void testGetGrouperName() throws Exception {
 		
-		Map<String,String> m = new HashMap<String,String>();
+		Map<String,Object> m = new HashMap<String,Object>();
 		GrouperConfigurationImpl gconfig = new GrouperConfigurationImpl();
 		gconfig.updated(m);
 			

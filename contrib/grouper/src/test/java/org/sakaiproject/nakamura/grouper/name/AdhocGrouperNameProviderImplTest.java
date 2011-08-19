@@ -36,7 +36,7 @@ public class AdhocGrouperNameProviderImplTest {
 	@Test
 	public void testGetGrouperName() throws Exception {
 		
-		Map<String,String> m = new HashMap<String,String>();
+		Map<String,Object> m = new HashMap<String,Object>();
 		m.put(GrouperConfigurationImpl.PROP_EXTENSION_OVERRIDES, "meh:bleh");
 		GrouperConfigurationImpl gconfig = new GrouperConfigurationImpl();
 		gconfig.updated(m);

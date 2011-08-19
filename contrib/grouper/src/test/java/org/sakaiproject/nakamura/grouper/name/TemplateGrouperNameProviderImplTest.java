@@ -33,7 +33,7 @@ public class TemplateGrouperNameProviderImplTest extends TestCase {
 	public void testGetGrouperName() throws ConfigurationException{
 
 		GrouperConfigurationImpl gconfig = new GrouperConfigurationImpl();
-		Map<String,String> m = new HashMap<String,String>();
+		Map<String,Object> m = new HashMap<String,Object>();
 		m.put(GrouperConfigurationImpl.PROP_EXTENSION_OVERRIDES, "meh:bleh");
 		gconfig.updated(m);
 		
