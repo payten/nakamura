@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import net.sf.json.JSONObject;
@@ -355,9 +354,8 @@ public class GrouperManagerImpl implements GrouperManager {
 	 * @param groupToRemove a group to remove.
 	 * @throws GrouperException
 	 */
-	private void internalRemoveMemberships(String grouperName, Collection<String> subjectsToRemove, String groupToRemove) throws GrouperException {
-		log.debug("Removing members: Group = {} members = {}", grouperName, StringUtils.join(subjectsToRemove, ','));
-
+	private void internalRemoveMemberships(String grouperName, Collection<String> subjectsToRemove, String groupToRemove) 
+	throws GrouperException {
 		WsRestDeleteMemberRequest deleteMembers = new WsRestDeleteMemberRequest();
 		Set<WsSubjectLookup> subjectLookups = new HashSet<WsSubjectLookup>();
 
@@ -371,7 +369,10 @@ public class GrouperManagerImpl implements GrouperManager {
 		// Supporting one group for now since that's what the Grouper WS API supports.
 		if (groupToRemove != null){
 			subjectLookups.add(new WsSubjectLookup(groupToRemove, "g:gsa", null));
+			subjectsToRemove.add(groupToRemove);
 		}
+		String removed = StringUtils.join(subjectsToRemove, ',');
+		log.debug("Removing members: Group = {} members = {}", grouperName, removed);
 
 		if (!subjectLookups.isEmpty()){
 			deleteMembers.setSubjectLookups(subjectLookups.toArray(new WsSubjectLookup[subjectLookups.size()]));
@@ -385,8 +386,7 @@ public class GrouperManagerImpl implements GrouperManager {
 				throw new GrouperWSException(results);
 			}
 
-			log.debug("Success! Removed members: Group = {} members = {}",
-					grouperName, StringUtils.join(subjectLookups.toArray(), ','));
+			log.debug("Success! Removed members: Group = {} members = {}", grouperName, removed);
 		}
 		else {
 			log.error("No members to remove.");
