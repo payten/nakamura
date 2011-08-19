@@ -102,7 +102,7 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 
 	private static final String DEFAULT_INSTITUTIONAL_COURSES_STEM = "inst:sis:courses";
 	@Property(value = DEFAULT_INSTITUTIONAL_COURSES_STEM)
-	public static final String PROP_INSTITUTIONAL_COURSES_STEM = "grouper.institutional.courses.stem";
+	public static final String PROP_INSTITUTIONAL_COURSES_STEM = "grouper.nameprovider.institutional.courses.stem";
 
 	private static final String[] DEFAULT_EXTENSION_OVERRIDES = new String[0];
 	@Property(value = {}, cardinality = 9999)
