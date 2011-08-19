@@ -59,4 +59,11 @@ public interface GrouperManager {
 	 */
 	public void removeMemberships(String groupId, Collection<String> membersToRemove) throws GrouperException;
 
+	/**
+	 * Whether or not a group exists in grouper.
+	 * @param grouperName
+	 * @return true if the group exists
+	 */
+	public boolean groupExists(String grouperName) throws GrouperException;
+
 }

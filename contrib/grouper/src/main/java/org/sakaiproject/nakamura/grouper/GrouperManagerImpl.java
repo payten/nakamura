@@ -388,12 +388,18 @@ public class GrouperManagerImpl implements GrouperManager {
 			log.debug("Success! Removed members: Group = {} members = {}",
 					grouperName, StringUtils.join(subjectLookups.toArray(), ','));
 		}
+		else {
+			log.error("No members to remove.");
+		}
+	}
+
+	public boolean groupExists(String grouperName) throws GrouperException{
+		return findGroup(grouperName) != null;
 	}
 
 	private WsGroup findGroup(String grouperName) throws GrouperException {
 
 		WsGroup result = null;
-
 		// Fill out the group save request beans
 		WsRestFindGroupsRequest groupFind = new WsRestFindGroupsRequest();
 		WsQueryFilter wsQueryFilter = new WsQueryFilter();
@@ -411,6 +417,12 @@ public class GrouperManagerImpl implements GrouperManager {
 			if (results.getGroupResults() != null){
 				result = results.getGroupResults()[0];
 			}
+		}
+		if (result == null){
+			log.info("findGroup : {} : not found", grouperName);
+		}
+		else {
+			log.info("findGroup : {} : found", grouperName);
 		}
 		return result;
 	}
@@ -503,7 +515,7 @@ public class GrouperManagerImpl implements GrouperManager {
 		    	log.info("POST to {} : {}", grouperWsRestUrl, responseCode);
 		    	String responseString = IOUtils.toString(method.getResponseBodyAsStream());
 		    	response = JSONObject.fromObject(responseString);
-		    	log.debug(responseString);
+		    	log.trace(responseString);
 		    }
 		    else {
 		    	response =  new JSONObject();
