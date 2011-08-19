@@ -197,7 +197,7 @@ public class SyncJMSMessageConsumer implements MessageListener {
 	private void doDeleteGroup(String groupId, Map<String,Object> attributes) throws GrouperException{
 		String grouperName = (String)attributes.get("grouper:name");
 		if (grouperName != null) {
-			grouperManager.deleteGroup(groupId, attributes);
+			grouperManager.deleteGroup(grouperName);
 		}
 	}
 

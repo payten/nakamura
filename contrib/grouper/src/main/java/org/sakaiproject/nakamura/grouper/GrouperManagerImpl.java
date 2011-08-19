@@ -232,31 +232,11 @@ public class GrouperManagerImpl implements GrouperManager {
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
-	 * If the attributes contains a grouper name use it to delete the group in grouper.
-	 * Else call delete(groupid) which will try to resolve the grouper name with the GrouperNameManager
-	 *
-	 */
-	public void deleteGroup(String nakamuraGroupId, Map<String, Object> attributes) throws GrouperException {
-		String grouperName = null;
-		if (attributes != null ){
-			grouperName = (String)attributes.get(GROUPER_NAME_PROP);
-		}
-		if (grouperName == null){
-			grouperName = grouperNameManager.getGrouperName(nakamuraGroupId);
-		}
-		if (grouperName != null){
-			internalDeleteGroup(grouperName);
-		}
-	}
-
-	/**
 	 * Delete a group from Grouper.
 	 * @param grouperName the full name of the group
 	 * @throws GrouperException
 	 */
-	private void internalDeleteGroup(String grouperName) throws GrouperException{
+	public void deleteGroup(String grouperName) throws GrouperException{
 		try {
 			// Fill out the group delete request beans
 			WsRestGroupDeleteRequest groupDelete = new WsRestGroupDeleteRequest();

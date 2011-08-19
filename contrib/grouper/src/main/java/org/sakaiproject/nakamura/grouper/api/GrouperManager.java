@@ -18,7 +18,6 @@
 package org.sakaiproject.nakamura.grouper.api;
 
 import java.util.Collection;
-import java.util.Map;
 
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.grouper.exception.GrouperException;
@@ -40,11 +39,11 @@ public interface GrouperManager {
 
 	/**
 	 * Delete a group from Grouper.
-	 * @param groupId the id of the {@link Authorizable} for this group
+	 * @param grouperName the grouper name
 	 * @param attributes the properties of this group.
 	 * @throws GrouperException
 	 */
-	public void deleteGroup(String groupId, Map<String, Object> attributes) throws GrouperException;
+	public void deleteGroup(String grouperName) throws GrouperException;
 
 	/**
 	 * Add members to a Grouper group.
