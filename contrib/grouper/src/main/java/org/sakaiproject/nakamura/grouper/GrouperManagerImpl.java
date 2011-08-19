@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import net.sf.json.JSONObject;
@@ -147,18 +148,16 @@ public class GrouperManagerImpl implements GrouperManager {
 				// app:atlas:{adhoc|provisioned}:courses:group:name:students_systemOfRecord
 				if (isProvisioned && GroupUtil.isCourseGroup((Group)authorizable, session)){
 					String systemOfRecord = grouperName + SYSTEM_OF_RECORD_SUFFIX;
+
 					if (grouperName.startsWith(grouperConfiguration.getProvisionedCoursesStem())){
-						String institutionalSystemOfRecord = grouperName.replaceFirst(
-							grouperConfiguration.getProvisionedCoursesStem(),
-							grouperConfiguration.getInstitutionalCoursesStem());
-						WsGroup institutional = findGroup(institutionalSystemOfRecord);
+						String instGroupName = getInstitutionalGroupName(grouperName);
+						WsGroup institutional = findGroup(instGroupName);
 						if (institutional != null){
-							String instUUID = institutional.getUuid();
-							internalAddMemberships(systemOfRecord, null, instUUID);
-							log.info("Added {} to {}", institutionalSystemOfRecord, systemOfRecord);
+							internalAddMemberships(systemOfRecord, null, institutional.getUuid());
+							log.info("Added {} to {}", instGroupName, systemOfRecord);
 						}
 						else {
-							log.debug("No institutional group at {} for {}", institutionalSystemOfRecord, systemOfRecord);
+							log.debug("No institutional group at {} for {}", instGroupName, systemOfRecord);
 						}
 					}
 				}
@@ -354,7 +353,7 @@ public class GrouperManagerImpl implements GrouperManager {
 	 * @param groupToRemove a group to remove.
 	 * @throws GrouperException
 	 */
-	private void internalRemoveMemberships(String grouperName, Collection<String> subjectsToRemove, String groupToRemove) 
+	private void internalRemoveMemberships(String grouperName, Collection<String> subjectsToRemove, String groupToRemove)
 	throws GrouperException {
 		WsRestDeleteMemberRequest deleteMembers = new WsRestDeleteMemberRequest();
 		Set<WsSubjectLookup> subjectLookups = new HashSet<WsSubjectLookup>();
@@ -484,6 +483,28 @@ public class GrouperManagerImpl implements GrouperManager {
 			throw new GrouperException("Unable to fetch authorizable. Access Denied.");
 		}
 		return cleaned;
+	}
+
+	/**
+	 * Convert a provisioned group into its institutional counterpart.
+	 * @param grouperName a group in the provisioned course stem
+	 * @return the corresponding group in the institutional course stem
+	 */
+	protected String getInstitutionalGroupName(String grouperName){
+
+		String instGroupName = grouperName.replaceFirst(
+				grouperConfiguration.getProvisionedCoursesStem(),
+				grouperConfiguration.getInstitutionalCoursesStem());
+
+		// use the institutional extension map to get the extension of the inst group
+		Map<String,String> extensionMap = grouperConfiguration.getInstitutionalExtensionOverrides();
+		String extension = StringUtils.substringAfterLast(instGroupName, ":");
+
+		if (extensionMap.containsKey(extension)){
+			instGroupName = StringUtils.substringBeforeLast(instGroupName, ":")
+			+ ":" + extensionMap.get(extension);
+		}
+		return instGroupName;
 	}
 
 	/**
