@@ -66,9 +66,13 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 	@Property(value = DEFAULT_TIMEOUT)
 	public static final String PROP_TIMEOUT = "grouper.httpTimeout";
 
-	private static final String DEFAULT_IGNORED_USER = "grouper-admin";
-	@Property(value = DEFAULT_IGNORED_USER)
-	public static final String PROP_IGNORED_USER = "grouper.ignoredUser";
+	private static final String[] DEFAULT_IGNORED_USERS_EVENTS = new String[] {"grouper-admin", "admin" };
+	@Property(value = {"grouper-admin", "admin" }, cardinality = 9999)
+	public static final String PROP_IGNORED_USERS_EVENTS = "grouper.ignore.users.events";
+
+	private static final String DEFAULT_GROUPER_ADMIN_USERID = "grouper-admin";
+	@Property(value = "grouper-admin")
+	public static final String PROP_GROUPER_ADMIN_USERID = "grouper.admin.userid";
 
 	private static final String[] DEFAULT_IGNORED_GROUP_PATTERN = {"administrators"};
 	@Property(value = { "administrators" }, cardinality = 9999)
@@ -127,7 +131,7 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 	private int httpTimeout;
 
 	// Ignore events caused by this user
-	private String ignoredUser;
+	private String[] ignoreUsersEvents;
 	// Ignore groups that match these regexs
 	private String[] ignoredGroupPatterns;
 
@@ -141,6 +145,8 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 	private boolean disableForTesting;
 
 	private Map<String, String> institutionalExtensionOverrides;
+
+	private String grouperAdministratorUserId;
 
 	// -------------------------- Configuration Admin --------------------------
 	/**
@@ -169,8 +175,9 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 		institutionalCourseStem = cleanStem(OsgiUtil.toString(props.get(PROP_INSTITUTIONAL_COURSES_STEM),DEFAULT_INSTITUTIONAL_COURSES_STEM));
 
 		httpTimeout = OsgiUtil.toInteger(props.get(PROP_TIMEOUT), Integer.parseInt(DEFAULT_TIMEOUT));
+		grouperAdministratorUserId = OsgiUtil.toString(props.get(PROP_GROUPER_ADMIN_USERID), DEFAULT_GROUPER_ADMIN_USERID);
 
-		ignoredUser = OsgiUtil.toString(props.get(PROP_IGNORED_USER),DEFAULT_IGNORED_USER);
+		ignoreUsersEvents = OsgiUtil.toStringArray(props.get(PROP_IGNORED_USERS_EVENTS),DEFAULT_IGNORED_USERS_EVENTS);
 		ignoredGroupPatterns = OsgiUtil.toStringArray(props.get(PROP_IGNORED_GROUP_PATTERN), DEFAULT_IGNORED_GROUP_PATTERN);
 		pseudoGroupSuffixes = OsgiUtil.toStringArray(props.get(PROP_PSEUDO_GROUP_SUFFIXES), DEFAULT_PSEUDO_GROUP_SUFFIXES);
 
@@ -221,8 +228,12 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 		return httpTimeout;
 	}
 
-	public String getIgnoredUserId() {
-		return ignoredUser;
+	public String[] getIgnoredUsersEvents() {
+		return ignoreUsersEvents;
+	}
+
+	public String getGrouperAdministratorUserId() {
+		return grouperAdministratorUserId;
 	}
 
 	public String[] getIgnoredGroups() {
@@ -257,16 +268,15 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 		return extensionOverrides;
 	}
 
+	public Map<String, String> getInstitutionalExtensionOverrides() {
+		return institutionalExtensionOverrides;
+	}
+
 	public boolean getDeletesEnabled(){
 		return deletesEnabled;
 	}
 
 	public boolean getDisableForTesting() {
 		return disableForTesting;
-	}
-
-	@Override
-	public Map<String, String> getInstitutionalExtensionOverrides() {
-		return institutionalExtensionOverrides;
 	}
 }

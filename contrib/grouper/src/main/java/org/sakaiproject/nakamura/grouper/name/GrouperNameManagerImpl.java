@@ -78,7 +78,7 @@ public class GrouperNameManagerImpl extends AbstractOrderedService<GrouperNamePr
 
 		// Figure out which stem to put this group in.
 		try {
-			Session session = repository.loginAdministrative(config.getIgnoredUserId());
+			Session session = repository.loginAdministrative(config.getGrouperAdministratorUserId());
 			Group g = (Group)session.getAuthorizableManager().findAuthorizable(groupId);
 			if (GroupUtil.isContactsGroup(g.getId()) && !grouperName.startsWith(config.getContactsStem())){
 				grouperName = config.getContactsStem() + ":" + grouperName;

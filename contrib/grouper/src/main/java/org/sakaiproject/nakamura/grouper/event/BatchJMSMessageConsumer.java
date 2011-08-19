@@ -125,7 +125,7 @@ public class BatchJMSMessageConsumer implements MessageListener {
 		log.debug(message.toString());
 		try {
 			String groupId = message.getStringProperty(Authorizable.ID_FIELD);
-			org.sakaiproject.nakamura.api.lite.Session repositorySession = repository.loginAdministrative(config.getIgnoredUserId());
+			org.sakaiproject.nakamura.api.lite.Session repositorySession = repository.loginAdministrative(config.getGrouperAdministratorUserId());
 			Authorizable group = repositorySession.getAuthorizableManager().findAuthorizable(groupId);
 			
 			if (group != null && group.isGroup()) {
@@ -155,7 +155,7 @@ public class BatchJMSMessageConsumer implements MessageListener {
 		} catch (ClientPoolException e) {
 			log.error("Error communicating with sparsemap storage.", e);
 		} catch (AccessDeniedException e) {
-			log.error("{} is not an administrator. Permission denied", config.getIgnoredUserId(), e);
+			log.error("{} is not an administrator. Permission denied", config.getGrouperAdministratorUserId(), e);
 		} catch (StorageClientException e) {
 			log.error("Error communicating with sparsemap storage.", e);
 		} catch (GrouperException e) {

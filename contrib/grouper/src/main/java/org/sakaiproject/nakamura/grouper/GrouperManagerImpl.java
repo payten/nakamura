@@ -115,7 +115,7 @@ public class GrouperManagerImpl implements GrouperManager {
 
 		try {
 			// Check if the groupid corresponds to a group.
-			Session session = repository.loginAdministrative(grouperConfiguration.getIgnoredUserId());
+			Session session = repository.loginAdministrative(grouperConfiguration.getGrouperAdministratorUserId());
 			AuthorizableManager authorizableManager = session.getAuthorizableManager();
 			Authorizable authorizable = authorizableManager.findAuthorizable(groupId);
 
@@ -428,7 +428,7 @@ public class GrouperManagerImpl implements GrouperManager {
 
 	private void checkGroupId(String groupId) throws InvalidGroupIdException, GrouperException{
 		try {
-			Session session = repository.loginAdministrative(grouperConfiguration.getIgnoredUserId());
+			Session session = repository.loginAdministrative(grouperConfiguration.getGrouperAdministratorUserId());
 			AuthorizableManager authorizableManager = session.getAuthorizableManager();
 			Authorizable authorizable = authorizableManager.findAuthorizable(groupId);
 			session.logout();
@@ -449,7 +449,7 @@ public class GrouperManagerImpl implements GrouperManager {
 		Collection<String> cleaned = new ArrayList<String>();
 
 		try {
-			Session session = repository.loginAdministrative(grouperConfiguration.getIgnoredUserId());
+			Session session = repository.loginAdministrative(grouperConfiguration.getGrouperAdministratorUserId());
 			AuthorizableManager authorizableManager = session.getAuthorizableManager();
 			Authorizable authorizable = null;
 			for (String memberId: memberIds){

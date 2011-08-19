@@ -49,17 +49,17 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Capture {@link Authorizable} events and put them on a special Queue to be processed.
- * 
+ *
  * When Groups are created or updated we are notified of an {@link Event} via the OSGi
- * {@link EventAdmin} service. We then create a {@link Message} and place it on a {@link Queue}. 
- * 
- * The {@link GrouperJMSMessageConsumer} will receive those messages and acknowledge them as they 
+ * {@link EventAdmin} service. We then create a {@link Message} and place it on a {@link Queue}.
+ *
+ * The {@link GrouperJMSMessageConsumer} will receive those messages and acknowledge them as they
  * are successfully processed.
  */
 @Service
 @Component(immediate = true, metatype=true)
-@Properties(value = { 
-		@Property(name = EventConstants.EVENT_TOPIC, 
+@Properties(value = {
+		@Property(name = EventConstants.EVENT_TOPIC,
 				value = {
 				"org/sakaiproject/nakamura/lite/authorizables/ADDED",
 				"org/sakaiproject/nakamura/lite/authorizables/UPDATED",
@@ -97,7 +97,7 @@ public class SyncJMSMessageProducer implements EventHandler {
 			if (ignoreEvent(event) == false){
 				sendMessage(event);
 			}
-		} 
+		}
 		catch (JMSException e) {
 			log.error("There was an error sending this event to the JMS queue", e);
 		}
@@ -138,22 +138,26 @@ public class SyncJMSMessageProducer implements EventHandler {
 	}
 
 	/**
-	 * This method indicates whether or not we should post a {@link Message} for 
+	 * This method indicates whether or not we should post a {@link Message} for
 	 * the {@link Event}. There's some specific messages on the interesting topics
 	 * that we don't want to handle for one reason or another.
-	 * 
+	 *
 	 * @param event the OSGi {@link Event} we're considering.
 	 * @return whether or not to ignore this event.
 	 */
 	private boolean ignoreEvent(Event event){
 
-		// Ignore events that were posted by the Grouper system to SakaiOAE. 
+		// Ignore events that were posted by the Grouper system to SakaiOAE.
 		// We don't want to wind up with a feedback loop between SakaiOAE and Grouper.
-		String ignoreUser = grouperConfiguration.getIgnoredUserId();
-		String eventCausedBy = (String)event.getProperty(StoreListener.USERID_PROPERTY); 
-		if ( (ignoreUser != null && eventCausedBy != null) && 
-			 (ignoreUser.equals(eventCausedBy))) {
-				return true;
+		String[] ignoredUsers = grouperConfiguration.getIgnoredUsersEvents();
+		String eventCausedBy = (String)event.getProperty(StoreListener.USERID_PROPERTY);
+
+		if (ignoredUsers != null && eventCausedBy != null) {
+			for (String ignoreUser : ignoredUsers){
+				if (eventCausedBy.equals(ignoreUser)) {
+					return true;
+				}
+			}
 		}
 
 		// Ignore non-group events

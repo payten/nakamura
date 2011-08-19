@@ -67,7 +67,13 @@ public interface GrouperConfiguration {
 	 * Prevents the dreaded "event-loop" where we keep informing Grouper of something it just did.
 	 * @return the userId to ignore.
 	 */
-	public abstract String getIgnoredUserId();
+	public abstract String[] getIgnoredUsersEvents();
+
+	/**
+	 * Log in as this user to perform administrative tasks. Should not be admin.
+	 * @return
+	 */
+	public abstract String getGrouperAdministratorUserId();
 
 	/**
 	 * Ignore groups that one match these patterns.

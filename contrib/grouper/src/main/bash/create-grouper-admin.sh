@@ -3,7 +3,7 @@
 ADMIN_PASSWORD=admin
 SAKAI_URL=http://localhost:8080
 USERNAME=grouper-admin
-PASS=groups
+PASS=grouper
 
 CREATE_CODE=`curl -q -o /dev/null -w '%{http_code}' -e /system/console/grouper -u admin:$ADMIN_PASSWORD -F:name=grouper-admin -Fpwd=$PASS -FpwdConfirm=$PASS $SAKAI_URL/system/userManager/user.create.json 2>/dev/null`
 
