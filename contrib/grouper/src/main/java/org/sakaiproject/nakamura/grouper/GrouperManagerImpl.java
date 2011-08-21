@@ -23,6 +23,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 import net.sf.json.JSONObject;
 
@@ -32,7 +34,9 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.nakamura.api.lite.Repository;
@@ -53,6 +57,8 @@ import org.sakaiproject.nakamura.grouper.util.GrouperHttpUtil;
 import org.sakaiproject.nakamura.grouper.util.GrouperJsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.MapMaker;
 
 import edu.internet2.middleware.grouperClient.ws.beans.WsAddMemberResults;
 import edu.internet2.middleware.grouperClient.ws.beans.WsDeleteMemberResults;
@@ -105,6 +111,14 @@ public class GrouperManagerImpl implements GrouperManager {
 
 	@Reference
 	protected Repository repository;
+
+	ConcurrentMap<String,WsGroup> existsInGrouperCache;
+
+	@Activate
+	@Modified
+	public void modified(){
+		existsInGrouperCache = new MapMaker().expiration(5, TimeUnit.SECONDS).makeMap();
+	}
 
 	/**
 	 * @{inheritDoc}
@@ -398,6 +412,11 @@ public class GrouperManagerImpl implements GrouperManager {
 
 	private WsGroup findGroup(String grouperName) throws GrouperException {
 
+		if (existsInGrouperCache.containsKey(grouperName)){
+			log.debug("findGroup cache hit.");
+			return existsInGrouperCache.get(grouperName);
+		}
+
 		WsGroup result = null;
 		// Fill out the group save request beans
 		WsRestFindGroupsRequest groupFind = new WsRestFindGroupsRequest();
@@ -422,6 +441,10 @@ public class GrouperManagerImpl implements GrouperManager {
 		}
 		else {
 			log.info("findGroup : {} : found", grouperName);
+		}
+
+		if (result != null){
+			existsInGrouperCache.put(grouperName, result);
 		}
 		return result;
 	}
