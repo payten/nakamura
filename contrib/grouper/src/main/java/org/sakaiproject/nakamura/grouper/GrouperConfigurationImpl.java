@@ -100,7 +100,7 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 	@Property(value = DEFAULT_PROVISIONED_COURSES_STEM)
 	public static final String PROP_PROVISIONED_COURSES_STEM = "grouper.nameprovider.provisioned.courses.stem";
 
-	private static final String DEFAULT_INSTITUTIONAL_COURSES_STEM = "inst:sis:courses";
+	private static final String DEFAULT_INSTITUTIONAL_COURSES_STEM = "inst:sis:course";
 	@Property(value = DEFAULT_INSTITUTIONAL_COURSES_STEM)
 	public static final String PROP_INSTITUTIONAL_COURSES_STEM = "grouper.nameprovider.institutional.courses.stem";
 
