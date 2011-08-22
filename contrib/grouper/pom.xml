@@ -54,7 +54,7 @@
 				<configuration>
 					<instructions>
 						<Bundle-Category>sakai-nakamura</Bundle-Category>
-						<Embed-Dependency>json-lib,ezmorph,velocity,commons-beanutils</Embed-Dependency>
+						<Embed-Dependency>json-lib,ezmorph,velocity,commons-beanutils,google-collections</Embed-Dependency>
 						<Embed-Transitive>true</Embed-Transitive>
 						<Export-Package>org.sakaiproject.nakamura.grouper.*</Export-Package>
 						<Import-Package>
