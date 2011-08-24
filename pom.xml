@@ -117,7 +117,6 @@
         <module>contrib/ldapauth</module>
         <module>contrib/samlauth</module>
         <module>contrib/oracle-jdbc</module>
-        <module>contrib/grouper</module>
        </modules>
     </profile>
     <profile>
@@ -696,18 +695,6 @@
       <url>http://source.sakaiproject.org/maven2-snapshots</url>
       <releases>
         <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>hallwaytech-obr</id>
-      <name>HallwayTech Grouper Maven</name>
-      <layout>default</layout>
-      <url>http://home.hallwaytech.com/grouper/maven2</url>
-      <releases>
-        <enabled>true</enabled>
       </releases>
       <snapshots>
         <enabled>true</enabled>

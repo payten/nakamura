@@ -660,18 +660,6 @@ KERN-1187
       <version>0.11-SNAPSHOT</version>
     </bundle>
 
-    <bundle>
-      <groupId>edu.internet2.middleware.grouper</groupId>
-      <artifactId>grouperClient.osgi</artifactId>
-      <version>1.7.0</version>
-    </bundle>
-
-    <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.grouper.sync</artifactId>
-      <version>0.11-SNAPSHOT</version>
-    </bundle>
-
     <!-- Can remove the LDAP contribs; these were put in to have have dual auths for NYU's production (saml) and various test (ldap) servers -->
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
