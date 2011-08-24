@@ -408,7 +408,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
           }
 
           Map<String, Object> acl = Maps.newHashMap();
-          syncOwnership(authorizable, acl, aclModifications, adminAuthorizableManager);
+          syncOwnership(authorizable, acl, aclModifications);
 
           AclModification[] aclMods = aclModifications
               .toArray(new AclModification[aclModifications.size()]);
@@ -507,7 +507,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
             homePath);
         List<AclModification> aclModifications = new ArrayList<AclModification>();
 
-        syncOwnership(authorizable, acl, aclModifications, adminAuthorizableManager);
+        syncOwnership(authorizable, acl, aclModifications);
 
         try {
           accessControlManager.setAcl(Security.ZONE_CONTENT, homePath,
@@ -521,7 +521,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
             .getAcl(Security.ZONE_AUTHORIZABLES, authorizable.getId());
         aclModifications = new ArrayList<AclModification>();
 
-        syncOwnership(authorizable, acl, aclModifications, adminAuthorizableManager);
+        syncOwnership(authorizable, acl, aclModifications);
 
         accessControlManager.setAcl(Security.ZONE_AUTHORIZABLES, authorizable.getId(),
             aclModifications.toArray(new AclModification[aclModifications.size()]));
@@ -858,7 +858,20 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   }
 
   private void syncOwnership(Authorizable authorizable, Map<String, Object> acl,
-      List<AclModification> aclModifications, AuthorizableManager authorizableManager) throws StorageClientException, AccessDeniedException {
+      List<AclModification> aclModifications) throws StorageClientException, AccessDeniedException {
+    boolean alreadySpecifiedAnonymousAcl = false;
+    boolean alreadySpecifiedEveryoneAcl = false;
+    for (AclModification aclMod : aclModifications) {
+      if (aclMod.getAceKey().equals(AclModification.grantKey(User.ANON_USER))) {
+        alreadySpecifiedAnonymousAcl = true;
+      } else if (aclMod.getAceKey().equals(AclModification.denyKey(User.ANON_USER))) {
+        alreadySpecifiedAnonymousAcl = true;
+      } else if (aclMod.getAceKey().equals(AclModification.grantKey(Group.EVERYONE))) {
+        alreadySpecifiedEveryoneAcl = true;
+      } else if (aclMod.getAceKey().equals(AclModification.denyKey(Group.EVERYONE))) {
+        alreadySpecifiedEveryoneAcl = true;
+      }
+    }
     // remove all acls we are not concerned with from the copy of the current state
 
     // make sure the owner has permission on their home
@@ -866,9 +879,6 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       AclModification.addAcl(true, Permissions.ALL, authorizable.getId(),
           aclModifications);
     }
-
-    Set<String> viewerChildren = new HashSet<String>();
-    Set<String> managerChildren = new HashSet<String>();
 
     Set<String> managerSettings = null;
     if (authorizable.hasProperty(UserConstants.PROP_GROUP_MANAGERS)) {
@@ -885,46 +895,21 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       viewerSettings = ImmutableSet.of();
     }
 
-    for (String principal : managerSettings) {
-      Authorizable principalAuthorizable = authorizableManager.findAuthorizable(principal);
-      if (principalAuthorizable != null && principalAuthorizable.isGroup()) {
-        for (String child : ((Group)principalAuthorizable).getMembers()) {
-          managerChildren.add(child);
-          Authorizable childAuthorizable = authorizableManager.findAuthorizable(child);
-          if (childAuthorizable != null && childAuthorizable.isGroup()) {
-            managerChildren.addAll(Arrays.asList(((Group)childAuthorizable).getMembers()));
-          }
-        }
-      }
-    }
-
-    for (String principal : viewerSettings) {
-      Authorizable principalAuthorizable = authorizableManager.findAuthorizable(principal);
-      if (principalAuthorizable != null && principalAuthorizable.isGroup()) {
-        for (String child : ((Group)principalAuthorizable).getMembers()) {
-          viewerChildren.add(child);
-          Authorizable childAuthorizable = authorizableManager.findAuthorizable(child);
-          if (childAuthorizable != null && childAuthorizable.isGroup()) {
-            viewerChildren.addAll(Arrays.asList(((Group)childAuthorizable).getMembers()));
-          }
-        }
-      }
-    }
-
     for (String key : acl.keySet()) {
       if (AclModification.isGrant(key)) {
         String principal = AclModification.getPrincipal(key);
-
-        if (!NO_MANAGE.contains(principal) && !managerSettings.contains(principal) && !viewerSettings.contains(principal) && !managerChildren.contains(principal) && !viewerChildren.contains(principal)) {
-          // grant permission is present, but not present in managers or viewers,
-          // permissions must be removed
-              aclModifications.add(new AclModification(AclModification.grantKey(principal), Permissions.ALL.getPermission(), Operation.OP_DEL));
-              aclModifications.add(new AclModification(AclModification.denyKey(principal), Permissions.ALL
+        if (!NO_MANAGE.contains(principal) && !managerSettings.contains(principal)) {
+          // grant permission is present, but not present in managerSettings, manage
+          // ability (which include read ability must be removed)
+          if (viewerSettings.contains(principal)) {
+            aclModifications.add(new AclModification(key, Permissions.CAN_READ
                 .getPermission(), Operation.OP_REPLACE));
+          } else {
+            aclModifications.add(new AclModification(key, Permissions.ALL.getPermission(), Operation.OP_DEL));
+          }
         }
       }
     }
-
     for (String manager : managerSettings) {
       if (!acl.containsKey(AclModification.grantKey(manager))) {
         AclModification.addAcl(true, Permissions.CAN_MANAGE, manager, aclModifications);
@@ -935,18 +920,6 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
         AclModification.addAcl(true, Permissions.CAN_READ, viewer, aclModifications);
       }
     }
-
-    for (String manager : managerChildren) {
-      if (!acl.containsKey(AclModification.grantKey(manager))) {
-        AclModification.addAcl(true, Permissions.CAN_MANAGE, manager, aclModifications);
-      }
-    }
-    for (String viewer : viewerChildren) {
-      if (!acl.containsKey(AclModification.grantKey(viewer))) {
-          AclModification.addAcl(true, Permissions.CAN_READ, viewer, aclModifications);
-      }
-    }
-
     if (viewerSettings.size() > 0) {
       // ensure it's private unless specifically stated otherwise
       if (viewerSettings.contains(User.ANON_USER)) {
@@ -955,7 +928,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
                                                  Permissions.ALL.getPermission(), Operation.OP_DEL));
         aclModifications.add(new AclModification(AclModification.grantKey(User.ANON_USER),
                                                  Permissions.CAN_READ.getPermission(), Operation.OP_REPLACE));
-      } else {
+      } else if (!alreadySpecifiedAnonymousAcl) {
         // Deny "anonymous" access to everything
         aclModifications.add(new AclModification(
                                                  AclModification.grantKey(User.ANON_USER), Permissions.ALL.getPermission(),
@@ -969,7 +942,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
                                                  Permissions.ALL.getPermission(), Operation.OP_DEL));
         aclModifications.add(new AclModification(AclModification.grantKey(Group.EVERYONE),
                                                  Permissions.CAN_READ.getPermission(), Operation.OP_REPLACE));
-      } else {
+      } else if (!alreadySpecifiedEveryoneAcl) {
         // Deny "everyone" access to everything
         aclModifications.add(new AclModification(
                                                  AclModification.grantKey(Group.EVERYONE), Permissions.ALL.getPermission(),
@@ -981,15 +954,19 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       aclModifications.add(new AclModification(AclModification.denyKey(User.ANON_USER),
           Permissions.ALL.getPermission(), Operation.OP_REPLACE));
     } else {
-      // anon and everyone can read
-      aclModifications.add(new AclModification(AclModification.denyKey(User.ANON_USER),
-          Permissions.ALL.getPermission(), Operation.OP_DEL));
-      aclModifications.add(new AclModification(AclModification.denyKey(Group.EVERYONE),
-          Permissions.ALL.getPermission(), Operation.OP_DEL));
-      aclModifications.add(new AclModification(AclModification.grantKey(User.ANON_USER),
-          Permissions.CAN_READ.getPermission(), Operation.OP_REPLACE));
-      aclModifications.add(new AclModification(AclModification.grantKey(Group.EVERYONE),
-          Permissions.CAN_READ.getPermission(), Operation.OP_REPLACE));
+      // assuming the permissions have not been set already, anon and everyone can read
+      if (!alreadySpecifiedAnonymousAcl) {
+        aclModifications.add(new AclModification(AclModification.denyKey(User.ANON_USER),
+            Permissions.ALL.getPermission(), Operation.OP_DEL));
+        aclModifications.add(new AclModification(AclModification.grantKey(User.ANON_USER),
+            Permissions.CAN_READ.getPermission(), Operation.OP_REPLACE));
+      }
+      if (!alreadySpecifiedEveryoneAcl) {
+        aclModifications.add(new AclModification(AclModification.denyKey(Group.EVERYONE),
+            Permissions.ALL.getPermission(), Operation.OP_DEL));
+        aclModifications.add(new AclModification(AclModification.grantKey(Group.EVERYONE),
+            Permissions.CAN_READ.getPermission(), Operation.OP_REPLACE));
+      }
 
     }
 

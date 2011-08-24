@@ -56,7 +56,7 @@ public class ConnectionsCountChangeListener extends AbstractCountHandler impleme
       AuthorizableManager authorizableManager = adminSession.getAuthorizableManager();
       if (LOG.isDebugEnabled()) LOG.debug("handleEvent() " + dumpEvent(event));
       String path = (String) event.getProperty(StoreListener.PATH_PROPERTY);
-      if ( path.startsWith("g-contacts-")) {
+      if ( path != null && path.startsWith("g-contacts-")) {
         // contacts are
         String userId = path.substring("g-contacts-".length());
         Authorizable user = authorizableManager.findAuthorizable(userId);
