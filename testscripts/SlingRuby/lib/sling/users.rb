@@ -93,6 +93,16 @@ module SlingUsers
       end
       return members.include?(principal)
     end
+    
+    def remove_member_viewer(sling, principal)
+      return sling.execute_post(sling.url_for("#{group_url}.update.html"),
+              { ":member@Delete" => principal, ":viewer@Delete" => principal })
+    end
+    
+    def add_member_viewer(sling, principal)
+      return sling.execute_post(sling.url_for("#{group_url}.update.html"),
+              { ":member" => principal, ":viewer" => principal })
+    end
 
     def remove_manager(sling, principal)
       return sling.execute_post(sling.url_for("#{group_url}.update.html"),
