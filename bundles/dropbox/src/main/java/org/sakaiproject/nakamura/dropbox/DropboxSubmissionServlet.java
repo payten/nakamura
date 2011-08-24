@@ -28,6 +28,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import javax.jcr.Node;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 
@@ -44,6 +45,8 @@ import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
@@ -65,28 +68,29 @@ public class DropboxSubmissionServlet extends SlingAllMethodsServlet {
     if (widgetId == null) {
         throw new ServletException("widgetid needs to be specified");
     }
-    
-    Resource resource = request.getResource();
-    
-    Content content = resource.adaptTo(Content.class);
-    ContentManager contentManager = resource.adaptTo(ContentManager.class);
-    Session session = resource.adaptTo(Session.class);      
-    String user = request.getRemoteUser();
-
+            
     try {
+        javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
+        Session session = StorageClientUtils.adaptToSession(jcrSession);
+        ContentManager contentManager = session.getContentManager();
+        AccessControlManager accessControlManager = session.getAccessControlManager();
+        String user = request.getRemoteUser();
+
+        
         Content dropbox = getDropbox(widgetId, contentManager);    
         Content submission = contentManager.get(dropbox.getPath() + "/" + user);
     
         if (submission != null) {
             ExtendedJSONWriter w = new ExtendedJSONWriter(response.getWriter());
-            w.object();
-            Iterator it = submission.getProperties().entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry pairs = (Map.Entry)it.next();
-                w.key((String) pairs.getKey());
-                w.value((String) pairs.getValue());
-            }            
-            w.endObject();
+//            w.object();
+//            Iterator it = submission.getProperties().entrySet().iterator();
+//            while (it.hasNext()) {
+//                Map.Entry pairs = (Map.Entry)it.next();
+//                w.key((String) pairs.getKey());
+//                w.value((String) pairs.getValue());
+//            }            
+//            w.endObject();            
+            ExtendedJSONWriter.writeContentTreeToWriter(w, submission, 1);
         } else {
             PrintWriter out = response.getWriter();
             out.print("{}");            
@@ -114,11 +118,10 @@ public class DropboxSubmissionServlet extends SlingAllMethodsServlet {
     }
     
     try {
-        Resource resource = request.getResource();
-
-        Content content = resource.adaptTo(Content.class);
-        ContentManager contentManager = resource.adaptTo(ContentManager.class);
-        Session session = resource.adaptTo(Session.class);      
+        javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
+        Session session = StorageClientUtils.adaptToSession(jcrSession);
+        ContentManager contentManager = session.getContentManager();
+        AccessControlManager accessControlManager = session.getAccessControlManager();
         AuthorizableManager authorizableManager = session.getAuthorizableManager();
 
         String user = request.getRemoteUser();      
