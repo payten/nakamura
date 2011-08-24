@@ -23,6 +23,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import javax.servlet.ServletException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -32,9 +33,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -49,7 +53,11 @@ import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 @SlingServlet(methods = "GET", paths = "/dropbox/widget", generateComponent=true)
 public class DropboxWidgetServlet extends SlingAllMethodsServlet {  
 
-  private static String DROPBOX_CONTENT_PATH_BASE = "/system/dropbox";  
+  private static String DROPBOX_CONTENT_PATH_BASE = "/system/dropbox"; 
+  private static ArrayList<String> DROPBOX_WRITABLE_PARAMS = new ArrayList<String>() {{
+    add("title");
+    add("deadline");    
+  }};  
       
   @Override
   protected void doPost(SlingHttpServletRequest request,
@@ -61,20 +69,34 @@ public class DropboxWidgetServlet extends SlingAllMethodsServlet {
         throw new ServletException("widgetid needs to be specified");
     }
     
-    Resource resource = request.getResource();
-    
-    Content content = resource.adaptTo(Content.class);
-    ContentManager contentManager = resource.adaptTo(ContentManager.class);
-    Session session = resource.adaptTo(Session.class);
-    String user = request.getRemoteUser();
-    
-    Content dropbox = getDropbox(widgetId, contentManager, user);              
-    
-    Iterator it = request.getParameterMap().entrySet().iterator();
-    while (it.hasNext()) {
-        Map.Entry pairs = (Map.Entry)it.next();        
-        dropbox.setProperty((String) pairs.getKey(), pairs.getValue());
-    }        
+
+    try {
+        javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
+        Session session = StorageClientUtils.adaptToSession(jcrSession);
+        ContentManager contentManager = session.getContentManager();
+        AccessControlManager accessControlManager = session.getAccessControlManager();
+
+        String user = request.getRemoteUser();
+
+        Content dropbox = getDropbox(widgetId, contentManager, user);              
+
+        Iterator it = request.getParameterMap().entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pairs = (Map.Entry)it.next();        
+            dropbox.setProperty((String) pairs.getKey(),  pairs.getValue());
+        }
+        
+//        for (String param : DROPBOX_WRITABLE_PARAMS) {
+//            dropbox.setProperty(param,  request.getParameter(param));
+//        }
+        
+        contentManager.update(dropbox);
+    } catch (StorageClientException e) {
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+    } catch (AccessDeniedException e) {
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+            
   } 
   
   @Override
@@ -83,29 +105,49 @@ public class DropboxWidgetServlet extends SlingAllMethodsServlet {
     throws ServletException, IOException 
   {
     String widgetId = request.getParameter("widgetid");    
-    if (widgetId == null) {
-        throw new ServletException("widgetid needs to be specified");
+    if (widgetId == null) {        
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "widgetid not specified");
+        return;
     }
-    
-    Resource resource = request.getResource();
-        
-    ContentManager contentManager = resource.adaptTo(ContentManager.class);
-    Session session = resource.adaptTo(Session.class);      
-    String user = request.getRemoteUser();
             
-    Content dropbox = getDropbox(widgetId, contentManager, user);
-        
-    try {
+    try {        
+        javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
+        Session session = StorageClientUtils.adaptToSession(jcrSession);
+        ContentManager contentManager = session.getContentManager();
+        AccessControlManager accessControlManager = session.getAccessControlManager();
+
+        String user = request.getRemoteUser();
+
+        Content dropbox = getDropbox(widgetId, contentManager, user);
+    
+    
         ExtendedJSONWriter w = new ExtendedJSONWriter(response.getWriter());
-        w.object();
-        Iterator it = dropbox.getProperties().entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry pairs = (Map.Entry)it.next();
-            w.key((String) pairs.getKey());
-            w.value((String) pairs.getValue());
-        }            
-        w.endObject();
+//        w.object();
+//        Iterator it = dropbox.getProperties().entrySet().iterator();
+//        while (it.hasNext()) {
+//            Map.Entry pairs = (Map.Entry)it.next();
+//            w.key((String) pairs.getKey());
+//            try {
+//                w.value((String) pairs.getValue());            
+//            } catch (Exception e) {
+//                w.value(String.valueOf(pairs.getValue()));            
+//            }
+//        }            
+//        w.endObject();
+//        
+//        
+//       w.object();
+//       for (String param : DROPBOX_WRITABLE_PARAMS) {
+//           w.key(param);
+//           w.value(dropbox.getProperty(param));
+//       }        
+//       w.endObject();
+
+        ExtendedJSONWriter.writeContentTreeToWriter(w, dropbox, 1);
+        
     } catch (JSONException e) {
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+    } catch (StorageClientException e) {
         response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
     
