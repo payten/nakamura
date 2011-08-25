@@ -950,9 +950,6 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
         aclModifications.add(new AclModification(AclModification.denyKey(Group.EVERYONE),
             Permissions.ALL.getPermission(), Operation.OP_REPLACE));
       }
-
-      aclModifications.add(new AclModification(AclModification.denyKey(User.ANON_USER),
-          Permissions.ALL.getPermission(), Operation.OP_REPLACE));
     } else {
       // assuming the permissions have not been set already, anon and everyone can read
       if (!alreadySpecifiedAnonymousAcl) {
