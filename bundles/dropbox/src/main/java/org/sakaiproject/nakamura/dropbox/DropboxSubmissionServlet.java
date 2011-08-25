@@ -18,38 +18,51 @@
 package org.sakaiproject.nakamura.dropbox;
 
 import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import javax.servlet.ServletException;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import javax.jcr.Node;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.sling.api.request.RequestParameter;
 
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 
+import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.lite.Repository;
 
 import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 // Forbidden classes!
 
@@ -57,6 +70,12 @@ import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 @SlingServlet(methods = "GET", paths = "/dropbox/submissions", generateComponent=true)
 public class DropboxSubmissionServlet extends SlingAllMethodsServlet {  
 
+  @Reference
+  protected ClusterTrackingService clusterTrackingService;    
+  
+  @Reference
+  protected Repository repository;
+    
   private static String DROPBOX_CONTENT_PATH_BASE = "/system/dropbox";  
     
   @Override
@@ -76,24 +95,19 @@ public class DropboxSubmissionServlet extends SlingAllMethodsServlet {
         AccessControlManager accessControlManager = session.getAccessControlManager();
         String user = request.getRemoteUser();
 
+        System.out.println("*************** GET " + user );
         
         Content dropbox = getDropbox(widgetId, contentManager);    
-        Content submission = contentManager.get(dropbox.getPath() + "/" + user);
+        Content submission = contentManager.get(dropbox.getPath() + "/submissions/" + user);
     
+        System.out.println("*************** db path " + dropbox.getPath() );
+        
         if (submission != null) {
-            ExtendedJSONWriter w = new ExtendedJSONWriter(response.getWriter());
-//            w.object();
-//            Iterator it = submission.getProperties().entrySet().iterator();
-//            while (it.hasNext()) {
-//                Map.Entry pairs = (Map.Entry)it.next();
-//                w.key((String) pairs.getKey());
-//                w.value((String) pairs.getValue());
-//            }            
-//            w.endObject();            
+            ExtendedJSONWriter w = new ExtendedJSONWriter(response.getWriter());            
             ExtendedJSONWriter.writeContentTreeToWriter(w, submission, 1);
         } else {
             PrintWriter out = response.getWriter();
-            out.print("{}");            
+            out.print("null");            
         }
     } catch (JSONException e) {
         response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
@@ -124,46 +138,95 @@ public class DropboxSubmissionServlet extends SlingAllMethodsServlet {
         AccessControlManager accessControlManager = session.getAccessControlManager();
         AuthorizableManager authorizableManager = session.getAuthorizableManager();
 
-        String user = request.getRemoteUser();      
-        Authorizable au = authorizableManager.findAuthorizable(user);
-
+        Session adminSession = repository.loginAdministrative();
+        AuthorizableManager adminAuthorizableManager = adminSession.getAuthorizableManager();
+        ContentManager adminContentManager = adminSession.getContentManager();        
+        
+        String user = request.getRemoteUser(); 
+        System.out.println("*************** POST " + user );
+        Authorizable au = adminAuthorizableManager.findAuthorizable(user);                
+               
         Content dropbox = getDropbox(widgetId, contentManager);
         
+        System.out.println("*************** POST " + user );
+        System.out.println("*************** db path " + dropbox.getPath() );
 
         for (Map.Entry<String, RequestParameter[]> e : request.getRequestParameterMap().entrySet()) {
             for (RequestParameter p : e.getValue()) {
-              if (!p.isFormField()) {       
+              if (!p.isFormField()) {                                                
+                  
                 String contentType = getContentType(p);  
-                Map<String, Object> contentProperties = new HashMap<String, Object>();
-                contentProperties.put(FilesConstants.POOLED_CONTENT_FILENAME, p.getFileName());
-                contentProperties.put(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, FilesConstants.POOLED_CONTENT_RT);
-                contentProperties.put(FilesConstants.POOLED_CONTENT_CREATED_FOR, au.getId());
-                contentProperties.put(FilesConstants.POOLED_NEEDS_PROCESSING, "true");
-                contentProperties.put(Content.MIMETYPE_FIELD, contentType);
-                contentProperties.put(FilesConstants.POOLED_CONTENT_USER_MANAGER, new String[]{au.getId()});    
-
-                Content submission = new Content(dropbox.getPath() + "/" + user, contentProperties);                
-                                
-                if (contentManager.exists(submission.getPath())) {
+                
+                System.out.println("*************** type " + contentType);                                                                                                   
+                
+                Content submission;
+                
+                if (adminContentManager.exists(dropbox.getPath() + "/submissions/" + user)) {
+                    submission = adminContentManager.get(dropbox.getPath() + "/submissions/" + user);
+                    //get the content's poolid
+                    String poolId = (String) submission.getProperty("poolId");
+                    System.out.println("*************** poolid " + poolId); 
+                    //get the content's content
+                    Content content = adminContentManager.get(poolId);
+                    content.setProperty(FilesConstants.POOLED_CONTENT_FILENAME, p.getFileName());
+                    content.setProperty(Content.MIMETYPE_FIELD, contentType);
+                    submission.setProperty("filename", p.getFileName());                    
+                    
                     // create a new version if it exists.. then update properties
-                    contentManager.writeBody(submission.getPath(), p.getInputStream());
-                    contentManager.saveVersion(submission.getPath());
-                    contentManager.update(submission);
+                    adminContentManager.writeBody(poolId, p.getInputStream());
+                    adminContentManager.saveVersion(content.getPath());                      
+                    // update any file name changes etc                    
+                    adminContentManager.update(submission); 
                 } else {
                     // first version... so create the node... then upload the data
-                    contentManager.update(submission);
-                    contentManager.writeBody(submission.getPath(), p.getInputStream());
+                    String poolId = generatePoolId();
+                    
+                    // submission stub propertes
+                    Map<String, Object> submissionProperties = new HashMap<String, Object>();
+                    submissionProperties.put("filename", p.getFileName()); 
+                    submissionProperties.put("poolId", poolId); 
+                    submission = new Content(dropbox.getPath() + "/submissions/" + user, submissionProperties);
+                    
+                    // create submission stub                    
+                    adminContentManager.update(submission);
+                    
+                    // create the file and set content properties
+                    Map<String, Object> contentProperties = new HashMap<String, Object>();
+                    contentProperties.put(FilesConstants.POOLED_CONTENT_FILENAME, p.getFileName());
+                    contentProperties.put(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, FilesConstants.POOLED_CONTENT_RT);
+                    contentProperties.put(FilesConstants.POOLED_CONTENT_CREATED_FOR, au.getId());
+                    contentProperties.put(FilesConstants.POOLED_NEEDS_PROCESSING, "true");
+                    contentProperties.put(Content.MIMETYPE_FIELD, contentType);
+                    contentProperties.put(FilesConstants.POOLED_CONTENT_USER_MANAGER, new String[]{au.getId()});                    
+                    
+                    Content content = new Content(poolId, contentProperties);
+                    adminContentManager.update(content);
+                    adminContentManager.writeBody(poolId, p.getInputStream());                    
+                    
+//                    List<AclModification> modifications = new ArrayList<AclModification>();
+//                    AclModification.addAcl(false, Permissions.ALL, User.ANON_USER, modifications);
+//                    AclModification.addAcl(false, Permissions.ALL, Group.EVERYONE, modifications);
+//                    accessControlManager.setAcl(Security.ZONE_CONTENT, poolId, modifications.toArray(new AclModification[modifications.size()]));
                 }
+                
+                ExtendedJSONWriter w = new ExtendedJSONWriter(response.getWriter());    
+                ExtendedJSONWriter.writeContentTreeToWriter(w, submission, 0);                
+                                
                 
                 break;
               }
             }
         }        
+    } catch (NoSuchAlgorithmException e) {      
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+    } catch (JSONException e) {
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     } catch (ClientPoolException e) {      
-      throw new ServletException(e.getMessage(), e);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     } catch (StorageClientException e) {
-      throw new ServletException(e.getMessage(), e);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     } catch (AccessDeniedException e) {
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }    
   }
   
@@ -195,6 +258,11 @@ private String getContentType(RequestParameter value) {
     }
     return contentType;
   }  
+
+  private String generatePoolId() throws UnsupportedEncodingException,
+      NoSuchAlgorithmException {
+    return clusterTrackingService.getClusterUniqueId();
+  }
   
   
 }

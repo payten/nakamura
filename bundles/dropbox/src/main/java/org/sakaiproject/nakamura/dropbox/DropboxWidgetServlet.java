@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import javax.jcr.RepositoryException;
 import javax.servlet.http.HttpServletResponse;
@@ -40,12 +41,20 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.lite.jackrabbit.JackrabbitSparseUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
+import org.sakaiproject.nakamura.api.lite.Repository;
 
+import org.apache.felix.scr.annotations.Reference;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 
 // Forbidden classes!
 
@@ -53,6 +62,9 @@ import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 @SlingServlet(methods = "GET", paths = "/dropbox/widget", generateComponent=true)
 public class DropboxWidgetServlet extends SlingAllMethodsServlet {  
 
+  @Reference
+  protected Repository repository;    
+    
   private static String DROPBOX_CONTENT_PATH_BASE = "/system/dropbox"; 
   private static ArrayList<String> DROPBOX_WRITABLE_PARAMS = new ArrayList<String>() {{
     add("title");
@@ -78,17 +90,13 @@ public class DropboxWidgetServlet extends SlingAllMethodsServlet {
 
         String user = request.getRemoteUser();
 
-        Content dropbox = getDropbox(widgetId, contentManager, user);              
+        Content dropbox = getDropbox(widgetId);              
 
         Iterator it = request.getParameterMap().entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pairs = (Map.Entry)it.next();        
-            dropbox.setProperty((String) pairs.getKey(),  pairs.getValue());
+            dropbox.setProperty((String) pairs.getKey(), request.getParameter((String) pairs.getKey()));
         }
-        
-//        for (String param : DROPBOX_WRITABLE_PARAMS) {
-//            dropbox.setProperty(param,  request.getParameter(param));
-//        }
         
         contentManager.update(dropbox);
     } catch (StorageClientException e) {
@@ -118,32 +126,17 @@ public class DropboxWidgetServlet extends SlingAllMethodsServlet {
 
         String user = request.getRemoteUser();
 
-        Content dropbox = getDropbox(widgetId, contentManager, user);
+        Content dropbox = getDropbox(widgetId);
     
     
         ExtendedJSONWriter w = new ExtendedJSONWriter(response.getWriter());
-//        w.object();
-//        Iterator it = dropbox.getProperties().entrySet().iterator();
-//        while (it.hasNext()) {
-//            Map.Entry pairs = (Map.Entry)it.next();
-//            w.key((String) pairs.getKey());
-//            try {
-//                w.value((String) pairs.getValue());            
-//            } catch (Exception e) {
-//                w.value(String.valueOf(pairs.getValue()));            
-//            }
-//        }            
-//        w.endObject();
-//        
-//        
-//       w.object();
-//       for (String param : DROPBOX_WRITABLE_PARAMS) {
-//           w.key(param);
-//           w.value(dropbox.getProperty(param));
-//       }        
-//       w.endObject();
-
-        ExtendedJSONWriter.writeContentTreeToWriter(w, dropbox, 1);
+        
+        // depending on access... give them some widget data
+        if (user.equals(dropbox.getProperty("_createdBy"))) {
+           ExtendedJSONWriter.writeContentTreeToWriter(w, dropbox, 2);    
+        } else {
+           ExtendedJSONWriter.writeContentTreeToWriter(w, dropbox, 0);
+        }
         
     } catch (JSONException e) {
         response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
@@ -154,17 +147,28 @@ public class DropboxWidgetServlet extends SlingAllMethodsServlet {
   }
   
   
-  private Content getDropbox(String widgetId, ContentManager cm, String user) throws ServletException{
+  private Content getDropbox(String widgetId) throws ServletException{
     try {
-        if (!cm.exists(DROPBOX_CONTENT_PATH_BASE)) {
+            
+        Session adminSession = repository.loginAdministrative();
+        AuthorizableManager adminAuthorizableManager = adminSession.getAuthorizableManager();
+        ContentManager adminContentManager = adminSession.getContentManager();        
+        AccessControlManager accessControlManager = adminSession.getAccessControlManager();
+
+        if (!adminContentManager.exists(DROPBOX_CONTENT_PATH_BASE)) {
             Content dropboxStore = new Content(DROPBOX_CONTENT_PATH_BASE, null);
-            cm.update(dropboxStore);
+            adminContentManager.update(dropboxStore);
         }
-        if (!cm.exists(DROPBOX_CONTENT_PATH_BASE + "/" + widgetId)) {
+        if (!adminContentManager.exists(DROPBOX_CONTENT_PATH_BASE + "/" + widgetId)) {
             Content widgetStore = new Content(DROPBOX_CONTENT_PATH_BASE + "/" + widgetId, null);
-            cm.update(widgetStore);        
+            adminContentManager.update(widgetStore);        
+//            List<AclModification> modifications = new ArrayList<AclModification>();            
+//            AclModification.addAcl(false, Permissions.ALL, User.ANON_USER, modifications);
+//            AclModification.addAcl(false, Permissions.ALL, Group.EVERYONE, modifications);
+//            AclModification.addAcl(true, Permissions.CAN_READ, Group.EVERYONE, modifications);
+//            accessControlManager.setAcl(Security.ZONE_CONTENT, widgetStore.getPath(), modifications.toArray(new AclModification[modifications.size()]));
         }
-        return cm.get(DROPBOX_CONTENT_PATH_BASE + "/" + widgetId);
+        return adminContentManager.get(DROPBOX_CONTENT_PATH_BASE + "/" + widgetId);
     } catch (StorageClientException e) {    
       throw new ServletException(e.getMessage(), e);        
     } catch (AccessDeniedException e) {        
