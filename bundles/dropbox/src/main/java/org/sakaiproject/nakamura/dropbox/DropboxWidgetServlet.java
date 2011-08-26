@@ -79,8 +79,7 @@ public class DropboxWidgetServlet extends SlingAllMethodsServlet {
     String widgetId = request.getParameter("widgetid");    
     if (widgetId == null) {
         throw new ServletException("widgetid needs to be specified");
-    }
-    
+    }        
 
     try {
         javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
@@ -90,7 +89,7 @@ public class DropboxWidgetServlet extends SlingAllMethodsServlet {
 
         String user = request.getRemoteUser();
 
-        Content dropbox = getDropbox(widgetId);              
+        Content dropbox = getDropbox(widgetId, "", user);              
 
         Iterator it = request.getParameterMap().entrySet().iterator();
         while (it.hasNext()) {
@@ -114,9 +113,15 @@ public class DropboxWidgetServlet extends SlingAllMethodsServlet {
   {
     String widgetId = request.getParameter("widgetid");    
     if (widgetId == null) {        
-        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "widgetid not specified");
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "path parameter not specified");
         return;
     }
+    
+    String widgetPath = request.getParameter("path");    
+    if (widgetPath == null) {        
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "widgetPath not specified");
+        return;
+    }    
             
     try {        
         javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
@@ -126,13 +131,16 @@ public class DropboxWidgetServlet extends SlingAllMethodsServlet {
 
         String user = request.getRemoteUser();
 
-        Content dropbox = getDropbox(widgetId);
+        Content dropbox = getDropbox(widgetId, widgetPath, user);
     
     
         ExtendedJSONWriter w = new ExtendedJSONWriter(response.getWriter());
         
         // depending on access... give them some widget data
-        if (user.equals(dropbox.getProperty("_createdBy"))) {
+        System.out.println("*************** user " + user);
+        System.out.println("*************** _createdBy " + dropbox.getProperty("_createdBy"));
+        System.out.println("*************** widgetCreator " + dropbox.getProperty("widgetCreator"));
+        if (user.equals(dropbox.getProperty("widgetCreator"))) {
            ExtendedJSONWriter.writeContentTreeToWriter(w, dropbox, 2);    
         } else {
            ExtendedJSONWriter.writeContentTreeToWriter(w, dropbox, 0);
@@ -147,7 +155,7 @@ public class DropboxWidgetServlet extends SlingAllMethodsServlet {
   }
   
   
-  private Content getDropbox(String widgetId) throws ServletException{
+  private Content getDropbox(String widgetId, String widgetPath, String user) throws ServletException{
     try {
             
         Session adminSession = repository.loginAdministrative();
@@ -158,15 +166,24 @@ public class DropboxWidgetServlet extends SlingAllMethodsServlet {
         if (!adminContentManager.exists(DROPBOX_CONTENT_PATH_BASE)) {
             Content dropboxStore = new Content(DROPBOX_CONTENT_PATH_BASE, null);
             adminContentManager.update(dropboxStore);
+            List<AclModification> modifications = new ArrayList<AclModification>();            
+            AclModification.addAcl(false, Permissions.ALL, User.ANON_USER, modifications);
+            AclModification.addAcl(false, Permissions.ALL, Group.EVERYONE, modifications);
+            AclModification.addAcl(true, Permissions.CAN_WRITE, Group.EVERYONE, modifications);
+            AclModification.addAcl(true, Permissions.CAN_READ, Group.EVERYONE, modifications);
+            accessControlManager.setAcl(Security.ZONE_CONTENT, dropboxStore.getPath(), modifications.toArray(new AclModification[modifications.size()]));            
         }
         if (!adminContentManager.exists(DROPBOX_CONTENT_PATH_BASE + "/" + widgetId)) {
             Content widgetStore = new Content(DROPBOX_CONTENT_PATH_BASE + "/" + widgetId, null);
+            widgetStore.setProperty("widgetPath", widgetPath);
+            widgetStore.setProperty("widgetCreator", user);
             adminContentManager.update(widgetStore);        
-//            List<AclModification> modifications = new ArrayList<AclModification>();            
-//            AclModification.addAcl(false, Permissions.ALL, User.ANON_USER, modifications);
-//            AclModification.addAcl(false, Permissions.ALL, Group.EVERYONE, modifications);
-//            AclModification.addAcl(true, Permissions.CAN_READ, Group.EVERYONE, modifications);
-//            accessControlManager.setAcl(Security.ZONE_CONTENT, widgetStore.getPath(), modifications.toArray(new AclModification[modifications.size()]));
+            List<AclModification> modifications = new ArrayList<AclModification>();            
+            AclModification.addAcl(false, Permissions.ALL, User.ANON_USER, modifications);
+            AclModification.addAcl(false, Permissions.ALL, Group.EVERYONE, modifications);
+            AclModification.addAcl(true, Permissions.CAN_WRITE, Group.EVERYONE, modifications);                        
+            AclModification.addAcl(true, Permissions.CAN_READ, Group.EVERYONE, modifications);
+            accessControlManager.setAcl(Security.ZONE_CONTENT, widgetStore.getPath(), modifications.toArray(new AclModification[modifications.size()]));                     
         }
         return adminContentManager.get(DROPBOX_CONTENT_PATH_BASE + "/" + widgetId);
     } catch (StorageClientException e) {    
