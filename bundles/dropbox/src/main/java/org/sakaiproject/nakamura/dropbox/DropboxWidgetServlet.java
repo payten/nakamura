@@ -82,11 +82,16 @@ public class DropboxWidgetServlet extends SlingAllMethodsServlet {
     }        
 
     try {
-        javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
-        Session session = StorageClientUtils.adaptToSession(jcrSession);
-        ContentManager contentManager = session.getContentManager();
-        AccessControlManager accessControlManager = session.getAccessControlManager();
+//        javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
+//        Session session = StorageClientUtils.adaptToSession(jcrSession);
+//        ContentManager contentManager = session.getContentManager();
+//        AccessControlManager accessControlManager = session.getAccessControlManager();
 
+        Session adminSession = repository.loginAdministrative();
+        AuthorizableManager adminAuthorizableManager = adminSession.getAuthorizableManager();
+        ContentManager adminContentManager = adminSession.getContentManager();        
+                
+        
         String user = request.getRemoteUser();
 
         Content dropbox = getDropbox(widgetId, "", user);              
@@ -97,7 +102,7 @@ public class DropboxWidgetServlet extends SlingAllMethodsServlet {
             dropbox.setProperty((String) pairs.getKey(), request.getParameter((String) pairs.getKey()));
         }
         
-        contentManager.update(dropbox);
+        adminContentManager.update(dropbox);
     } catch (StorageClientException e) {
         response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     } catch (AccessDeniedException e) {
@@ -148,8 +153,10 @@ public class DropboxWidgetServlet extends SlingAllMethodsServlet {
         
     } catch (JSONException e) {
         response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+        throw new ServletException(e.getMessage(), e);
     } catch (StorageClientException e) {
         response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+        throw new ServletException(e.getMessage(), e);
     }
     
   }
