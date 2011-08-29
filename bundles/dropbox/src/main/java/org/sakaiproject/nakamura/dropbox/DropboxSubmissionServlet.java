@@ -28,6 +28,7 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -147,6 +148,16 @@ public class DropboxSubmissionServlet extends SlingAllMethodsServlet {
         Authorizable au = adminAuthorizableManager.findAuthorizable(user);                
                
         Content dropbox = getDropbox(widgetId, contentManager);
+        
+        // check submission window!        
+        String utc_active_to_str = (String) dropbox.getProperty("utc_active_to");
+        Date utc_active_to = new Date(Long.parseLong(utc_active_to_str.trim()));
+        
+        Date now = new Date();
+        if (now.after(utc_active_to)) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Window for submission has passed");
+            throw new ServletException("Window for submission has passed");
+        }
         
         System.out.println("*************** POST " + user );
         System.out.println("*************** db path " + dropbox.getPath() );
