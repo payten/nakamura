@@ -29,7 +29,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.PropertyOption;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.scr.annotations.Services;
 import org.apache.sling.api.auth.Authenticator;
 import org.apache.sling.auth.core.spi.AuthenticationFeedbackHandler;
 import org.apache.sling.auth.core.spi.AuthenticationHandler;
@@ -116,11 +115,7 @@ import javax.servlet.http.HttpServletResponse;
  * environment.
  */
 @Component(immediate = true, metatype = true, policy = ConfigurationPolicy.REQUIRE)
-@Services({
-  @Service(value = SamlAuthenticationHandler.class),
-  @Service(value = AuthenticationHandler.class),
-  @Service(value = AuthenticationFeedbackHandler.class)
-})
+@Service({SamlAuthenticationHandler.class, AuthenticationHandler.class, AuthenticationFeedbackHandler.class})
 @Properties({
   @Property(name = Constants.SERVICE_RANKING, intValue = -5),
   @Property(name = AuthenticationHandler.PATH_PROPERTY, value = "/"),
@@ -432,7 +427,7 @@ public class SamlAuthenticationHandler implements AuthenticationHandler,
   public void authenticationFailed(HttpServletRequest request,
       HttpServletResponse response, AuthenticationInfo authInfo) {
     LOGGER.debug("Failed authentication");
-//    request.setAttribute(Authenticator.LOGIN_RESOURCE, missingLocalUserUrl);
+    request.setAttribute(Authenticator.LOGIN_RESOURCE, missingLocalUserUrl);
   }
 
   /**
