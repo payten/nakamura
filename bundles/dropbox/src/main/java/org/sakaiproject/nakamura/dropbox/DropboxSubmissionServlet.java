@@ -179,7 +179,9 @@ public class DropboxSubmissionServlet extends SlingAllMethodsServlet {
                     System.out.println("*************** poolid " + poolId); 
                     //get the content's content
                     Content content = adminContentManager.get(poolId);
-                    content.setProperty(FilesConstants.POOLED_CONTENT_FILENAME, p.getFileName());
+                    // set the title                    
+                    content.setProperty(FilesConstants.POOLED_CONTENT_FILENAME, (String) dropbox.getProperty("title") + " " + user);
+                    // and other things
                     content.setProperty(Content.MIMETYPE_FIELD, contentType);
                     submission.setProperty("filename", p.getFileName());                    
                     
