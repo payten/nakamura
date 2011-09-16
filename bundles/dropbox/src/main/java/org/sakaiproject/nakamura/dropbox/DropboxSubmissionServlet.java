@@ -199,13 +199,17 @@ public class DropboxSubmissionServlet extends SlingAllMethodsServlet {
                     submissionProperties.put("poolId", poolId); 
                     submission = new Content(dropbox.getPath() + "/submissions/" + user, submissionProperties);
                     
+                    String newFileName = (String) dropbox.getProperty("title") + "_"+user+"_";
+                    submission.setProperty("contentName", newFileName);                    
+                    
                     // create submission stub                    
                     adminContentManager.update(submission);
                     
                     // create the file and set content properties
                     Map<String, Object> contentProperties = new HashMap<String, Object>();
-                    // set the title                    
-                    contentProperties.put(FilesConstants.POOLED_CONTENT_FILENAME, (String) dropbox.getProperty("title") + " ["+user+"]");
+                    // set the title                                        
+                    contentProperties.put(FilesConstants.POOLED_CONTENT_FILENAME, newFileName);
+                    
                     // set other things                    
                     contentProperties.put(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, FilesConstants.POOLED_CONTENT_RT);
                     contentProperties.put(FilesConstants.POOLED_CONTENT_CREATED_FOR, au.getId());
