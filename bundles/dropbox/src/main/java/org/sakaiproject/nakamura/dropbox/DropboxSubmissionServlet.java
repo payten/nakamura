@@ -178,17 +178,18 @@ public class DropboxSubmissionServlet extends SlingAllMethodsServlet {
                     String poolId = (String) submission.getProperty("poolId");
                     System.out.println("*************** poolid " + poolId); 
                     //get the content's content
-                    Content content = adminContentManager.get(poolId);                    
-                    // update other things
-                    content.setProperty(FilesConstants.POOLED_NEEDS_PROCESSING, "true");
-                    content.setProperty(Content.MIMETYPE_FIELD, contentType);                    
+                    Content content = adminContentManager.get(poolId);
+                    // set the title                    
+                    content.setProperty(FilesConstants.POOLED_CONTENT_FILENAME, (String) dropbox.getProperty("title") + " " + user);
+                    // and other things
+                    content.setProperty(Content.MIMETYPE_FIELD, contentType);
                     submission.setProperty("filename", p.getFileName());                    
                     
                     // create a new version if it exists.. then update properties
-                    adminContentManager.writeBody(poolId, p.getInputStream());               
-                    adminContentManager.update(content);
-                    adminContentManager.saveVersion(content.getPath());                                                                                
-                    adminContentManager.update(submission);                                       
+                    adminContentManager.writeBody(poolId, p.getInputStream());
+                    adminContentManager.saveVersion(content.getPath());                      
+                    // update any file name changes etc                    
+                    adminContentManager.update(submission); 
                 } else {
                     // first version... so create the node... then upload the data
                     String poolId = generatePoolId();
