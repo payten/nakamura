@@ -213,11 +213,12 @@ public class DropboxSubmissionServlet extends SlingAllMethodsServlet {
                     
                     // set other things                    
                     contentProperties.put(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, FilesConstants.POOLED_CONTENT_RT);
-                    contentProperties.put(FilesConstants.POOLED_CONTENT_CREATED_FOR, au.getId());
+                    contentProperties.put(FilesConstants.POOLED_CONTENT_CREATED_FOR, user);                                        
+                    
                     contentProperties.put(FilesConstants.POOLED_NEEDS_PROCESSING, "true");
                     contentProperties.put(Content.MIMETYPE_FIELD, contentType);
-                    contentProperties.put(FilesConstants.POOLED_CONTENT_USER_MANAGER, new String[]{au.getId()});                    
-                    
+                    contentProperties.put(FilesConstants.POOLED_CONTENT_USER_MANAGER, new String[]{(String) dropbox.getProperty("owner")});                    
+                                        
                     Content content = new Content(poolId, contentProperties);
                     adminContentManager.update(content);
                     adminContentManager.writeBody(poolId, p.getInputStream());                    
