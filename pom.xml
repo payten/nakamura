@@ -107,6 +107,20 @@
        </modules>
     </profile>
     <profile>
+       <id>nyu</id>
+       <activation>
+        <activeByDefault>true</activeByDefault>
+       </activation>
+       <modules>
+        <!-- Can remove the LDAP contribs; these were put in to have have dual auths for NYU's production (saml) and various test (ldap) servers.  Also in app/src/main/bundle/list.xml -->
+        <module>contrib/ldap</module>
+        <module>contrib/ldapauth</module>
+        <module>contrib/openssoauth</module>
+        <module>contrib/oracle-jdbc</module>
+        <!--module>contrib/grouper</module-->
+       </modules>
+    </profile>
+    <profile>
        <id>sandbox</id>
        <modules>
         <module>sandbox/jaxrs</module>
