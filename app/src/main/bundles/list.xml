@@ -204,11 +204,11 @@ KERN-1187
             <artifactId>org.apache.sling.extensions.webconsolebranding</artifactId>
             <version>1.0.0</version>
         </bundle>
-        <bundle>
+        <!--bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.extensions.webconsolesecurityprovider</artifactId>
             <version>1.0.0</version>
-        </bundle>
+        </bundle-->
         <bundle>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.webconsole</artifactId>
