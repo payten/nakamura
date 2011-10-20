@@ -17,6 +17,7 @@
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>1.0.2</version>
+    <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.auth.opensso</artifactId>
   <packaging>bundle</packaging>
