@@ -204,11 +204,13 @@ KERN-1187
             <artifactId>org.apache.sling.extensions.webconsolebranding</artifactId>
             <version>1.0.0</version>
         </bundle>
+<!--
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.extensions.webconsolesecurityprovider</artifactId>
             <version>1.0.0</version>
         </bundle>
+-->
         <bundle>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.webconsole</artifactId>
@@ -598,7 +600,7 @@ KERN-1187
     <bundle>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.fileinstall</artifactId>
-      <version>3.1.10</version>
+      <version>3.1.11-20110216</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
@@ -650,5 +652,41 @@ KERN-1187
       <artifactId>org.sakaiproject.nakamura.world</artifactId>
       <version>1.0.2</version>
     </bundle>
+    
+    <!-- NYU -->
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.auth.saml</artifactId>
+      <version>1.0.0</version>
+    </bundle>
+
+    <!-- Can remove the LDAP contribs; these were put in to have have dual auths for NYU's production (saml) and various test (ldap) servers -->
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.ldap</artifactId>
+      <version>1.0.0</version>
+    </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.auth.ldap</artifactId>
+      <version>1.0.0</version>
+    </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.ojdbc</artifactId>
+      <version>1.0.0</version>
+    </bundle>
+
+    <!--bundle>
+      <groupId>edu.internet2.middleware.grouper</groupId>
+      <artifactId>grouperClient.osgi</artifactId>
+      <version>1.7.0</version>
+    </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.grouper.sync</artifactId>
+      <version>1.0.0</version>
+    </bundle -->
+
    </startLevel>
 </bundles>

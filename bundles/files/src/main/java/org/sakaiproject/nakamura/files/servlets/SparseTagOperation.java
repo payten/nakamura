@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
+import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
@@ -204,14 +205,12 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
         tagUuidSet.add(tagUuid);
         authorizable.setProperty(SAKAI_TAG_UUIDS,
             tagUuidSet.toArray(new String[tagUuidSet.size()]));
-        
         // add tag names
         Set<String> tagNameSet = Sets.newHashSet(StorageClientUtils
             .nonNullStringArray((String[]) authorizable.getProperty(SAKAI_TAGS)));
         tagNameSet.add(tagName);
         authorizable.setProperty(SAKAI_TAGS,
             tagNameSet.toArray(new String[tagNameSet.size()]));
-        
         authManager.updateAuthorizable(authorizable);
       }
     }

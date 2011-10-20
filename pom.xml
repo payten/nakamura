@@ -89,7 +89,7 @@
         <module>contrib/persondirectory</module>
         <module>contrib/casauth</module>
         <module>contrib/ldapauth</module>
-        <module>contrib/openssoauth</module>
+        <module>contrib/samlauth</module>
         <module>contrib/ldap</module>
         <!-- <module>contrib/remotefiles</module> -->
         <!-- to build oracle you must download and install oracle.jar first  <module>contrib/oracle-jdbc</module> -->
@@ -104,6 +104,20 @@
        <modules>
         <module>contrib/ucam</module>
         <module>contrib/mysql-jdbc</module>
+       </modules>
+    </profile>
+    <profile>
+       <id>nyu</id>
+       <activation>
+        <activeByDefault>true</activeByDefault>
+       </activation>
+       <modules>
+        <!-- Can remove the LDAP contribs; these were put in to have have dual auths for NYU's production (saml) and various test (ldap) servers.  Also in app/src/main/bundle/list.xml -->
+        <module>contrib/ldap</module>
+        <module>contrib/ldapauth</module>
+        <module>contrib/samlauth</module>
+        <module>contrib/oracle-jdbc</module>
+        <module>contrib/grouper</module>
        </modules>
     </profile>
     <profile>
@@ -760,6 +774,18 @@
       <url>http://source.sakaiproject.org/maven2-snapshots</url>
       <releases>
         <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>hallwaytech-obr</id>
+      <name>HallwayTech Grouper Maven</name>
+      <layout>default</layout>
+      <url>http://home.hallwaytech.com/grouper/maven2</url>
+      <releases>
+        <enabled>true</enabled>
       </releases>
       <snapshots>
         <enabled>true</enabled>

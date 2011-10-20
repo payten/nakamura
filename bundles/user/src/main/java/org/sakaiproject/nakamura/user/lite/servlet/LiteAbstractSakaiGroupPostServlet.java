@@ -218,23 +218,7 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
 
   private Group getPeerGroupOf(Group group, AuthorizableManager authorizableManager, Map<String, Object> toSave) throws AccessDeniedException, StorageClientException  {
     Group peerGroup = null;
-    if (group.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
-      String managersGroupId = (String) group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
-      if ( group.getId().equals(managersGroupId)) {
-        return group;
-      }
-      peerGroup = (Group) toSave.get(managersGroupId);
-      if ( peerGroup == null ) {
-        if (LOGGER.isDebugEnabled()) {
-          LOGGER.debug("For {} Not in toSave List loading Managers Group from store {} ",group.getId(),managersGroupId);
-        }
-        peerGroup = (Group) authorizableManager.findAuthorizable(managersGroupId);
-      } else {
-        if (LOGGER.isDebugEnabled()) {
-          LOGGER.debug("For {} got Managers Group from save list {} ",group.getId(),managersGroupId);
-        }
-      }
-    } else if (group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
+    if (group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
       String managedGroupId = (String) group.getProperty(UserConstants.PROP_MANAGED_GROUP);
       if ( group.getId().equals(managedGroupId)) {
         return group;
@@ -250,7 +234,24 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
           LOGGER.debug("For {} got Managed Group from save list {} ",group.getId(),managedGroupId);
         }
       }
-    }
+    } else if (group.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
+      String managersGroupId = (String) group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
+      if ( group.getId().equals(managersGroupId)) {
+        return group;
+      }
+      peerGroup = (Group) toSave.get(managersGroupId);
+      if ( peerGroup == null ) {
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("For {} Not in toSave List loading Managers Group from store {} ",group.getId(),managersGroupId);
+        }
+        peerGroup = (Group) authorizableManager.findAuthorizable(managersGroupId);
+      } else {
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("For {} got Managers Group from save list {} ",group.getId(),managersGroupId);
+        }
+      }
+    } 
+
     return peerGroup;
   }
 
