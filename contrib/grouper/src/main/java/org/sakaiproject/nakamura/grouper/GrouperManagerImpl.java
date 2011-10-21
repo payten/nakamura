@@ -60,6 +60,7 @@ import edu.internet2.middleware.grouperClient.ws.beans.WsAddMemberResults;
 import edu.internet2.middleware.grouperClient.ws.beans.WsDeleteMemberResults;
 import edu.internet2.middleware.grouperClient.ws.beans.WsFindGroupsResults;
 import edu.internet2.middleware.grouperClient.ws.beans.WsGetMembersResult;
+import edu.internet2.middleware.grouperClient.ws.beans.WsGetMembersResults;
 import edu.internet2.middleware.grouperClient.ws.beans.WsGroup;
 import edu.internet2.middleware.grouperClient.ws.beans.WsGroupDeleteResults;
 import edu.internet2.middleware.grouperClient.ws.beans.WsGroupDetail;
@@ -70,6 +71,7 @@ import edu.internet2.middleware.grouperClient.ws.beans.WsQueryFilter;
 import edu.internet2.middleware.grouperClient.ws.beans.WsRestAddMemberRequest;
 import edu.internet2.middleware.grouperClient.ws.beans.WsRestDeleteMemberRequest;
 import edu.internet2.middleware.grouperClient.ws.beans.WsRestFindGroupsRequest;
+import edu.internet2.middleware.grouperClient.ws.beans.WsRestGetMembersRequest;
 import edu.internet2.middleware.grouperClient.ws.beans.WsRestGroupDeleteRequest;
 import edu.internet2.middleware.grouperClient.ws.beans.WsRestGroupSaveRequest;
 import edu.internet2.middleware.grouperClient.ws.beans.WsSubject;
@@ -202,7 +204,11 @@ public class GrouperManagerImpl implements GrouperManager {
 		WsRestAddMemberRequest addMembers = new WsRestAddMemberRequest();
 		Set<WsSubjectLookup> subjectLookups = new HashSet<WsSubjectLookup>();
 
-		if (subjectsToAdd != null && !subjectsToAdd.isEmpty()){
+		if (subjectsToAdd == null){
+			subjectsToAdd = new ArrayList<String>();
+		}
+
+		if (!subjectsToAdd.isEmpty()){
 			// Each subjectId must have a lookup
 			for (String subjectId: subjectsToAdd){
 				subjectLookups.add(new WsSubjectLookup(subjectId, null, null));
@@ -232,8 +238,7 @@ public class GrouperManagerImpl implements GrouperManager {
 			if (!"T".equals(results.getResultMetadata().getSuccess())) {
 					throw new GrouperWSException(results);
 			}
-			log.info("Added members: Group = {} members = {}, {}",
-					new String[]{ grouperName, StringUtils.join(subjectLookups.toArray(), ","), groupToAdd } );
+			log.info("Added members: Group = {} members = {}, {}", new String[]{ grouperName, added } );
 		}
 		else {
 			log.error("No members to add.");
@@ -249,11 +254,13 @@ public class GrouperManagerImpl implements GrouperManager {
 		WsRestDeleteMemberRequest deleteMembers = new WsRestDeleteMemberRequest();
 		Set<WsSubjectLookup> subjectLookups = new HashSet<WsSubjectLookup>();
 
-		if (subjectsToRemove != null && !subjectsToRemove.isEmpty()){
-			// Each subjectId must have a lookup
-			for (String subjectId: subjectsToRemove){
-				subjectLookups.add(new WsSubjectLookup(subjectId, null, null));
-			}
+		if (subjectsToRemove == null){
+			subjectsToRemove = new ArrayList<String>();
+		}
+
+		// Each subjectId must have a lookup
+		for (String subjectId: subjectsToRemove){
+			subjectLookups.add(new WsSubjectLookup(subjectId, null, null));
 		}
 
 		// Supporting one group for now since that's what the Grouper WS API supports.
@@ -284,12 +291,12 @@ public class GrouperManagerImpl implements GrouperManager {
 	}
 
 	public boolean groupExists(String grouperName) throws GrouperException{
-		return getGroupProperties(grouperName) != null;
+		return getGroupProperties(grouperName, null) != null;
 	}
 
-	public Map<String,String> getGroupProperties(String grouperName) throws GrouperException {
+	public Map<String,String> getGroupProperties(String grouperName, String uuid) throws GrouperException {
 
-		if (existsInGrouperCache.containsKey(grouperName)){
+		if (grouperName != null && existsInGrouperCache.containsKey(grouperName)){
 			log.debug("getGroupProperties cache hit.");
 			return existsInGrouperCache.get(grouperName);
 		}
@@ -297,8 +304,15 @@ public class GrouperManagerImpl implements GrouperManager {
 		// Fill out the group save request beans
 		WsRestFindGroupsRequest groupFind = new WsRestFindGroupsRequest();
 		WsQueryFilter wsQueryFilter = new WsQueryFilter();
-	    wsQueryFilter.setGroupName(grouperName);
-	    wsQueryFilter.setQueryFilterType("FIND_BY_GROUP_NAME_EXACT");
+		if (grouperName != null && uuid == null){
+			wsQueryFilter.setGroupName(grouperName);
+			wsQueryFilter.setQueryFilterType("FIND_BY_GROUP_NAME_EXACT");
+		}
+		else if (uuid != null){
+			wsQueryFilter.setGroupUuid(uuid);
+			wsQueryFilter.setQueryFilterType("FIND_BY_GROUP_UUID");
+		}
+
 	    groupFind.setWsQueryFilter(wsQueryFilter);
 
 		// POST and parse the response
@@ -332,7 +346,12 @@ public class GrouperManagerImpl implements GrouperManager {
 				groupResult.put("displayExtension", wsgroup.getDisplayExtension());
 			}
 			props = groupResult.build();
-			existsInGrouperCache.put(grouperName, props);
+			if (props.containsKey("name")){
+				grouperName = props.get("name");
+			}
+			if (grouperName != null){
+				existsInGrouperCache.put(grouperName, props);
+			}
 		}
 		if (props == null || props.isEmpty()){
 			log.info("getGroupProperties : {} : not found", grouperName);
@@ -344,16 +363,25 @@ public class GrouperManagerImpl implements GrouperManager {
 
 	public List<String> getMembers(String grouperName) throws GrouperException {
 
-		String url = "/groups/" + grouperName.replaceAll(":", "%3A") + "/members";
-		JSONObject response = post(url, null);
-		WsGetMembersResult results = (WsGetMembersResult)JSONObject.toBean(
-				response.getJSONObject("WsGetMembersResult"), WsFindGroupsResults.class);
+		WsRestGetMembersRequest getMembers = new WsRestGetMembersRequest();
+		getMembers.setWsGroupLookups(new WsGroupLookup[] { new WsGroupLookup(grouperName, null) });
+
+		JSONObject response = post("/groups", getMembers);
+		WsGetMembersResults results = (WsGetMembersResults)JSONObject.toBean(
+				response.getJSONObject("WsGetMembersResults"), WsGetMembersResults.class);
 
 		List<String> members = new ArrayList<String>();
 		if ("T".equals(results.getResultMetadata().getSuccess())
-				&& results.getWsSubjects() != null){
-			for (WsSubject subject : results.getWsSubjects()){
-				members.add(subject.getId());
+				&& results.getResults() != null){
+
+			for (WsGetMembersResult result : results.getResults()){
+				if (result.getWsSubjects() != null){
+					for (WsSubject subject : result.getWsSubjects()){
+						if (subject != null){
+							members.add(subject.getId());
+						}
+					}
+				}
 			}
 		}
 		log.info("Found {} members for {}", members.size(), grouperName);
@@ -372,13 +400,18 @@ public class GrouperManagerImpl implements GrouperManager {
 	 * @throws IOException
 	 * @throws GrouperException
 	 */
-	private JSONObject post(String urlPath, Object grouperRequestBean) throws GrouperException  {
+	private JSONObject post(String uri, Object grouperRequestBean) throws GrouperException  {
 		try {
 		    JSONObject response;
-		    if (!grouperConfiguration.getDisableForTesting()){
-		    	// URL e.g. http://localhost:9090/grouper-ws/servicesRest/v1_6_003/...
+		    if (grouperConfiguration.getDisableForTesting()){
+		    	response =  new JSONObject();
+		    	response.put("status.code", "200");
+		    	response.put("status.message", "Fake Success!");
+		    }
+		    else {
 				HttpClient client = GrouperHttpUtil.getHttpClient(grouperConfiguration);
-				String grouperWsRestUrl = grouperConfiguration.getRestWsUrlString() + urlPath;
+				String grouperWsRestUrl = grouperConfiguration.getUrl() + uri;
+				log.debug("Preparing POST to {}", grouperWsRestUrl);
 		        PostMethod method = new PostMethod(grouperWsRestUrl);
 		        method.setRequestHeader("Connection", "close");
 
@@ -394,15 +427,11 @@ public class GrouperManagerImpl implements GrouperManager {
 		    	response = JSONObject.fromObject(responseString);
 		    	log.trace(responseString);
 		    }
-		    else {
-		    	response =  new JSONObject();
-		    	response.put("status.code", "200");
-		    	response.put("status.message", "Fake Success!");
-		    }
 		    return response;
 		}
 		catch (Exception e) {
 			throw new GrouperException(e.getMessage());
 		}
 	}
+
 }

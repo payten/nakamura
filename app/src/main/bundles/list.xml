@@ -675,7 +675,7 @@ KERN-1187
       <version>1.0.2</version>
     </bundle>
     
-    <!--bundle>
+    <bundle>
       <groupId>edu.internet2.middleware.grouper</groupId>
       <artifactId>grouperClient.osgi</artifactId>
       <version>1.7.0</version>
@@ -684,7 +684,7 @@ KERN-1187
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.grouper.sync</artifactId>
       <version>1.0.2</version>
-    </bundle -->
+    </bundle>
     
   </startLevel>
 </bundles>

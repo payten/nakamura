@@ -92,6 +92,14 @@ public interface GrouperManager {
 	public void removeMemberships(String grouperName, Collection<String> membersToRemove) throws GrouperException;
 
 	/**
+	 * Add members to a Grouper group.
+	 * @param grouperName the full grouper name.
+	 * @param membersToRemove the member id's to remove from this group.
+	 * @param groupUuidToRemove a group uuid to remove.
+	 */
+	public void removeMemberships(String grouperName, Collection<String> membersToRemove, String groupUuidToRemove) throws GrouperException;
+
+	/**
 	 * Whether or not a group exists in grouper.
 	 * @param grouperName
 	 * @return true if the group exists
@@ -104,7 +112,7 @@ public interface GrouperManager {
 	 * @return A map of the simple attributes of the grouper group, null if not found.
 	 * @throws GrouperException
 	 */
-	public Map<String,String> getGroupProperties(String grouperName) throws GrouperException;
+	public Map<String,String> getGroupProperties(String grouperName, String uuid) throws GrouperException;
 
 	/**
 	 * Retrieve a group's members from Grouper.

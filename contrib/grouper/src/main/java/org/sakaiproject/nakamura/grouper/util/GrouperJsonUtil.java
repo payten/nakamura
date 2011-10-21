@@ -39,10 +39,10 @@ public class GrouperJsonUtil {
 	          return value == null; 
 	       }  
 	    });  
-	    JSONObject jsonObject = JSONObject.fromObject( object, jsonConfig );  
-	    String json = jsonObject.toString();
-	    
-	    return "{\"" + object.getClass().getSimpleName() + "\":" + json + "}";
+	    JSONObject jsonObject = JSONObject.fromObject(object, jsonConfig);
+	    JSONObject container = new JSONObject();
+	    container.put(object.getClass().getSimpleName(), jsonObject);
+	    return container.toString();
 	  }
 
 }

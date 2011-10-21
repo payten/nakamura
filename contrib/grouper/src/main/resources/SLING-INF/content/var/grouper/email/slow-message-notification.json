@@ -1,0 +1,6 @@
+{
+    "sakai:content-type": "text/plain",
+    "sling:resourceType": "sakai/template",
+    "sakai:template": "Message: ${msgId} has been delayed too long: ${msg}",
+    "jcr:primaryType": "sling:Folder"
+}

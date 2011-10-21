@@ -47,13 +47,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 
+ *
  * Create grouper name information from the authorizableId of a {@link Group}.
- * 
+ *
  * To use this component you have to define two things:
  * 1. A regular expression to apply to the authorizableId (grouper.groupId.regex)
  * 2. An output template to create a string for the grouper name. (grouper.name.template)
- * 
+ *
  */
 @Component(metatype = true)
 @Service
@@ -137,8 +137,8 @@ public class TemplateGrouperNameProviderImpl extends BaseGrouperNameProvider imp
 		String grouperName = sw.toString();
 		String[] split = StringUtils.split(grouperName, ':');
 		for (String suffix: config.getPseudoGroupSuffixes()){
-			if (split[split.length - 2].endsWith(suffix)){
-				split[split.length - 2] = split[split.length - 2].substring(0, split[split.length - 2].indexOf(suffix)); 
+			if (split[split.length - 2].endsWith("-" + suffix)){
+				split[split.length - 2] = StringUtils.substringBeforeLast(split[split.length - 2], "-");
 			}
 		}
 		grouperName = StringUtils.join(split, ':');

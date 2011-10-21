@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.grouper.name;
 
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.nakamura.grouper.api.GrouperConfiguration;
 
 public abstract class BaseGrouperNameProvider {
@@ -48,12 +49,12 @@ public abstract class BaseGrouperNameProvider {
 
 		String extension = "member";
 		for (String suffix: config.getPseudoGroupSuffixes()){
-			if (groupId.endsWith(suffix)){
-				extension = suffix.substring(1);
+			if (groupId.endsWith("-" + suffix)){
+				extension = suffix;
 			}
 		}
 
-		// Allow for cutom name mangling
+		// Allow for custom name mangling
 		Map<String,String> overrides = config.getExtensionOverrides();
 		String override = overrides.get(extension);
 		if (override != null){
@@ -81,13 +82,13 @@ public abstract class BaseGrouperNameProvider {
 
 		int contactGroupIndex = groupId.indexOf(ContactsGrouperNameProviderImpl.CONTACTS_GROUPID_PREFIX); 
 		if (contactGroupIndex != -1){
-			return groupId.substring(contactGroupIndex + 11);
+			return groupId.substring(ContactsGrouperNameProviderImpl.CONTACTS_GROUPID_PREFIX.length() + 1);
 		}
 
 		String stem = groupId;
 		for (String suffix: config.getPseudoGroupSuffixes()){
-			if (groupId.endsWith(suffix)){
-				stem = groupId.substring(0, groupId.lastIndexOf(suffix));
+			if (groupId.endsWith("-" + suffix)){
+				stem = StringUtils.substringBeforeLast(groupId, "-");
 				break;
 			}
 		}

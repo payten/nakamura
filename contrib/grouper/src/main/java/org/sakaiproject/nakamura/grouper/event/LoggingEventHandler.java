@@ -31,11 +31,10 @@ import org.slf4j.LoggerFactory;
 
 /** 
  * Sanity-check class.
- * @author froese
  * @see OSGiStoreListener for the list of topics
  */
 @Service
-@Component(metatype = true, enabled = false)
+@Component(metatype = true, immediate = true, enabled = false)
 @Properties(value = { 
 		@Property(name = EventConstants.EVENT_TOPIC, 
 				value = {

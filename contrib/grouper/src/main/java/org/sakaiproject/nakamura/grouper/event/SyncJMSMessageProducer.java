@@ -20,7 +20,6 @@ package org.sakaiproject.nakamura.grouper.event;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -28,13 +27,17 @@ import javax.jms.MessageProducer;
 import javax.jms.Queue;
 import javax.jms.Session;
 
+import org.apache.activemq.ActiveMQConnection;
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.RedeliveryPolicy;
+import org.apache.commons.lang.StringUtils;
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.osgi.service.event.EventConstants;
@@ -78,13 +81,12 @@ public class SyncJMSMessageProducer implements EventHandler {
 	@Reference
 	protected GrouperConfiguration grouperConfiguration;
 
-	@Property(boolValue=false)
-	protected static final String TRANSACTED_NAME = "transacted";
-	protected boolean transacted;
+	protected boolean transacted = true;
 
+	@Activate
 	@Modified
 	public void updated(Map<String,Object> props){
-		transacted = OsgiUtil.toBoolean(TRANSACTED_NAME, false);
+		log.info("Activated/Updated");
 	}
 
 	/**
@@ -96,6 +98,10 @@ public class SyncJMSMessageProducer implements EventHandler {
 		try {
 			if (ignoreEvent(event) == false){
 				sendMessage(event);
+			}
+			else {
+				log.debug("Ignoring event");
+				log.trace(event.toString());
 			}
 		}
 		catch (JMSException e) {
@@ -109,31 +115,57 @@ public class SyncJMSMessageProducer implements EventHandler {
 	 * @throws JMSException
 	 */
 	private void sendMessage(Event event) throws JMSException {
-		Connection senderConnection = connFactoryService.getDefaultPooledConnectionFactory().createConnection();
-		Session senderSession = senderConnection.createSession(transacted, Session.CLIENT_ACKNOWLEDGE);
-		Queue squeue = senderSession.createQueue(QUEUE_NAME);
-		MessageProducer producer = senderSession.createProducer(squeue);
-
-		Message msg = senderSession.createMessage();
-		msg.setJMSDeliveryMode(DeliveryMode.PERSISTENT);
-		msg.setJMSType(event.getTopic());
-		copyEventToMessage(event, msg);
-		producer.send(msg);
-
-		log.info("Sent: {} {} : messageId {}", new Object[] { event.getTopic(), event.getProperty("path"), msg.getJMSMessageID()});
-		log.trace("{} : {}", msg.getJMSMessageID(), msg);
+		ActiveMQConnection connection;
+		Session session;
 
 		try {
-			senderSession.close();
+			// Get the JMS plumbing
+			ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost:61616");
+			connection = (ActiveMQConnection) connectionFactory.createConnection();
+
+			// http://activemq.apache.org/redelivery-policy.html
+			// Configure the Queue to redeliver the message
+			RedeliveryPolicy policy = connection.getRedeliveryPolicy();
+			// Try .5 seconds later
+			policy.setInitialRedeliveryDelay(500);
+			// Increase the delay each time we fail to process the message
+			policy.setBackOffMultiplier(grouperConfiguration.getJmsBackoffMultiplier());
+			policy.setUseExponentialBackOff(true);
+			policy.setMaximumRedeliveries(grouperConfiguration.getSyncMaxMessageRetries());
+			connection.setRedeliveryPolicy(policy);
+
+			session = connection.createSession(transacted, -1);
+			Queue queue = session.createQueue(QUEUE_NAME);
+
+			// Copy the event to the message and send it off
+			MessageProducer producer = session.createProducer(queue);
+			Message msg = session.createMessage();
+			msg.setJMSDeliveryMode(DeliveryMode.PERSISTENT);
+			msg.setJMSType(event.getTopic());
+			copyEventToMessage(event, msg);
+
+			producer.send(msg);
+			session.commit();
+
+			log.info("Sent: {} {} : messageId {}", new Object[] { event.getTopic(), event.getProperty("path"), msg.getJMSMessageID()});
+			log.trace("{} : {}", msg.getJMSMessageID(), msg);
+		}
+		catch (JMSException jmse){
+			log.error("An error occurred while communicating with the JMS queue.", jmse);
+			throw jmse;
+		}
+
+		try {
+			session.close();
 		}
 		finally {
-			senderSession = null;
+			session = null;
 		}
 		try {
-			senderConnection.close();
+			connection.close();
 		}
 		finally {
-			senderConnection = null;
+			connection = null;
 		}
 	}
 
@@ -145,7 +177,7 @@ public class SyncJMSMessageProducer implements EventHandler {
 	 * @param event the OSGi {@link Event} we're considering.
 	 * @return whether or not to ignore this event.
 	 */
-	private boolean ignoreEvent(Event event){
+	protected boolean ignoreEvent(Event event){
 
 		// Ignore events that were posted by the Grouper system to SakaiOAE.
 		// We don't want to wind up with a feedback loop between SakaiOAE and Grouper.
@@ -155,6 +187,7 @@ public class SyncJMSMessageProducer implements EventHandler {
 		if (ignoredUsers != null && eventCausedBy != null) {
 			for (String ignoreUser : ignoredUsers){
 				if (eventCausedBy.equals(ignoreUser)) {
+					log.trace("Ignoring event caused by {}", ignoreUser);
 					return true;
 				}
 			}
@@ -164,18 +197,30 @@ public class SyncJMSMessageProducer implements EventHandler {
 		// type must be g or group
 		String type = (String)event.getProperty("type");
 		if (! "g".equalsIgnoreCase(type) && ! "group".equalsIgnoreCase(type)){
+			log.trace("Ignoring non-group event");
 			return true;
 		}
 
 		// Ignore op=acl events
 		String op = (String)event.getProperty("op");
 		if (op != null && op.equalsIgnoreCase("acl")){
+			log.trace("Ignoring group op=acl event");
 			return true;
 		}
 
+		String path = (String)event.getProperty(StoreListener.PATH_PROPERTY);
 		for (String p: grouperConfiguration.getIgnoredGroups()){
 			// The path is the authorizableId of the group
-			if (Pattern.matches(p, (String)event.getProperty(StoreListener.PATH_PROPERTY))){
+			if (Pattern.matches(p, path)){
+				log.trace("Ignoring event because it matches {}", p);
+				return true;
+			}
+		}
+
+		if (!path.startsWith("g-contacts-")){
+			String role = StringUtils.trimToNull(StringUtils.substringAfterLast(path, "-"));
+			if (!grouperConfiguration.getPseudoGroupSuffixes().contains(role)){
+				log.trace("Ignoring non-psuedogroup role : {}", role);
 				return true;
 			}
 		}

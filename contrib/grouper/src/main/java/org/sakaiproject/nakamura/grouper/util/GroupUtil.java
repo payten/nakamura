@@ -19,8 +19,11 @@ public class GroupUtil {
 	public static boolean isSimpleGroup(Group g, Session session){
 		boolean simple = false;
 		try {
-			if (g.getId().endsWith("-manager") ||
-					session.getAuthorizableManager().findAuthorizable(g.getId() + "-manager") != null){
+			if (g.getId().endsWith("-manager") || g.getId().endsWith("-member") ) {
+				simple = true;
+			}
+			else if (session.getAuthorizableManager().findAuthorizable(g.getId() + "-manager") != null
+						|| session.getAuthorizableManager().findAuthorizable(g.getId() + "-member") != null){
 				simple = true;
 			}
 		}

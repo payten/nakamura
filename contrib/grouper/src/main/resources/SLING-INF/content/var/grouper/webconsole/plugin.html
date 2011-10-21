@@ -3,19 +3,44 @@
 		<tr>
 			<th colspan="2" class="ui-widget-header">Grouper Batch Sync:</th>
 		</tr>
+
+		#if( "$message" != "" )
+    		<tr>
+                <th colspan="2">
+                    <p class="statline ui-state-highlight">$message</p>
+                </th>
+            </tr>
+        #end
+
+        #if( "$errorMessage" != "" )
+            <tr>
+                <th colspan="2">
+                    <p class="statline ui-state-highlight">$errorMessage</p>
+                </th>
+            </tr>
+        #end
 	</thead>
 
 	<tbody>
 		<form method="get" action="/system/console/grouper">
 		<tr>
-			<td>Groups and Courses</td>
+			<td>Provisioned Groups and Courses</td>
 			<td>
 				<div>
-					<input type="checkbox" name="doGroups">
+					<input type="checkbox" name="doProvisionedGroups">
 				</div>
 			</td>
 		</tr>
-			
+
+		<tr>
+            <td>Adhoc Groups and Courses</td>
+            <td>
+                <div>
+                    <input type="checkbox" name="doAdhocGroups">
+                </div>
+            </td>
+        </tr>
+
 		<tr>
 			<td>Contacts</td>
 			<td>
@@ -25,7 +50,6 @@
 			</td>
 		</tr>
 		<tr>
-			
 			<td></td><td><button value="go">Go</button></td>
 		</tr>
 		</form>

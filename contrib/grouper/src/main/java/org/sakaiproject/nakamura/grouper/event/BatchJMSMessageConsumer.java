@@ -32,14 +32,10 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
-import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
-import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.grouper.api.GrouperManager;
-import org.sakaiproject.nakamura.grouper.exception.GrouperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,17 +59,19 @@ public class BatchJMSMessageConsumer extends AbstractConsumer implements Message
 	private Connection connection;
 	private Session session;
 	private MessageConsumer consumer;
+	private boolean transacted = true;
 
 	@Activate
 	public void activate(Map<?,?> props){
 		try {
 			if (connection == null){
 				connection = connFactoryService.getDefaultPooledConnectionFactory().createConnection();
-				session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
+				session = connection.createSession(transacted, -1);
 				Destination destination = session.createQueue(BatchJMSMessageProducer.QUEUE_NAME);
 				consumer = session.createConsumer(destination);
 				consumer.setMessageListener(this);
 				connection.start();
+				log.info("Listening on queue : {}", BatchJMSMessageProducer.QUEUE_NAME);
 			}
 
 		} catch (Exception e) {
@@ -110,6 +108,7 @@ public class BatchJMSMessageConsumer extends AbstractConsumer implements Message
 		}
 	}
 
+	@Override
 	public void onMessage(Message message){
 		try {
 			log.info("Received: messageId {}", message.getJMSMessageID());
@@ -122,6 +121,7 @@ public class BatchJMSMessageConsumer extends AbstractConsumer implements Message
 			if (group != null && group.isGroup()) {
 				String grouperName = grouperNameManager.getGrouperName(groupId);
 				doCreateGroup((Group)group, grouperName, repositorySession);
+				syncMemberships((Group)group, grouperName, repositorySession);
 			}
 			else {
 				if (group == null){
@@ -131,19 +131,16 @@ public class BatchJMSMessageConsumer extends AbstractConsumer implements Message
 					log.error("{} is not a group", groupId);
 				}
 			}
-			message.acknowledge();
+			session.commit();
 			log.info("Successfully processed and acknowledged. {}, {}", message.getJMSMessageID(), groupId);
 			repositorySession.logout();
-		} catch (JMSException jmse){
-			log.error("JMSException while processing message.", jmse);
-		} catch (ClientPoolException e) {
-			log.error("Error communicating with sparsemap storage.", e);
-		} catch (AccessDeniedException e) {
-			log.error("{} is not an administrator. Permission denied", config.getGrouperAdministratorUserId(), e);
-		} catch (StorageClientException e) {
-			log.error("Error communicating with sparsemap storage.", e);
-		} catch (GrouperException e) {
-			log.error("Error communicating with the grouper web services.", e);
+		} catch (Exception e) {
+			try {
+				session.rollback();
+			} catch (JMSException e1) {
+				log.error("Unable to roll back the JMS session.", e);
+			}
+			log.error("Error processing the message.", e);
 		}
 	}
 }

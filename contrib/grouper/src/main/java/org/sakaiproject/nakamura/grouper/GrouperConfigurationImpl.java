@@ -20,8 +20,11 @@ package org.sakaiproject.nakamura.grouper;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
@@ -62,8 +65,8 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 	public static final String PROP_PASSWORD = "grouper.password";
 
 	// HTTP Timeout in milliseconds
-	private static final String DEFAULT_TIMEOUT = "5000";
-	@Property(value = DEFAULT_TIMEOUT)
+	private static final int DEFAULT_TIMEOUT = 5000;
+	@Property(intValue = DEFAULT_TIMEOUT)
 	public static final String PROP_TIMEOUT = "grouper.httpTimeout";
 
 	private static final String[] DEFAULT_IGNORED_USERS_EVENTS = new String[] {"grouper-admin", "admin" };
@@ -80,8 +83,8 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 
 	// TODO: A better way to generate the default list.
 	private static final String[] DEFAULT_PSEUDO_GROUP_SUFFIXES =
-		{"-manager", "-ta", "-lecturer", "-student", "-member"};
-	@Property(value = {"-manager", "-ta", "-lecturer", "-student", "-member"}, cardinality = 9999)
+		{"manager", "ta", "lecturer", "student", "member"};
+	@Property(value = {"manager", "ta", "lecturer", "student", "member"}, cardinality = 9999)
 	public static final String PROP_PSEUDO_GROUP_SUFFIXES = "grouper.psuedoGroup.suffixes";
 
 	private static final String DEFAULT_CONTACTS_STEM = "edu:apps:sakaioae:users";
@@ -108,27 +111,46 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 	@Property(value = {}, cardinality = 9999)
 	public static final String PROP_EXTENSION_OVERRIDES = "grouper.extension.overrides";
 
-	private static final String[] DEFAULT_INST_EXTENSION_OVERRIDES = new String[]{ "lecturers:instructors" };
-	@Property(value = {"lecturers:instructors"}, cardinality = 9999)
+	private static final String[] DEFAULT_INST_EXTENSION_OVERRIDES = new String[]{ "lecturers:instructors", "student:students", "ta:TAs" };
+	@Property(value = {"lecturers:instructors", "student:students", "ta:TAs"}, cardinality = 9999)
 	public static final String PROP_INST_EXTENSION_OVERRIDES = "grouper.institutional.extension.overrides";
 
 	private static final boolean DEFAULT_DELETES_ENABLED = true;
 	@Property(boolValue = DEFAULT_DELETES_ENABLED)
 	public static final String PROP_DELETES_ENABLED = "grouper.enable.deletes";
 
-	// Grouper configuration.
+	private static final int DEFAULT_SYNC_MESSAGE_RETRIES = 14;
+	@Property(intValue = DEFAULT_SYNC_MESSAGE_RETRIES)
+	public static final String PROP_SYNC_MESSAGE_RETRIES = "grouper.sync.message.max.retries";
+
+	private static final int DEFAULT_BATCH_MESSAGE_RETRIES = 14;
+	@Property(intValue = DEFAULT_BATCH_MESSAGE_RETRIES)
+	public static final String PROP_BATCH_MESSAGE_RETRIES = "grouper.batch.message.max.retries";
+
+	private static final int DEFAULT_JMS_BACKOFF_MULTIPLIER = 2;
+	@Property(intValue = DEFAULT_JMS_BACKOFF_MULTIPLIER)
+	public static final String PROP_JMS_BACKOFF_MULTIPLIER = "grouper.jms.backoff.multiplier";
+
+	private static final String DEFAULT_NOTIFICATION_RECIPIENT = "root@localhost";
+	@Property(value = DEFAULT_NOTIFICATION_RECIPIENT)
+	public static final String PROP_NOTIFICATION_RECIPIENT = "grouper.notification.recipient";
+
+	public static final long DEFAULT_SLOW_MESSAGE_THRESHOLD = 240;
+	@Property(longValue=240)
+	public static final String PROP_SLOW_MESSAGE_THRESHOLD = "grouper.slow.message.threshold";
+
+	// Grouper WS configuration.
 	private URL url;
 	private String username;
 	private String password;
-	private String contactsStem;
+	private int httpTimeout;
 
+	private String contactsStem;
 	private String simpleGroupsStem;
 	private String adhocCoursesStem;
 	private String provisionedCoursesStem;
 	private String institutionalCourseStem;
 
-	// GrouperWS
-	private int httpTimeout;
 
 	// Ignore events caused by this user
 	private String[] ignoreUsersEvents;
@@ -136,17 +158,27 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 	private String[] ignoredGroupPatterns;
 
 	// Suffixes that indicate these are sakai internal groups
-	private String[] pseudoGroupSuffixes;
+	private Set<String> pseudoGroupSuffixes;
 
 	private Map<String, String> extensionOverrides;
+
+	private Map<String, String> institutionalExtensionOverrides;
 
 	private boolean deletesEnabled;
 
 	private boolean disableForTesting;
 
-	private Map<String, String> institutionalExtensionOverrides;
-
 	private String grouperAdministratorUserId;
+
+	private int syncMaxMessageRetries;
+
+	private int jmsBackoffMultiplier;
+
+	private int batchMaxMessageRetries;
+
+	private String notificationRecipient;
+
+	private long slowMessageThreshold;
 
 	// -------------------------- Configuration Admin --------------------------
 	/**
@@ -160,8 +192,10 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 	@Activate
 	@Modified
 	public void updated(Map<String, Object> props) throws ConfigurationException {
+		log.debug("start configure");
 		try {
 			url = new URL(OsgiUtil.toString(props.get(PROP_URL), DEFAULT_URL));
+			log.info("url : {}", url);
 		} catch (MalformedURLException mfe) {
 			throw new ConfigurationException(PROP_URL, mfe.getMessage(), mfe);
 		}
@@ -174,12 +208,13 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 		provisionedCoursesStem = cleanStem(OsgiUtil.toString(props.get(PROP_PROVISIONED_COURSES_STEM), DEFAULT_PROVISIONED_COURSES_STEM));
 		institutionalCourseStem = cleanStem(OsgiUtil.toString(props.get(PROP_INSTITUTIONAL_COURSES_STEM),DEFAULT_INSTITUTIONAL_COURSES_STEM));
 
-		httpTimeout = OsgiUtil.toInteger(props.get(PROP_TIMEOUT), Integer.parseInt(DEFAULT_TIMEOUT));
+		httpTimeout = OsgiUtil.toInteger(props.get(PROP_TIMEOUT), DEFAULT_TIMEOUT);
 		grouperAdministratorUserId = OsgiUtil.toString(props.get(PROP_GROUPER_ADMIN_USERID), DEFAULT_GROUPER_ADMIN_USERID);
 
 		ignoreUsersEvents = OsgiUtil.toStringArray(props.get(PROP_IGNORED_USERS_EVENTS),DEFAULT_IGNORED_USERS_EVENTS);
 		ignoredGroupPatterns = OsgiUtil.toStringArray(props.get(PROP_IGNORED_GROUP_PATTERN), DEFAULT_IGNORED_GROUP_PATTERN);
-		pseudoGroupSuffixes = OsgiUtil.toStringArray(props.get(PROP_PSEUDO_GROUP_SUFFIXES), DEFAULT_PSEUDO_GROUP_SUFFIXES);
+		pseudoGroupSuffixes = new HashSet<String>();
+		CollectionUtils.addAll(pseudoGroupSuffixes, OsgiUtil.toStringArray(props.get(PROP_PSEUDO_GROUP_SUFFIXES), DEFAULT_PSEUDO_GROUP_SUFFIXES));
 
 		deletesEnabled = OsgiUtil.toBoolean(props.get(PROP_DELETES_ENABLED), DEFAULT_DELETES_ENABLED);
 		disableForTesting = OsgiUtil.toBoolean(props.get(PROP_DISABLE_TESTING), false);
@@ -187,7 +222,14 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 		extensionOverrides = getMap(props, PROP_EXTENSION_OVERRIDES, DEFAULT_EXTENSION_OVERRIDES);
 		institutionalExtensionOverrides = getMap(props, PROP_INST_EXTENSION_OVERRIDES, DEFAULT_INST_EXTENSION_OVERRIDES);
 
-		log.debug("Configured!");
+		syncMaxMessageRetries = OsgiUtil.toInteger(props.get(PROP_SYNC_MESSAGE_RETRIES), DEFAULT_SYNC_MESSAGE_RETRIES);
+		batchMaxMessageRetries = OsgiUtil.toInteger(props.get(PROP_BATCH_MESSAGE_RETRIES), DEFAULT_BATCH_MESSAGE_RETRIES);
+		jmsBackoffMultiplier = OsgiUtil.toInteger(props.get(PROP_JMS_BACKOFF_MULTIPLIER), DEFAULT_JMS_BACKOFF_MULTIPLIER);
+
+		slowMessageThreshold = OsgiUtil.toLong(props.get(PROP_SLOW_MESSAGE_THRESHOLD), DEFAULT_SLOW_MESSAGE_THRESHOLD);
+		notificationRecipient = OsgiUtil.toString(props.get(PROP_NOTIFICATION_RECIPIENT), DEFAULT_NOTIFICATION_RECIPIENT);
+
+		log.debug("end configure");
 	}
 
 	private Map<String,String> getMap(Map<String, Object> props, String property, String[] defaultValue){
@@ -220,10 +262,6 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 		return password;
 	}
 
-	public String getRestWsUrlString() {
-		return url.toString();
-	}
-
 	public int getHttpTimeout() {
 		return httpTimeout;
 	}
@@ -240,7 +278,7 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 		return ignoredGroupPatterns;
 	}
 
-	public String[] getPseudoGroupSuffixes(){
+	public Set<String> getPseudoGroupSuffixes(){
 		return pseudoGroupSuffixes;
 	}
 
@@ -278,5 +316,25 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 
 	public boolean getDisableForTesting() {
 		return disableForTesting;
+	}
+
+	public int getSyncMaxMessageRetries() {
+		return syncMaxMessageRetries;
+	}
+
+	public int getBatchMaxMessageRetries() {
+		return batchMaxMessageRetries;
+	}
+
+	public int getJmsBackoffMultiplier() {
+		return jmsBackoffMultiplier;
+	}
+
+	public String getNotificationRecipient() {
+		return notificationRecipient;
+	}
+
+	public long getSlowMessageThreshold() {
+		return slowMessageThreshold;
 	}
 }

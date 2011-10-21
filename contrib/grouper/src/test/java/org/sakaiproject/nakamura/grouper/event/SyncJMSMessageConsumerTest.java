@@ -1,5 +1,6 @@
 package org.sakaiproject.nakamura.grouper.event;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -7,16 +8,20 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
+import javax.jms.MessageConsumer;
 
 import junit.framework.TestCase;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -43,33 +48,54 @@ public class SyncJMSMessageConsumerTest extends TestCase {
 
 	private SyncJMSMessageConsumer syncJmsConsumer;
 
+	private javax.jms.Session jmsSession;
+	private ConnectionFactoryService connectionFactoryService;
+
 	private Repository repository;
 
 	private Session repositorySession;
 
 	private AuthorizableManager authorizableManager;
 
+	private Message message;
+
 	private User user1;
 	private User user2;
 
 	private static final String AUTHZ_ADDED_TOPIC = "org/sakaiproject/nakamura/lite/authorizables/ADDED";
 
-	private static final List<String> EMPTY_LIST_STRING = new LinkedList<String>();
+	private String groupId = "some_group-student";
+	private String grouperName = "stem:some:group:students";
+	private String allName = "stem:some:group:all";
+	private String systemOfRecordName = grouperName + "_systemOfRecord";
 
 	@Before
-	public void setUp() throws AccessDeniedException, StorageClientException {
+	public void setUp() throws AccessDeniedException, StorageClientException, JMSException {
 		grouperManager = mock(GrouperManager.class);
 		grouperConfiguration = mock(GrouperConfiguration.class);
 		grouperNameManager = mock(GrouperNameManagerImpl.class);
 		repository = mock(Repository.class);
 		repositorySession = mock(Session.class);
 		authorizableManager = mock(AuthorizableManager.class);
+		connectionFactoryService = mock(ConnectionFactoryService.class);
+		jmsSession = mock(javax.jms.Session.class);
+		message = mock(Message.class);
+
+		MessageConsumer consumer = mock(MessageConsumer.class);
+		when(jmsSession.createConsumer(any(Destination.class))).thenReturn(consumer);
+		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+		Connection connection = mock(Connection.class);
+		when(connectionFactory.createConnection()).thenReturn(connection);
+		when(connectionFactoryService.getDefaultPooledConnectionFactory()).thenReturn(connectionFactory);
+		when(connection.createSession(true, -1)).thenReturn(jmsSession);
 
 		syncJmsConsumer = new SyncJMSMessageConsumer();
 		syncJmsConsumer.grouperManager = grouperManager;
 		syncJmsConsumer.config = grouperConfiguration;
 		syncJmsConsumer.grouperNameManager = grouperNameManager;
 		syncJmsConsumer.repository = repository;
+		syncJmsConsumer.connFactoryService = connectionFactoryService;
+		syncJmsConsumer.activate(null);
 
 		when(grouperConfiguration.getIgnoredUsersEvents()).thenReturn(new String[] { "admin", "grouper-admin" });
 		when(grouperConfiguration.getProvisionedCoursesStem()).thenReturn("apps:sakaioae:provisioned:courses");
@@ -81,20 +107,21 @@ public class SyncJMSMessageConsumerTest extends TestCase {
 
 		user1 = mock(User.class);
 		user2 = mock(User.class);
+		when(user1.getId()).thenReturn("user1");
+		when(user2.getId()).thenReturn("user2");
 		when(user1.isGroup()).thenReturn(false);
 		when(user2.isGroup()).thenReturn(false);
+
 		when(authorizableManager.findAuthorizable("user1")).thenReturn(user1);
 		when(authorizableManager.findAuthorizable("user2")).thenReturn(user2);
 	}
 
 	@Test
 	public void testCreateProvisionedGroup() throws JMSException, AccessDeniedException, StorageClientException, GrouperException{
-		String groupId = "some_group-student";
 		String grouperName = "app:sakaioae:provisioned:course:some:group:student";
 		String allName = "app:sakaioae:provisioned:course:some:group:all";
 		String systemOfRecordName = grouperName + GrouperManager.SYSTEM_OF_RECORD_SUFFIX;
 
-		Message message = mock(Message.class);
 		when(message.getStringProperty("path")).thenReturn(groupId);
 		when(message.getJMSType()).thenReturn(AUTHZ_ADDED_TOPIC);
 
@@ -113,11 +140,11 @@ public class SyncJMSMessageConsumerTest extends TestCase {
 
 		Map<String,String> grouperNameProps = ImmutableMap.of("uuid", "GROUPERNAME_UUID");
 		when(grouperManager.createGroup(systemOfRecordName, "description", true)).thenReturn(grouperNameProps);
-		when(grouperManager.getGroupProperties(grouperName)).thenReturn(grouperNameProps);
+		when(grouperManager.getGroupProperties(grouperName, null)).thenReturn(grouperNameProps);
 		when(grouperManager.getMembers(grouperName)).thenReturn(ImmutableList.of("user1"));
 
 		Map<String,String> instProps = ImmutableMap.of("uuid", "THE_INST_UUID");
-		when(grouperManager.getGroupProperties("inst:sis:course:some:group:student")).thenReturn(instProps);
+		when(grouperManager.getGroupProperties("inst:sis:course:some:group:student", null)).thenReturn(instProps);
 
 		syncJmsConsumer.onMessage(message);
 
@@ -133,12 +160,7 @@ public class SyncJMSMessageConsumerTest extends TestCase {
 
 	@Test
 	public void testCreateGroup() throws JMSException, AccessDeniedException, StorageClientException, GrouperException{
-		String groupId = "some_group-student";
-		String grouperName = "stem:some:group:students";
-		String allName = "stem:some:group:all";
-		String systemOfRecordName = grouperName + "_systemOfRecord";
 
-		Message message = mock(Message.class);
 		when(message.getStringProperty("path")).thenReturn(groupId);
 		when(message.getJMSType()).thenReturn(AUTHZ_ADDED_TOPIC);
 
@@ -147,7 +169,7 @@ public class SyncJMSMessageConsumerTest extends TestCase {
 		when(group.getProperty(GrouperManager.PROVISIONED_PROPERTY)).thenReturn(null);
 
 		when(group.getProperty(AbstractConsumer.SAKAI_DESCRIPTION_PROPERTY)).thenReturn("description");
-		when(group.getMembers()).thenReturn(new String[] { "oae1", "grouper1" });
+		when(group.getMembers()).thenReturn(new String[] { "user1", "grouper1" });
 		when(authorizableManager.findAuthorizable(groupId)).thenReturn(group);
 
 		when(grouperNameManager.getGrouperName(groupId)).thenReturn(grouperName);
@@ -159,13 +181,13 @@ public class SyncJMSMessageConsumerTest extends TestCase {
 
 		Map<String,String> grouperNameProps = ImmutableMap.of("uuid", "GROUPERNAME_UUID");
 		when(grouperManager.createGroup(systemOfRecordName, "description", true)).thenReturn(grouperNameProps);
-		when(grouperManager.getGroupProperties(grouperName)).thenReturn(grouperNameProps);
+		when(grouperManager.getGroupProperties(grouperName, null)).thenReturn(grouperNameProps);
 
 		syncJmsConsumer.onMessage(message);
 
 		verify(grouperManager).groupExists(systemOfRecordName);
 		verify(grouperManager).createGroup(systemOfRecordName, "description", true);
-		verify(grouperManager).addMemberships(grouperName + "_includes", ImmutableList.of("oae1"));
+		verify(grouperManager).addMemberships(grouperName + "_includes", ImmutableList.of("user1"));
 
 		verify(grouperManager).createGroup(allName, AbstractConsumer.ALL_GROUP_DESCRIPTION, false);
 		verify(grouperManager).addMemberships(allName, null, "GROUPERNAME_UUID");
@@ -173,12 +195,6 @@ public class SyncJMSMessageConsumerTest extends TestCase {
 
 	@Test
 	public void testCreateGroupNoGrouperMembers() throws JMSException, AccessDeniedException, StorageClientException, GrouperException{
-		String groupId = "some_group-student";
-		String grouperName = "stem:some:group:students";
-		String allName = "stem:some:group:all";
-		String systemOfRecordName = grouperName + "_systemOfRecord";
-
-		Message message = mock(Message.class);
 		when(message.getStringProperty("path")).thenReturn(groupId);
 		when(message.getJMSType()).thenReturn(AUTHZ_ADDED_TOPIC);
 
@@ -187,7 +203,7 @@ public class SyncJMSMessageConsumerTest extends TestCase {
 		when(group.getProperty(GrouperManager.PROVISIONED_PROPERTY)).thenReturn(null);
 
 		when(group.getProperty(AbstractConsumer.SAKAI_DESCRIPTION_PROPERTY)).thenReturn("description");
-		when(group.getMembers()).thenReturn(new String[] { "oae1", "grouper1" });
+		when(group.getMembers()).thenReturn(new String[] { "user1", "user2", "user3" });
 		when(authorizableManager.findAuthorizable(groupId)).thenReturn(group);
 
 		when(grouperNameManager.getGrouperName(groupId)).thenReturn(grouperName);
@@ -199,12 +215,12 @@ public class SyncJMSMessageConsumerTest extends TestCase {
 
 		Map<String,String> grouperNameProps = ImmutableMap.of("uuid", "GROUPERNAME_UUID");
 		when(grouperManager.createGroup(systemOfRecordName, "description", true)).thenReturn(grouperNameProps);
-		when(grouperManager.getGroupProperties(grouperName)).thenReturn(grouperNameProps);
+		when(grouperManager.getGroupProperties(grouperName, null)).thenReturn(grouperNameProps);
 
 		syncJmsConsumer.onMessage(message);
 
 		verify(grouperManager).createGroup(systemOfRecordName, "description", true);
-		verify(grouperManager).addMemberships(grouperName + "_includes", ImmutableList.of("oae1", "grouper1"));
+		verify(grouperManager).addMemberships(grouperName + "_includes", ImmutableList.of("user2","user1"));
 
 		verify(grouperManager).createGroup(allName, AbstractConsumer.ALL_GROUP_DESCRIPTION, false);
 		verify(grouperManager).addMemberships(allName, null, "GROUPERNAME_UUID");
@@ -216,7 +232,6 @@ public class SyncJMSMessageConsumerTest extends TestCase {
 		String groupId = "g-contacts-efroese";
 		String grouperName = "stem:users:efroese:contacts";
 
-		Message message = mock(Message.class);
 		when(message.getStringProperty("path")).thenReturn(groupId);
 		when(message.getJMSType()).thenReturn(AUTHZ_ADDED_TOPIC);
 
@@ -246,22 +261,21 @@ public class SyncJMSMessageConsumerTest extends TestCase {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testDeleted() throws JMSException, GrouperException{
-		Message msg = mock(Message.class);
 		when(grouperConfiguration.getDeletesEnabled()).thenReturn(true);
-		when(msg.getJMSType()).thenReturn("org/sakaiproject/nakamura/lite/authorizables/DELETE");
+		when(message.getJMSType()).thenReturn("org/sakaiproject/nakamura/lite/authorizables/DELETE");
 
 		Map<String,Object> attrs = mock(Map.class);
 		when(attrs.get(GrouperManager.GROUPER_NAME_PROP)).thenReturn("some:grouper:name:role");
-		when(msg.getObjectProperty(StoreListener.BEFORE_EVENT_PROPERTY)).thenReturn(attrs);
+		when(message.getObjectProperty(StoreListener.BEFORE_EVENT_PROPERTY)).thenReturn(attrs);
 
-		syncJmsConsumer.onMessage(msg);
+		when(grouperConfiguration.getDeletesEnabled()).thenReturn(true);
+		syncJmsConsumer.onMessage(message);
 		verify(grouperManager).deleteGroup("some:grouper:name:role");
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testDeletedNoGrouperName() throws JMSException, GrouperException{
-		Message message = mock(Message.class);
 		when(grouperConfiguration.getDeletesEnabled()).thenReturn(true);
 		when(message.getJMSType()).thenReturn("org/sakaiproject/nakamura/lite/authorizables/DELETE");
 
@@ -276,30 +290,28 @@ public class SyncJMSMessageConsumerTest extends TestCase {
 
 	@Test
 	public void testMembershipAdded() throws JMSException, GrouperException, AccessDeniedException, StorageClientException{
-		String groupId = "some_group-id";
-		Message message = mock(Message.class);
 		when(grouperConfiguration.getDeletesEnabled()).thenReturn(true);
 		when(message.getJMSType()).thenReturn("org/sakaiproject/nakamura/lite/authorizables/UPDATED");
 		when(message.getStringProperty("path")).thenReturn(groupId);
-		when(message.getStringProperty(GrouperEventUtils.MEMBERS_ADDED_PROP)).thenReturn("user1,user2");
+		when(message.getStringProperty(GrouperEventUtils.MEMBERS_ADDED_PROP)).thenReturn("user1,user2,user3");
 		Group group = mock(Group.class);
 		when(group.getId()).thenReturn(groupId);
+		when(group.getMembers()).thenReturn(new String[0]);
 		when(authorizableManager.findAuthorizable(groupId)).thenReturn(group);
 		when(group.getProperty(GrouperManager.PROVISIONED_PROPERTY)).thenReturn(false);
 
-		when(grouperNameManager.getGrouperName(groupId)).thenReturn("some:group:id");
+		when(grouperNameManager.getGrouperName(groupId)).thenReturn(grouperName);
 
 		syncJmsConsumer.onMessage(message);
-		verify(grouperManager).addMemberships("some:group:id_includes", ImmutableList.of("user1", "user2"));
-		verify(grouperManager).removeMemberships("some:group:id_excludes", ImmutableList.of("user1", "user2"));
-		verify(message).acknowledge();
+		verify(grouperManager).addMemberships(grouperName + "_includes", ImmutableList.of("user1", "user2"));
+		verify(grouperManager).removeMemberships(grouperName + "_excludes", ImmutableList.of("user1", "user2"));
+		verify(jmsSession).commit();
 	}
 
 	@Test
 	public void testMembershipAddedContacts() throws JMSException, GrouperException, AccessDeniedException, StorageClientException{
 		String groupId = "g-contacts-efroese";
 		String grouperName = "stem:users:efroese:contacts";
-		Message message = mock(Message.class);
 
 		when(message.getJMSType()).thenReturn("org/sakaiproject/nakamura/lite/authorizables/UPDATED");
 		when(message.getStringProperty("path")).thenReturn(groupId);
@@ -307,6 +319,7 @@ public class SyncJMSMessageConsumerTest extends TestCase {
 
 		Group group = mock(Group.class);
 		when(group.getId()).thenReturn(groupId);
+		when(group.getMembers()).thenReturn(new String[0]);
 		when(authorizableManager.findAuthorizable(groupId)).thenReturn(group);
 		when(group.getProperty(GrouperManager.PROVISIONED_PROPERTY)).thenReturn(false);
 
@@ -314,14 +327,11 @@ public class SyncJMSMessageConsumerTest extends TestCase {
 
 		syncJmsConsumer.onMessage(message);
 		verify(grouperManager).addMemberships(grouperName, ImmutableList.of("user1", "user2"));
-		verify(message).acknowledge();
+		verify(jmsSession).commit();
 	}
 
 	@Test
 	public void testMembershipAddedEmptyString() throws JMSException, GrouperException, AccessDeniedException, StorageClientException{
-		String groupId = "some_group-id";
-		String grouperName = "some:group:id";
-		Message message = mock(Message.class);
 		when(grouperConfiguration.getDeletesEnabled()).thenReturn(true);
 		when(message.getJMSType()).thenReturn("org/sakaiproject/nakamura/lite/authorizables/UPDATED");
 		when(message.getStringProperty("path")).thenReturn(groupId);
@@ -335,46 +345,44 @@ public class SyncJMSMessageConsumerTest extends TestCase {
 
 		syncJmsConsumer.onMessage(message);
 		verify(grouperManager).groupExists(grouperName);
-		verify(grouperManager).addMemberships(grouperName + "_includes", EMPTY_LIST_STRING);
-		verify(grouperManager).removeMemberships(grouperName + "_excludes", EMPTY_LIST_STRING);
 		verifyNoMoreInteractions(grouperManager);
-		verify(message).acknowledge();
+		verify(jmsSession).commit();
 	}
 
 	@Test
 	public void testMembershipRemoved() throws JMSException, GrouperException, AccessDeniedException, StorageClientException{
-		String groupId = "some_group-id";
-		String grouperName = "some:group:id";
-		Message message = mock(Message.class);
 		when(grouperConfiguration.getDeletesEnabled()).thenReturn(true);
 		when(message.getJMSType()).thenReturn("org/sakaiproject/nakamura/lite/authorizables/UPDATED");
 		when(message.getStringProperty("path")).thenReturn(groupId);
-		when(message.getStringProperty(GrouperEventUtils.MEMBERS_REMOVED_PROP)).thenReturn("user1,user2");
+		when(message.getStringProperty(GrouperEventUtils.MEMBERS_REMOVED_PROP)).thenReturn("user1,user2,user3");
 		Group group = mock(Group.class);
 		when(group.getId()).thenReturn(groupId);
+		when(group.getMembers()).thenReturn(new String[0]);
 		when(authorizableManager.findAuthorizable(groupId)).thenReturn(group);
 		when(group.getProperty(GrouperManager.PROVISIONED_PROPERTY)).thenReturn(false);
 
 		when(grouperNameManager.getGrouperName(groupId)).thenReturn(grouperName);
+		when(grouperManager.getMembers(grouperName)).thenReturn(ImmutableList.of("user1"));
 
 		syncJmsConsumer.onMessage(message);
-		verify(grouperManager).addMemberships(grouperName + "_excludes", ImmutableList.of("user1", "user2"));
+		verify(grouperManager).getMembers(grouperName);
+		verify(grouperManager).addMemberships(grouperName + "_excludes", ImmutableList.of("user1"));
 		verify(grouperManager).removeMemberships(grouperName + "_includes", ImmutableList.of("user1", "user2"));
-		verify(message).acknowledge();
+		verify(jmsSession).commit();
 	}
 
 	@Test
 	public void testMembershipRemovedContacts() throws JMSException, GrouperException, AccessDeniedException, StorageClientException{
 		String groupId = "g-contacts-efroese";
 		String grouperName = "stem:users:efroese:contacts";
-		Message message = mock(Message.class);
 
 		when(message.getJMSType()).thenReturn("org/sakaiproject/nakamura/lite/authorizables/UPDATED");
 		when(message.getStringProperty("path")).thenReturn(groupId);
-		when(message.getStringProperty(GrouperEventUtils.MEMBERS_REMOVED_PROP)).thenReturn("user1,user2");
+		when(message.getStringProperty(GrouperEventUtils.MEMBERS_REMOVED_PROP)).thenReturn("user1,user2,user3");
 
 		Group group = mock(Group.class);
 		when(group.getId()).thenReturn(groupId);
+		when(group.getMembers()).thenReturn(new String[0]);
 		when(authorizableManager.findAuthorizable(groupId)).thenReturn(group);
 		when(group.getProperty(GrouperManager.PROVISIONED_PROPERTY)).thenReturn(false);
 
@@ -382,14 +390,11 @@ public class SyncJMSMessageConsumerTest extends TestCase {
 
 		syncJmsConsumer.onMessage(message);
 		verify(grouperManager).removeMemberships(grouperName, ImmutableList.of("user1", "user2"));
-		verify(message).acknowledge();
+		verify(jmsSession).commit();
 	}
 
 	@Test
 	public void testMembershipRemovedEmptyString() throws JMSException, GrouperException, AccessDeniedException, StorageClientException{
-		String groupId = "some_group_id";
-		String grouperName = "some:group:id";
-		Message message = mock(Message.class);
 		when(grouperConfiguration.getDeletesEnabled()).thenReturn(true);
 		when(message.getJMSType()).thenReturn("org/sakaiproject/nakamura/lite/authorizables/UPDATED");
 		when(message.getStringProperty("path")).thenReturn(groupId);
@@ -403,9 +408,7 @@ public class SyncJMSMessageConsumerTest extends TestCase {
 
 		syncJmsConsumer.onMessage(message);
 		verify(grouperManager).groupExists(grouperName);
-		verify(grouperManager).addMemberships(grouperName + "_excludes", EMPTY_LIST_STRING);
-		verify(grouperManager).removeMemberships(grouperName + "_includes", EMPTY_LIST_STRING);
 		verifyNoMoreInteractions(grouperManager);
-		verify(message).acknowledge();
+		verify(jmsSession).commit();
 	}
 }
