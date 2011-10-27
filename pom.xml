@@ -780,10 +780,10 @@
       </snapshots>
     </repository>
     <repository>
-      <id>hallwaytech-obr</id>
-      <name>HallwayTech Grouper Maven</name>
+      <id>buildatlas</id>
+      <name>BuildATLAS Maven Repository</name>
       <layout>default</layout>
-      <url>http://home.hallwaytech.com/grouper/maven2</url>
+      <url>http://buildatlas.home.nyu.edu/maven2</url>
       <releases>
         <enabled>true</enabled>
       </releases>
