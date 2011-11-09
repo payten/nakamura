@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
@@ -214,7 +213,9 @@ public class GrouperConfigurationImpl implements GrouperConfiguration {
 		ignoreUsersEvents = OsgiUtil.toStringArray(props.get(PROP_IGNORED_USERS_EVENTS),DEFAULT_IGNORED_USERS_EVENTS);
 		ignoredGroupPatterns = OsgiUtil.toStringArray(props.get(PROP_IGNORED_GROUP_PATTERN), DEFAULT_IGNORED_GROUP_PATTERN);
 		pseudoGroupSuffixes = new HashSet<String>();
-		CollectionUtils.addAll(pseudoGroupSuffixes, OsgiUtil.toStringArray(props.get(PROP_PSEUDO_GROUP_SUFFIXES), DEFAULT_PSEUDO_GROUP_SUFFIXES));
+		for (String suffix : OsgiUtil.toStringArray(props.get(PROP_PSEUDO_GROUP_SUFFIXES), DEFAULT_PSEUDO_GROUP_SUFFIXES)){
+			pseudoGroupSuffixes.add(suffix);
+		}
 
 		deletesEnabled = OsgiUtil.toBoolean(props.get(PROP_DELETES_ENABLED), DEFAULT_DELETES_ENABLED);
 		disableForTesting = OsgiUtil.toBoolean(props.get(PROP_DISABLE_TESTING), false);

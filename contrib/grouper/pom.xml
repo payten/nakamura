@@ -59,6 +59,7 @@
 						<Export-Package>org.sakaiproject.nakamura.grouper.*</Export-Package>
 						<Import-Package>
 						  !org.apache.oro.text.*,
+						  !org.apache.commons.collections.*,
 						  javax.crypto,
 						  javax.mail,
 						  org.apache.commons.beanutils.*,
