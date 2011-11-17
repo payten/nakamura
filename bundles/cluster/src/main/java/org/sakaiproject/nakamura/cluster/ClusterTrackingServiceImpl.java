@@ -30,11 +30,14 @@ import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.cluster.ClusterServer;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.cluster.ClusterUser;
+import org.sakaiproject.nakamura.api.cluster.cache.ClusterServerImpl;
+import org.sakaiproject.nakamura.api.cluster.cache.ClusterUserImpl;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
 import org.sakaiproject.nakamura.api.servlet.HttpOnlyCookie;
 import org.sakaiproject.nakamura.util.StringUtils;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -348,8 +351,9 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
     messageDict.put(EVENT_TO_SERVER, clusterServer.getServerId());
     messageDict.put(EVENT_TRACKING_COOKIE, trackingCookie);
     messageDict.put(EVENT_USER, remoteUser);
-    Event pingUserEvent = new Event(EVENT_PING_CLUSTER_USER + "/"
-        + clusterServer.getServerId(), messageDict);
+    String remotePingTopic = EVENT_PING_CLUSTER_USER + "/"
+        + EventUtils.safeTopicElement(clusterServer.getServerId());
+    Event pingUserEvent = new Event(remotePingTopic, messageDict);
     eventAdmin.postEvent(pingUserEvent);
 
   }

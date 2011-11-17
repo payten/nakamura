@@ -40,7 +40,7 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-nakamura </Bundle-Category>
-            <Export-Package> org.sakaiproject.nakamura.api.cluster </Export-Package>
+            <Export-Package> org.sakaiproject.nakamura.api.cluster.* </Export-Package>
             <Private-Package>org.sakaiproject.nakamura.cluster.*</Private-Package>
             <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
             <Embed-Transitive>true</Embed-Transitive>

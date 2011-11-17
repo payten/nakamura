@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.cluster;
+package org.sakaiproject.nakamura.api.cluster.cache;
 
 import org.sakaiproject.nakamura.api.cluster.ClusterServer;
 

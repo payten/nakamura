@@ -63,7 +63,7 @@ public class TestCache {
   @Test
   public void testCacheStorage() {
     for (CacheScope scope : CacheScope.values()) {
-      exerciseCache("TestCache", scope);
+      exerciseCache("TestCache"+scope.toString(), scope);
     }
   }
 
@@ -77,7 +77,7 @@ public class TestCache {
   @Test
   public void testCacheWithChildKeys() {
     for (CacheScope scope : CacheScope.values()) {
-      String cacheName = "SomeTestCache";
+      String cacheName = "SomeTestCache"+scope.toString();
       Cache<String> cache = cacheManagerService.getCache(cacheName, scope);
       cache.put("fish", "cat");
       assertTrue("Expected element to be in cache", cache.containsKey("fish"));

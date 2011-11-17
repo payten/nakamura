@@ -1,0 +1,5 @@
+This folder contains ehcache config files.
+One of these should be copied to sling/ehcacheConfig.xml before the app server starts.
+If you want to put the ehcacheConfig.xml in a different place set CacheManagerServiceImpl cache-config to the location of that file.
+The files here are templates, with placeholders marked by ${config-key-name}. On start up the placeholders are replaced
+by the values of OSGi properties of the same name as the key.

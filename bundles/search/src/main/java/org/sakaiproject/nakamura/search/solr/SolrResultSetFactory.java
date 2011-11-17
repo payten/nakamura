@@ -123,7 +123,7 @@ import java.util.ArrayList;
    * deleted since the last Solr commit.  This cache is shared by all nodes in a
    * cluster, acting as a sort of shared memory.
    */
-  private Cache<Object> getDeletedPathCache() {
+  private Cache<String> getDeletedPathCache() {
     return cacheManagerService.getCache(DELETED_PATH_CACHE, CacheScope.CLUSTERREPLICATED);
   }
 
@@ -134,15 +134,13 @@ import java.util.ArrayList;
    * @param path the path that was deleted
    */
   private synchronized void storeDeletedPath(String path) {
-    Cache<Object> cache = getDeletedPathCache();
+    Cache<String> cache = getDeletedPathCache();
     String myId = clusterTrackingService.getCurrentServerId();
 
-    Integer pathCount = (Integer)cache.get("pathCount@" + myId);
-    pathCount = (pathCount == null) ? 0 : pathCount;
-
+    int pathCount = getInt(cache.get("pathCount@" + myId));
     cache.put("path[" + pathCount + "]@" + myId,
               SearchUtil.escapeString(path, Query.SOLR));
-    cache.put("pathCount@" + myId, pathCount + 1);
+    cache.put("pathCount@" + myId, String.valueOf(pathCount + 1));
   }
 
 
@@ -150,16 +148,16 @@ import java.util.ArrayList;
    * Clear the list of deleted nodes for this node.
    */
   private synchronized void clearDeletedPaths() {
-    Cache<Object> cache = getDeletedPathCache();
+    Cache<String> cache = getDeletedPathCache();
     String myId = clusterTrackingService.getCurrentServerId();
 
-    Integer pathCount = (Integer)cache.get("pathCount@" + myId);
+    int pathCount = getInt(cache.get("pathCount@" + myId));
 
-    for (int idx = 0; pathCount != null && idx < pathCount; idx++) {
+    for (int idx = 0; idx < pathCount; idx++) {
       cache.remove("path[" + idx + "]@" + myId);
     }
 
-    cache.put("pathCount@" + myId, 0);
+    cache.put("pathCount@" + myId, String.valueOf(0));
   }
 
 
@@ -169,13 +167,13 @@ import java.util.ArrayList;
    */
   private List<String> getDeletedPaths() {
     List<String> deletedPaths = new ArrayList<String>();
-    Cache<Object> cache = getDeletedPathCache();
+    Cache<String> cache = getDeletedPathCache();
 
     for (ClusterServer server : clusterTrackingService.getAllServers()) {
       String serverId = server.getServerId();
-      Integer pathCount = (Integer)cache.get("pathCount@" + serverId);
+      int pathCount = getInt(cache.get("pathCount@" + serverId));
 
-      for (int idx = 0; pathCount != null && idx < pathCount; idx++) {
+      for (int idx = 0; idx < pathCount; idx++) {
         String path = (String)cache.get("path[" + idx + "]@" + serverId);
 
         if (path != null) {
@@ -348,5 +346,12 @@ import java.util.ArrayList;
       LOGGER.warn("Expected the sort option to be 1 or 2 terms. Found: {}", val);
     }
     // }
+  }
+
+  private int getInt(String value) {
+	  if ( value == null ) {
+		  return 0;
+	  }
+	  return Integer.parseInt(value);
   }
 }

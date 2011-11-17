@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.nakamura.api.locking.Lock;
 import org.sakaiproject.nakamura.api.locking.LockManager;
 import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
+import org.sakaiproject.nakamura.api.locking.cache.LockImpl;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
@@ -153,7 +154,7 @@ public class LockManagerImpl implements LockManager {
    *
    * @param lock
    */
-  protected void unlock(LockImpl lock) {
+  public void unlock(LockImpl lock) {
     if (lock.isOwner() && lock.isLocked()) {
       if (debug) {
         LOGGER.debug(Thread.currentThread() + " unlocked " + lock.getLocked());
@@ -168,7 +169,7 @@ public class LockManagerImpl implements LockManager {
   /**
    * @return
    */
-  protected long getInstanceId() {
+  public long getInstanceId() {
     return instanceId;
   }
 
