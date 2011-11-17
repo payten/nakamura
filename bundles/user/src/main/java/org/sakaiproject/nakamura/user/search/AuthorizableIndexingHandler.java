@@ -45,6 +45,7 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.TopicIndexer;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
@@ -108,6 +109,9 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
 
   @Reference
   protected TopicIndexer topicIndexer;
+
+  @Reference
+  protected BasicUserInfoService basicInfoService;
 
   // ---------- SCR integration ------------------------------------------------
   @Activate
@@ -236,6 +240,14 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
       Group group = (Group) authorizable;
       for (String member : group.getMembers()) {
         doc.addField(FIELD_READERS, member);
+      }
+    } else {
+      // add basic info fields for users
+      String[] basicFields = basicInfoService.getBasicProfileElements();
+      for (String basicField : basicFields) {
+        if (authorizable.hasProperty(basicField)) {
+          doc.addField("basicinfo", authorizable.getProperty(basicField));
+        }
       }
     }
 
