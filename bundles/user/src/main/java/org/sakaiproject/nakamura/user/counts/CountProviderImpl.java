@@ -103,7 +103,7 @@ public class CountProviderImpl implements CountProvider {
       if (LOG.isDebugEnabled())
         LOG.debug("update authorizable: {} with {}={}", new Object[] {
             authorizable.getId(), UserConstants.COUNTS_LAST_UPDATE_PROP, lastUpdate});      
-      authorizableManager.updateAuthorizable(authorizable);
+      authorizableManager.updateAuthorizable(authorizable, false);
     } else {
       LOG.warn("update could not get authorizable: {} from session",
           new Object[] { authorizable.getId() });

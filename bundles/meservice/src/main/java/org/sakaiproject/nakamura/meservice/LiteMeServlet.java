@@ -66,6 +66,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -452,7 +453,8 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
       String timezone = properties.get(TIMEZONE_FIELD).toString();
       tz = TimeZone.getTimeZone(timezone);
     }
-    int offset = tz.getRawOffset() + tz.getDSTSavings();
+    int daylightSavingsOffset = tz.inDaylightTime(new Date()) ? tz.getDSTSavings() : 0;
+    int offset = tz.getRawOffset() + daylightSavingsOffset;
 
     /* Add the locale information into the output */
     write.key("locale");
