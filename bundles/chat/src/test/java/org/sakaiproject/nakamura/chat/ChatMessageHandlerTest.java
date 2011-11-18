@@ -81,7 +81,7 @@ public class ChatMessageHandlerTest {
     replay(messagingService);
 
     // chat manager service mocks
-    chatCache = new MapCacheImpl<Object>();
+    chatCache = new MapCacheImpl<Object>("testchat",CacheScope.INSTANCE);
     cacheManagerService = createMock(CacheManagerService.class);
     expect(cacheManagerService.getCache("chat", CacheScope.CLUSTERREPLICATED))
         .andReturn(chatCache).anyTimes();
