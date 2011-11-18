@@ -60,9 +60,17 @@ import javax.management.MBeanServer;
 public class CacheManagerServiceImpl implements CacheManagerService {
 
   public static final String DEFAULT_CACHE_CONFIG = "sling/ehcacheConfig.xml";
+  public static final String DEFAULT_BIND_ADDRESS = "127.0.0.1";
+  public static final String DEFAULT_CACHE_STORE = "sling/ehcacheStore";
 
   @Property( value = DEFAULT_CACHE_CONFIG)
   public static final String CACHE_CONFIG = "cache-config";
+
+  @Property( value = DEFAULT_BIND_ADDRESS)
+  public static final String BIND_ADDRESS = "bind-address";
+
+  @Property( value = DEFAULT_CACHE_STORE)
+  public static final String CACHE_STORE = "cache-store";
                                                             
   @Property(value = "The Sakai Foundation")
   static final String SERVICE_VENDOR = "service.vendor";
