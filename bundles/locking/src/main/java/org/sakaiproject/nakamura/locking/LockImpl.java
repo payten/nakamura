@@ -15,11 +15,10 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.api.locking.cache;
+package org.sakaiproject.nakamura.locking;
 
 import org.sakaiproject.nakamura.api.locking.Lock;
 import org.sakaiproject.nakamura.api.memory.ThreadBound;
-import org.sakaiproject.nakamura.locking.LockManagerImpl;
 
 /**
  * This implements a Lock to be serialized over the cluster. It must be serializable and
@@ -80,7 +79,7 @@ public class LockImpl implements Lock, ThreadBound {
    *
    * @param currentLockManager the lock manager to bind to.
    */
-  public void bind(LockManagerImpl currentLockManager) {
+  protected void bind(LockManagerImpl currentLockManager) {
     this.currentLockManger = currentLockManager;
   }
 

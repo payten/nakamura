@@ -82,6 +82,4 @@ public interface Cache<V> {
    */
   List<V> list();
 
-  void checkCompatableScope(CacheScope scope);
-
 }

@@ -56,8 +56,8 @@ public class PresenceServiceImplTest {
   @Before
   public void setUp() throws Exception {
 
-    presenceLocationCache = new MapCacheImpl<Object>("testlocation", CacheScope.INSTANCE);
-    presenceStatusCache = new MapCacheImpl<Object>("teststatus", CacheScope.INSTANCE);
+    presenceLocationCache = new MapCacheImpl<Object>();
+    presenceStatusCache = new MapCacheImpl<Object>();
 
     cacheManagerService = createMock(CacheManagerService.class);
     expect(

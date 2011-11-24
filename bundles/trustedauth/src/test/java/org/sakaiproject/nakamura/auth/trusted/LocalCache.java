@@ -18,7 +18,6 @@
 package org.sakaiproject.nakamura.auth.trusted;
 
 import org.sakaiproject.nakamura.api.memory.Cache;
-import org.sakaiproject.nakamura.api.memory.CacheScope;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -91,10 +90,6 @@ public class LocalCache<T>  implements Cache<Object> {
   public Object put(String key, Object payload) {
     return m.put(key, (T) payload);
   }
-
-  public void checkCompatableScope(CacheScope scope) {
-  }
-
 
 
 }

@@ -15,11 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.api.http.cache;
-
-import org.sakaiproject.nakamura.api.http.cache.Operation;
-import org.sakaiproject.nakamura.http.cache.OperationResponseCapture;
-import org.sakaiproject.nakamura.http.cache.OperationResponseReplay;
+package org.sakaiproject.nakamura.http.cache;
 
 import java.io.IOException;
 import java.io.Serializable;

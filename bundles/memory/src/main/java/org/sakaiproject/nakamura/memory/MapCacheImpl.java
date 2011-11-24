@@ -18,7 +18,6 @@
 package org.sakaiproject.nakamura.memory;
 
 import org.sakaiproject.nakamura.api.memory.Cache;
-import org.sakaiproject.nakamura.api.memory.CacheScope;
 import org.sakaiproject.nakamura.api.memory.ThreadBound;
 
 import java.util.ArrayList;
@@ -36,13 +35,6 @@ public class MapCacheImpl<V> extends HashMap<String, V>implements Cache<V>  {
    *
    */
   private static final long serialVersionUID = -5400056532743570231L;
-  private CacheScope scope;
-  private String name;
-
-  public MapCacheImpl(String name, CacheScope scope) {
-    this.scope = scope;
-    this.name = name;
-  }
 
   /**
    * {@inheritDoc}
@@ -111,15 +103,6 @@ public class MapCacheImpl<V> extends HashMap<String, V>implements Cache<V>  {
   public List<V> list() {
     return new ArrayList<V>(super.values());
   }
-
-  public void checkCompatableScope(CacheScope scope) {
-		if (!scope.equals(this.scope)) {
-			throw new IllegalStateException("The cache called " + name
-					+ " is a " + this.scope
-					+ " cache and cant be re-used as a " + scope + " cache");
-		}
-	}
-
 
 
 
