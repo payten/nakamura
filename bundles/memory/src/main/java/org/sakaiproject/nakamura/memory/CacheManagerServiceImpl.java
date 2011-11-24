@@ -34,7 +34,7 @@ import org.sakaiproject.nakamura.util.ResourceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -126,7 +126,7 @@ public class CacheManagerServiceImpl implements CacheManagerService {
 
    @Activate
    protected void activate(Map<String, Object> properties) throws FileNotFoundException, IOException {
- 	  String config = OsgiUtil.toString(properties.get(CACHE_CONFIG), DEFAULT_CACHE_CONFIG);
+ 	  String config = PropertiesUtil.toString(properties.get(CACHE_CONFIG), DEFAULT_CACHE_CONFIG);
  	  File configFile = new File(config);
 	  ClassLoader cl = Thread.currentThread().getContextClassLoader();
 	  try {
@@ -167,11 +167,11 @@ public class CacheManagerServiceImpl implements CacheManagerService {
       Matcher m = p.matcher(configLine);
       while (m.find()) {
         String propKey = m.group(1);
-        configLine = StringUtils.replace(configLine, m.group(), OsgiUtil.toString(properties.get(propKey), ""));
+        configLine = StringUtils.replace(configLine, m.group(), PropertiesUtil.toString(properties.get(propKey), ""));
       }
       config.append(configLine + "\n");
     }
-    return IOUtils.toInputStream(config.toString());
+    return IOUtils.toInputStream(config);
   }
 
   public static void main(String[] args) throws Exception {

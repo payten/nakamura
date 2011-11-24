@@ -36,8 +36,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.nakamura.api.cluster.cache.ClusterServerImpl;
-import org.sakaiproject.nakamura.api.cluster.cache.ClusterUserImpl;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
