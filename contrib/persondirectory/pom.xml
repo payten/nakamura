@@ -2,7 +2,7 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>1.0.2</version>
+    <version>1.1-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.nakamura</groupId>
@@ -71,7 +71,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </dependency>
 
 <!-- osgi -->
@@ -90,7 +90,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.ldap</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </dependency>
 
     <dependency>

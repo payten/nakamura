@@ -57,7 +57,7 @@
     <bundle>
       <groupId>org.apache.geronimo.specs</groupId>
       <artifactId>geronimo-j2ee-management_1.1_spec</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.apache.geronimo.specs</groupId>
@@ -68,7 +68,7 @@
     <bundle>
       <groupId>org.apache.geronimo.specs</groupId>
       <artifactId>geronimo-ejb_3.0_spec</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
   </startLevel>
   <startLevel level="5">
@@ -98,13 +98,13 @@
     <bundle>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.webconsole.plugins.event</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.webconsole.plugins.memoryusage
       </artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.apache.felix</groupId>
@@ -116,7 +116,7 @@
     <bundle>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.eventadmin</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.apache.felix</groupId>
@@ -159,7 +159,7 @@
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.eventexplorer.cassandra-thrift</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <!-- include a local AMQ broker -->
     <bundle>
@@ -176,20 +176,20 @@
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.eventexplorer.listeners</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <!-- include this listener if you want to store to jdbc instead of cassandra -->
     <!--
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.eventexplorer.listeners.jdbc</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     -->
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.eventexplorer.ui</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
   </startLevel>
 </bundles>

@@ -446,24 +446,24 @@ KERN-1187
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.securityloader</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
    </startLevel>
    <startLevel level="11" >
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.resource</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.events</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.apache.sling</groupId>
@@ -480,27 +480,27 @@ KERN-1187
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.batch</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.user</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.memory</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.cluster</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
    </startLevel>
    <startLevel level="15" >
@@ -522,91 +522,91 @@ KERN-1187
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.jcr</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.locking</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.presence</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.messaging</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.chat</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.discussion</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.formauth</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.templates</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.proxy</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.auth.trusted</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
    </startLevel>
    <startLevel level="20" >
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.meservice</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.image</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
    <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.connections</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.version</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.email.outgoing</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
    </startLevel>
    <startLevel level="30" >
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.personal</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.activity</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
@@ -631,7 +631,7 @@ KERN-1187
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.smtp</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.apache.felix</groupId>
@@ -641,17 +641,17 @@ KERN-1187
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.calendar</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.authz</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.basiclti</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
@@ -666,56 +666,56 @@ KERN-1187
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.captcha</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.docproxy</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.pages</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.http</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.directory</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.world</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
 
     <!-- NYU -->
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.auth.saml</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
 
     <!-- Can remove the LDAP contribs; these were put in to have have dual auths for NYU's production (saml) and various test (ldap) servers -->
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.ldap</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.auth.ldap</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.ojdbc</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     
     <bundle>
@@ -726,7 +726,7 @@ KERN-1187
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.grouper.sync</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     
     <bundle>

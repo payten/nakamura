@@ -5,7 +5,7 @@
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>base</artifactId>
 <<<<<<< HEAD
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
 =======
       <version>1.0.0</version>
       <relativePath>../../pom.xml</relativePath>
@@ -13,7 +13,7 @@
     </parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>org.sakaiproject.nakamura.ojdbc</artifactId>
-    <version>1.0.2</version>
+    <version>1.1-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>Sakai Nakamura :: Oracle JDBC Bundle</name>
     <description>

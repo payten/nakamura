@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>1.0.2</version>
+    <version>1.1-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.jaxrs</artifactId>
   <packaging>bundle</packaging>
@@ -107,7 +107,7 @@
     <dependency>
       <groupId>org.jboss.resteasy</groupId>
       <artifactId>resteasy-jaxrs</artifactId>
-      <version>1.0.2.GA</version>
+      <version>1.1-SNAPSHOT.GA</version>
       <!-- filter out unwanted jars -->
       <exclusions>
         <exclusion>
@@ -119,7 +119,7 @@
     <dependency>
       <groupId>org.jboss.resteasy</groupId>
       <artifactId>resteasy-jaxb-provider</artifactId>
-      <version>1.0.2.GA</version>
+      <version>1.1-SNAPSHOT.GA</version>
     </dependency>
     <dependency>
       <groupId>net.sf.json-lib</groupId>
@@ -144,7 +144,7 @@
     <dependency>
       <groupId>org.scannotation</groupId>
       <artifactId>scannotation</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>javassist</groupId>

@@ -16,12 +16,12 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>1.0.2</version>
+    <version>1.1-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.auth.rest</artifactId>
   <packaging>bundle</packaging>
 <<<<<<< HEAD:contrib/openssoauth/pom.xml
-  <version>1.0.2</version>
+  <version>1.1-SNAPSHOT</version>
   <name>Sakai Nakamura :: OpenSSO Authentication Bundle</name>
   <description>Provides OpenSSO based authentication support to the request cycle.</description>
 =======
@@ -121,17 +121,17 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.user</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.auth.trusted</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

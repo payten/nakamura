@@ -23,7 +23,7 @@
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
 <<<<<<< HEAD
-    <version>1.0.2</version>
+    <version>1.1-SNAPSHOT</version>
 =======
     <version>1.0.0</version>
     <relativePath>../../pom.xml</relativePath>
@@ -31,7 +31,7 @@
   </parent>
   <artifactId>org.sakaiproject.nakamura.auth.ldap</artifactId>
   <packaging>bundle</packaging>
-  <version>1.0.2</version>
+  <version>1.1-SNAPSHOT</version>
   <name>Sakai Nakamura :: LDAP Authentication Bundle</name>
   <description>Allows authentication with an LDAP directory</description>
   <build>
@@ -79,7 +79,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.ldap</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </dependency>
 
 <!-- JCR -->
@@ -124,12 +124,12 @@
 	<dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.user</artifactId>
-      <version>1.0.2</version>
+      <version>1.1-SNAPSHOT</version>
     </dependency>
     
     <dependency>
