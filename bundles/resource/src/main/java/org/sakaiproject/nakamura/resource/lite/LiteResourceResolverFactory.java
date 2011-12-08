@@ -66,9 +66,9 @@ public class LiteResourceResolverFactory implements ResourceResolverFactory {
     try {
       // TODO should use ResourceResolverFactory.USER once we are on Sling Resource
       // bundle >= 2.1.0
-      String userId = (String) authnInfo.get(USER);
+      String userId = (String) authnInfo.get(ResourceResolverFactory.USER);
       Session session = repository.loginAdministrative();
-      return new LiteResourceResolver(session, userId);
+      return new LiteResourceResolver(session, userId, authnInfo);
     } catch (AccessDeniedException e) {
       throw new LoginException(e.getMessage(), e);
     } catch (StorageClientException e) {
@@ -86,9 +86,9 @@ public class LiteResourceResolverFactory implements ResourceResolverFactory {
     try {
       // TODO should use ResourceResolverFactory.USER once we are on Sling Resource
       // bundle >= 2.1.0
-      String userId = (String) authnInfo.get(USER);
+      String userId = (String) authnInfo.get(ResourceResolverFactory.USER);
       Session session = repository.loginAdministrative(userId);
-      return new LiteResourceResolver(session, userId);
+      return new LiteResourceResolver(session, userId, authnInfo);
     } catch (AccessDeniedException e) {
       throw new LoginException(e.getMessage(), e);
     } catch (StorageClientException e) {

@@ -3,11 +3,14 @@
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
-  "sortOn": "_created",
-  "sortOrder": "desc",
+  "sakai:query-template-defaults": {
+    "sortOn": "_created",
+    "sortOrder": "desc"
+  },
   "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "Message",
   "sakai:resultprocessor": "Message",
+  "sakai:searchresponsedecorator":"Message",
   "sakai:title": "Messaging - User - Filter.",
   "sakai:shortDescription": "Goes trough your entire messagestore matching messages against a provided property-name and value.",
   "sakai:parameters" : [

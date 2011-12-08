@@ -1,11 +1,9 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
-require 'sling/file'
-require 'sling/users'
+require 'nakamura/test'
+require 'nakamura/file'
+require 'nakamura/users'
 require 'test/unit.rb'
 include SlingUsers
 include SlingFile
@@ -20,7 +18,7 @@ class TC_Kern1836Test < Test::Unit::TestCase
   end
 
   def test_delete_operation_recurses
-    m = Time.now.to_f.to_s.gsub('.', '');
+    m = Time.now.to_nsec
     @s.switch_user(User.admin_user())
     homefolder = User.admin_user().home_path_for(@s)
 

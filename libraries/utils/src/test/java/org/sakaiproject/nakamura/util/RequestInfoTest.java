@@ -26,6 +26,9 @@ import org.apache.sling.commons.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.UnsupportedEncodingException;
+
+import java.net.URISyntaxException;
 import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.Hashtable;
@@ -37,7 +40,7 @@ import java.util.List;
 public class RequestInfoTest {
 
   @Test
-  public void testJSON() throws JSONException, MalformedURLException {
+  public void testJSON() throws JSONException, MalformedURLException, UnsupportedEncodingException, URISyntaxException {
     JSONObject o = new JSONObject();
     o.put("method", "POST");
     o.put("url", "/foo/bar");
@@ -59,7 +62,7 @@ public class RequestInfoTest {
   }
 
   @Test
-  public void testBadJSON() throws JSONException {
+  public void testBadJSON() throws JSONException, UnsupportedEncodingException, URISyntaxException {
     JSONObject o = new JSONObject();
     o.put("method", "POST");
     o.put("url", "/foo/bar\nisbad");
@@ -78,4 +81,22 @@ public class RequestInfoTest {
     }
   }
 
+  @Test
+  public void testQueryParameters() throws JSONException, MalformedURLException, UnsupportedEncodingException, URISyntaxException {
+    JSONObject o = new JSONObject();
+    o.put("method", "GET");
+    o.put("url", "/foo/bar?qux=1&foo=pride%20%26%20prejudice&bar=1");
+    JSONObject parameters = new JSONObject();
+
+    // Overrides the query string
+    parameters.put("qux", "2");
+    o.put("parameters", parameters);
+
+    RequestInfo info = new RequestInfo(o);
+
+    Hashtable<String, String[]> table = info.getParameters();
+    assertEquals("2", table.get("qux")[0]);
+    assertEquals("pride & prejudice", table.get("foo")[0]);
+    assertEquals("1", table.get("bar")[0]);
+  }
 }

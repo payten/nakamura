@@ -1,0 +1,26 @@
+<html>
+<head>
+  <title>${application_title}</title>
+  <link rel='stylesheet' type='text/css' href='/dev/css/sakai/main_css' />
+</head>
+<body>
+  <div>${label_total_solr_docs}: ${total_solr_docs}</div>
+  <form name='queryForm' method='post' action='/system/query#output'>
+    <table>
+      <tr><td>${label_query}:</td><td><textarea id='q' name='q' style='width:30em;height:10em'>${q}</textarea></td></tr>
+      <tr><td>${label_filter_query}:</td><td><input id='fq' name='fq' value='${fq}'/></td></tr>
+      <tr><td>${label_field_list}:</td><td><input id='fl' name='fl' value='${fl}'/></td></tr>
+      <tr><td>${label_sort}:</td><td><input id='sort' name='sort' value='${sort}'/></td></tr>
+      <tr><td>${label_start}:</td><td><input id='start' name='start' value='${start}'/></td></tr>
+      <tr><td>${label_rows}:</td><td><input id='rows' name='rows' size='3' value='${rows}'/></td></tr>
+
+      <tr><td colspan='2'><input type='checkbox' id='addReaders' name='addReaders' value='1' ${addReaders}/> <label for='addReaders'>${label_add_readers}</label></td></tr>
+      <tr><td colspan='2'><input type='checkbox' id='asAnon' name='asAnon' value='1' ${asAnon}/> <label for='asAnon'>${label_as_anon}</label></td></tr>
+      <tr><td colspan='2'><input type='checkbox' id='indent' name='indent' value='1' ${indent}/> <label for='indent'>${label_indent}</label></td></tr>
+      <tr><td colspan='2' align='center'><input type='submit' value='${label_submit_query}'/></td></tr>
+    </table>
+  </form>
+  <br/>
+  <pre id='output'>${output}</pre>
+</body>
+</html>

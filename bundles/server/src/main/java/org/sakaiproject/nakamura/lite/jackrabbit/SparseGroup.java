@@ -206,4 +206,17 @@ public class SparseGroup extends SparseAuthorizable implements Group {
     return true;
   }
 
+  //@Override // will be needed in 2.2.5
+  public boolean isDeclaredMember(Authorizable authorizable) throws RepositoryException {
+    String id = authorizable.getID();
+    Iterator<Authorizable> decMembers = getDeclaredMembers(); 
+    while (decMembers.hasNext()) {
+      Authorizable decMember = decMembers.next();
+      if (id.equals(decMember.getID())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 }

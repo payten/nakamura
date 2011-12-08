@@ -26,7 +26,6 @@
   <artifactId>org.sakaiproject.nakamura.calendar</artifactId>
   <name>Sakai Nakamura :: Calendar based events bundle</name>
   <packaging>bundle</packaging>
-  <version>1.0.2</version>
   <description>Produces calendar (ical) based events</description>
   <build>
     <plugins>
@@ -52,6 +51,39 @@
         </configuration>
       </plugin>
     </plugins>
+    <pluginManagement>
+      <plugins>
+        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>
+                      maven-scr-plugin
+                    </artifactId>
+                    <versionRange>
+                      [1.7.2,)
+                    </versionRange>
+                    <goals>
+                      <goal>scr</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore></ignore>
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
   <repositories>
     <repository>
@@ -107,14 +139,14 @@
     <dependency>
       <groupId>org.apache.jackrabbit</groupId>
       <artifactId>jackrabbit-api</artifactId>
-      <version>2.0.0</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.jcr.api</artifactId>
-      <version>2.0.6</version>
-      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.jcr.resource</artifactId>
     </dependency>
     <!--  Nakamura dependencies  -->
     <dependency>
@@ -136,19 +168,19 @@
       <scope>provided</scope>
       <exclusions>
       	<exclusion>
-      		<artifactId>org.sakaiproject.nakamura.profile</artifactId>
+      		<artifactId>org.sakaiproject.nakamura.profile.api</artifactId>
       		<groupId>org.sakaiproject.nakamura</groupId>
       	</exclusion>
       </exclusions>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.search</artifactId>
-      <version>1.0.2</version>
+      <artifactId>org.sakaiproject.nakamura.search.api</artifactId>
+      <version>1.1-SNAPSHOT</version>
       <scope>provided</scope>
       <exclusions>
       	<exclusion>
-      		<artifactId>org.sakaiproject.nakamura.profile</artifactId>
+      		<artifactId>org.sakaiproject.nakamura.profile.api</artifactId>
       		<groupId>org.sakaiproject.nakamura</groupId>
       	</exclusion>
       </exclusions>
@@ -156,17 +188,23 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.solr</artifactId>
-      <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.google.collections</groupId>
-      <artifactId>google-collections</artifactId>
-      <version>0.8</version>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.core</artifactId>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+       <groupId>org.apache.sling</groupId>
+       <artifactId>org.apache.sling.api</artifactId>
+    </dependency>
+    <dependency>
+       <groupId>org.apache.sling</groupId>
+       <artifactId>org.apache.sling.commons.json</artifactId>
     </dependency>
 
     <!--  Tests -->
@@ -179,7 +217,6 @@
     <dependency>
        <groupId>org.apache.sling</groupId>
        <artifactId>org.apache.sling.commons.testing</artifactId>
-       <version>2.0.5-20100823</version>
        <scope>test</scope>
     </dependency>
   	<dependency>

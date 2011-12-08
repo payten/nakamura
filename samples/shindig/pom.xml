@@ -10,7 +10,6 @@
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: Shindig Bundle</name>
   <description>Apache Shindig Social API and Gadget Server bundle.</description>
-  <version>1.0.2</version>
   <properties>
     <shindig.version>1.0-incubating</shindig.version>
   </properties>

@@ -21,6 +21,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.auth.cas.CasAuthenticationHandler.SsoPrincipal;
 
 import java.security.Principal;
@@ -41,9 +42,18 @@ import javax.security.auth.login.LoginException;
 @Component
 @Service
 public class CasLoginModulePlugin implements LoginModulePlugin {
+  final private Principal everyonePrincipal = new Principal() {
+    public String getName() {
+      return Group.EVERYONE;
+    }
+  };
 
-  @SuppressWarnings("rawtypes")
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   public void addPrincipals(Set principals) {
+    // Without this, if the authenticated user does not have a SparseMapContent
+    // account, then resource resolution will result in an access exception, blocking
+    // the redirect to the CasServlet and leaving the user with a blank screen.
+    principals.add(everyonePrincipal);
   }
 
   public boolean canHandle(Credentials credentials) {

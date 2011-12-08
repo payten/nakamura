@@ -23,7 +23,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-//import org.apache.sling.commons.osgi.OsgiUtil;
+//import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 import org.sakaiproject.nakamura.api.site.SiteService.SiteEvent;
@@ -49,7 +49,7 @@ public class GroupEventsPostProcessor implements EventHandler {
 
   @Activate
   protected void activate(Map<?, ?> props) {
-    //sitesReplacement = OsgiUtil.toString(SITES_REPLACEMENT, DEFAULT_SITES_REPLACEMENT);
+    //sitesReplacement = PropertiesUtil.toString(SITES_REPLACEMENT, DEFAULT_SITES_REPLACEMENT);
   }
 
   public void handleEvent(Event event) {

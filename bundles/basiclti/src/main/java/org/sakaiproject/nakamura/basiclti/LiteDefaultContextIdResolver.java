@@ -17,13 +17,22 @@
  */
 package org.sakaiproject.nakamura.basiclti;
 
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.LTI_VTOOL_ID;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.basiclti.LiteBasicLTIContextIdResolver;
+import org.sakaiproject.nakamura.api.basiclti.VirtualToolDataProvider;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +52,10 @@ public class LiteDefaultContextIdResolver implements LiteBasicLTIContextIdResolv
   private static final Logger LOG = LoggerFactory
       .getLogger(LiteDefaultContextIdResolver.class);
 
+  //TODO eventually needs to be a list of providers not just a single provider.
+  @Reference
+  protected transient VirtualToolDataProvider virtualToolDataProvider;
+  
   /**
    * The {@link Content} property key used to store an LTI context_id.
    */
@@ -56,19 +69,46 @@ public class LiteDefaultContextIdResolver implements LiteBasicLTIContextIdResolv
    * 
    * @see {@link LiteBasicLTIContextIdResolver#resolveContextId(Content)}
    */
-  public String resolveContextId(final Content node) {
+  public String resolveContextId(final Content node, String groupId, Session session) throws AccessDeniedException, StorageClientException {
     LOG.debug("resolveContextId(Content {})", node);
     if (node == null) {
       throw new IllegalArgumentException("Content cannot be null");
     }
+    
+    final AuthorizableManager authManager = session.getAuthorizableManager();
+    final org.sakaiproject.nakamura.api.lite.authorizable.Authorizable az = authManager
+        .findAuthorizable(session.getUserId());
 
     String contextId = null;
-    if (node.hasProperty(key)) {
-      // we have a special context_id we can use
-      contextId = (String) node.getProperty(key);
-    } else {
-      // just use the path
-      contextId = node.getPath();
+    if (groupId != null) {
+      contextId = groupId;
+      Group group = (Group) authManager.findAuthorizable(groupId);
+      // If we are using a Group, we check the group's node to see if it has the optional
+      // cle-site property which will correspond to a concrete site on the CLE installs that
+      // we wish to use for the context on Sakai2Tools widgets. 
+      // After that we also check to see if the current vtoolid is actually a Sakai2Tool
+      // ( it could be from a completely seperate location, etherpad etc. ). If it is
+      // a Sakai 2 Tool, then we use the cle-site property as the context for that BLTI
+      // launch.
+      String sakaiSite = (String) group.getProperty("sakai:cle-site");
+      if (sakaiSite != null) {
+        // Check and see if this is a Sakai Site
+        // Right now the only virtualtoolprovider is for Sakai CLE.
+        String vtoolid = (String) node.getProperty(LTI_VTOOL_ID);
+        if (vtoolid != null && 
+            virtualToolDataProvider.getSupportedVirtualToolIds().contains(vtoolid)) {
+          contextId = sakaiSite;
+        }
+      }
+    }
+    else {
+      if (node.hasProperty(key)) {
+        // we have a special context_id we can use
+        contextId = (String) node.getProperty(key);
+      } else {
+        // just use the path
+        contextId = node.getPath();
+      }
     }
     return contextId;
   }
@@ -76,6 +116,6 @@ public class LiteDefaultContextIdResolver implements LiteBasicLTIContextIdResolv
   protected void activate(ComponentContext context) {
     @SuppressWarnings("rawtypes")
     final Dictionary props = context.getProperties();
-    key = OsgiUtil.toString(props.get(LTI_CONTEXT_ID), "lti_context_id");
+    key = PropertiesUtil.toString(props.get(LTI_CONTEXT_ID), "lti_context_id");
   }
 }

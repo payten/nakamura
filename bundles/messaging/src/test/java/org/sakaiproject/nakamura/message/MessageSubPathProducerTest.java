@@ -20,12 +20,15 @@ package org.sakaiproject.nakamura.message;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.util.SubPathProducer;
 import org.sakaiproject.nakamura.message.resource.MessageSubPathProducer;
 
 /**
  *
  */
+@RunWith(MockitoJUnitRunner.class)
 public class MessageSubPathProducerTest {
 
   @Test

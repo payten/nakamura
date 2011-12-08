@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
 require 'set'
-require 'sling/test'
-require 'sling/message'
+require 'nakamura/test'
+require 'nakamura/message'
 include SlingSearch
 include SlingMessage
 

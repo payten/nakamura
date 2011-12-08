@@ -1,13 +1,11 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require 'ruby-lib-dir.rb'
 
-require 'sling/sling'
-require 'sling/test'
-require 'sling/file'
-require 'sling/sites'
-require 'sling/message'
+require 'nakamura'
+require 'nakamura/test'
+require 'nakamura/file'
+require 'nakamura/sites'
+require 'nakamura/message'
 require 'test/unit.rb'
 include SlingInterface
 include SlingUsers
@@ -24,7 +22,7 @@ class TC_MyFileTest_577 < Test::Unit::TestCase
   end
 
   def test_upload_file
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     @log.info("Creating user simon"+m)
     simon = create_user("simon"+m)
 
@@ -96,7 +94,7 @@ class TC_MyFileTest_577 < Test::Unit::TestCase
   end
 
   def old_functionality
-    m = Time.now.to_f.to_s.gsub('.', '');
+    m = Time.now.to_nsec
     @log.info("Creating user simon"+m)
     simon = create_user("simon"+m)
 

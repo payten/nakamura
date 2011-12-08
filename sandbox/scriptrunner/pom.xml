@@ -9,7 +9,6 @@
   <artifactId>org.sakaiproject.nakamura.scriptrunner</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: scriptrunner service</name>
-  <version>1.0.2</version>
   <description>This will run scripts</description>
   <build>
     <plugins>

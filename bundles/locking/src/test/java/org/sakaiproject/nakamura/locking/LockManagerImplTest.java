@@ -27,6 +27,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.locking.Lock;
+import org.sakaiproject.nakamura.api.locking.cache.LockImpl;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
@@ -47,8 +48,9 @@ public class LockManagerImplTest {
    */
   @Before
   public void setUp() throws Exception {
-    lockCache = new MapCacheImpl<Object>();
-    requestCache = new MapCacheImpl<Object>();
+    lockCache = new MapCacheImpl<Object>("testlocks",CacheScope.INSTANCE);
+    requestCache = new MapCacheImpl<Object>("testlocksRequest",CacheScope.INSTANCE);
+
 
     cacheManagerService = createMock(CacheManagerService.class);
     expect(

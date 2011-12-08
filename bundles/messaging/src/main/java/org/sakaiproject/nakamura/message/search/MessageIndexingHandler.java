@@ -43,6 +43,7 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
+import org.sakaiproject.nakamura.api.solr.QoSIndexHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
 import org.sakaiproject.nakamura.util.PathUtils;
@@ -60,12 +61,13 @@ import java.util.Set;
  * searching.
  */
 @Component(immediate = true)
-public class MessageIndexingHandler implements IndexingHandler {
+public class MessageIndexingHandler implements IndexingHandler, QoSIndexHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(MessageIndexingHandler.class);
 
   private static final Map<String, String> WHITELISTED_PROPS;
   static {
     Builder<String,String> propBuilder = ImmutableMap.builder();
+    propBuilder.put("sakai:messagestore", "messagestore");
     propBuilder.put("sakai:messagebox", "messagebox");
     propBuilder.put("sakai:type", "type");
     propBuilder.put(Content.CREATED_FIELD, Content.CREATED_FIELD);
@@ -109,12 +111,23 @@ public class MessageIndexingHandler implements IndexingHandler {
   /**
    * {@inheritDoc}
    *
+   * @see org.sakaiproject.nakamura.api.solr.QoSIndexHandler#getTtl(org.osgi.service.event.Event)
+   */
+  public int getTtl(Event event) {
+    // have to be > 0 based on the logic in ContentEventListener.
+    // see org.sakaiproject.nakamura.solr.Utils.defaultMax(int)
+    return 50;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
    * @see org.sakaiproject.nakamura.api.solr.IndexingHandler#getDocuments(org.sakaiproject.nakamura.api.solr.RepositorySession,
    *      org.osgi.service.event.Event)
    */
   public Collection<SolrInputDocument> getDocuments(RepositorySession repositorySession,
       Event event) {
-    String path = (String) event.getProperty(FIELD_PATH);
+    String path = (String) event.getProperty(IndexingHandler.FIELD_PATH);
 
     List<SolrInputDocument> documents = Lists.newArrayList();
     if (!StringUtils.isBlank(path)) {
@@ -132,14 +145,23 @@ public class MessageIndexingHandler implements IndexingHandler {
           SolrInputDocument doc = new SolrInputDocument();
           for (String prop : WHITELISTED_PROPS.keySet()) {
             Object value = content.getProperty(prop);
-            doc.addField(WHITELISTED_PROPS.get(prop), value);
+            if (value != null) {
+              doc.addField(WHITELISTED_PROPS.get(prop), value);
+            }
           }
-          doc.addField(_DOC_SOURCE_OBJECT, content);
+
+          //index sender's first and last name
+          AuthorizableManager am = session.getAuthorizableManager();
+          String senderAuthId = (String)content.getProperty("sakai:from");
+          Authorizable senderAuth = am.findAuthorizable(senderAuthId);
+          doc.addField("firstName", senderAuth.getProperty("firstName"));
+          doc.addField("lastName", senderAuth.getProperty("lastName"));
+
+          doc.addField(IndexingHandler._DOC_SOURCE_OBJECT, content);
           documents.add(doc);
 
           // index for user,group searching
           String authId = PathUtils.getAuthorizableId(content.getPath());
-          AuthorizableManager am = session.getAuthorizableManager();
           Authorizable auth = am.findAuthorizable(authId);
           if (auth == null) {
             LOGGER.warn("Unable to find auth (user,group) container for message [{}]; not indexing message for user,group searching", path);
@@ -153,13 +175,14 @@ public class MessageIndexingHandler implements IndexingHandler {
             } else {
               doc.setField("type", "u");
             }
-            doc.addField(_DOC_SOURCE_OBJECT, content);
+
+            doc.setField(IndexingHandler._DOC_SOURCE_OBJECT, content);
 
             // set the path here so that it's the first path found when rendering to the
             // client. the resource indexing service will add all nodes of the path and
             // we want this one to return first in the result processor.
-            doc.setField(FIELD_PATH, authId);
-            doc.addField(FIELD_ID, path + AUTH_SUFFIX);
+            doc.setField(IndexingHandler.FIELD_PATH, authId);
+            doc.setField(IndexingHandler.FIELD_ID, path + AUTH_SUFFIX);
 
             // set the return to a single value field so we can group it
             doc.setField("returnpath", authId);
@@ -186,7 +209,7 @@ public class MessageIndexingHandler implements IndexingHandler {
       Event event) {
     List<String> retval = Collections.emptyList();
     logger.debug("GetDelete for {} ", event);
-    String path = (String) event.getProperty(FIELD_PATH);
+    String path = (String) event.getProperty(IndexingHandler.FIELD_PATH);
     String resourceType = (String) event.getProperty("resourceType");
     if (CONTENT_TYPES.contains(resourceType)) {
       retval = ImmutableList.of("id:(" + ClientUtils.escapeQueryChars(path) + " OR "

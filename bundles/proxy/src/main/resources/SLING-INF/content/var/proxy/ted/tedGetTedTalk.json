@@ -1,0 +1,14 @@
+{
+    "sling:resourceType": "sakai/proxy",
+    "sakai:request-proxy-endpoint": "http://www.ted.com/talks/${talkId}",
+    "sakai:request-proxy-method": "GET",
+    "sakai:title": "TED talks",
+    "sakai:shortDescription": "Get the source code for a TED talk page",
+    "sakai:parameters" : [
+        {"name": "talkId", "description": "The Id of the talk"}
+    ],
+    "sakai:description" : ["Get the source code for a TED talk page"],
+    "sakai:response": [
+        "Gives back the source code for a TED talk page"
+    ]
+}

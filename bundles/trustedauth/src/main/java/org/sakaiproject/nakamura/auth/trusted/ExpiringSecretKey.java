@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.auth.trusted;
 
+import org.sakaiproject.nakamura.api.auth.trusted.ExpiringSecretKeyData;
+
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 

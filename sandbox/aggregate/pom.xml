@@ -9,7 +9,6 @@
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.aggregate</artifactId>
-  <version>1.0.2</version>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: Resoure Property Aggregator</name>
   <build>

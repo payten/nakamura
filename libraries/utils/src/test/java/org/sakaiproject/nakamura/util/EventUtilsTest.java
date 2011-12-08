@@ -76,4 +76,10 @@ public class EventUtilsTest {
 		  assertEquals(2, ((List<String>)cleanedHashProp.get("propArray")).size());
 	  }
 
+    @Test
+	  public void testSafeTopicElement() {
+		  assertEquals("12049_-app01_domain_com",EventUtils.safeTopicElement("12049/-app01.domain.com"));
+		  assertEquals("12049/-app01_domain_com",EventUtils.safeTopic("12049/-app01.domain.com"));
+	  }
+
 }

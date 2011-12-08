@@ -1,9 +1,7 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
+require 'nakamura/test'
 include SlingUsers
 
 class TC_Kern949Test < Test::Unit::TestCase
@@ -11,7 +9,7 @@ class TC_Kern949Test < Test::Unit::TestCase
 
   # test is moot because of KERN-1821
   def test_create_managers_group
-    # m = Time.now.to_f.to_s.gsub('.', '')
+    # m = Time.now.to_nsec
     # manager = create_user("user-manager-#{m}")
     # group = Group.new("g-test-#{m}")
     # @s.switch_user(User.admin_user())
@@ -36,7 +34,7 @@ class TC_Kern949Test < Test::Unit::TestCase
 
   # test is moot because of KERN-1821
   def test_update_managers_group
-    # m = Time.now.to_f.to_s.gsub('.', '')
+    # m = Time.now.to_nsec
     # manager = create_user("user-manager-#{m}")
     # other = create_user("user-other-#{m}")
     # group = Group.new("g-test-#{m}")
@@ -62,7 +60,7 @@ class TC_Kern949Test < Test::Unit::TestCase
   def Xtest_managers_group_contention
     # this test is no longer valid and so has been disabled.
 
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     manager = create_user("user-manager-#{m}")
     group = Group.new("g-test-#{m}")
     contentious = Group.new("g-test-#{m}-managers")

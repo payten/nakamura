@@ -2,12 +2,17 @@
   "sling:resourceType": "sakai/solr-search",
   "sakai:query-template": "resourceType:authorizable${_categoryAnd}",
   "sakai:query-template-options": {
-      "fq": "type:g AND resourceType:authorizable",
-      "sort": "${sortOn} ${sortOrder}"
+      "fq": ["type:g", "resourceType:authorizable"],
+      "sort": "${sortOn} ${sortOrder}",
+      "facet" : true,
+      "facet.field" : "tagname",
+      "facet.mincount" : 1
   },
-  "sortOn": "score",
-  "sortOrder": "desc",
-  "_categoryAnd": "",
+  "sakai:query-template-defaults": {
+    "sortOn": "score",
+    "sortOrder": "desc",
+    "_categoryAnd": ""
+  },
   "sakai:propertyprovider" : "CategoryPropertyProvider",
   "sakai:resultprocessor": "Profile",
   "sakai:title": "Groups - All",

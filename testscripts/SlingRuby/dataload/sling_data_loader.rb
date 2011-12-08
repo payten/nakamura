@@ -4,12 +4,11 @@ require 'optparse'
 require 'json'
 require 'digest/sha1'
 require 'net/http/post/multipart'
-require '../kerns/ruby-lib-dir.rb'
-require 'sling/sling'
-require 'sling/users'
-require 'sling/full_group_creator'
-require 'sling/file'
-require 'sling/contacts'
+require 'nakamura'
+require 'nakamura/users'
+require 'nakamura/full_group_creator'
+require 'nakamura/file'
+require 'nakamura/contacts'
 
 include SlingInterface
 include SlingUsers

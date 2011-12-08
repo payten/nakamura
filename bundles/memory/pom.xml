@@ -27,7 +27,6 @@
   </parent>
   <artifactId>org.sakaiproject.nakamura.memory</artifactId>
   <packaging>bundle</packaging>
-  <version>1.0.2</version>
   <name>Sakai Nakamura :: Memory Bundle</name>
   <description>Caching Support for Sakai Nakamura (uses Ehcache for underlying cache).</description>
   <build>
@@ -48,42 +47,70 @@
               WARNING, these had to be excluded from the imports to get the bundle to activate there
               may be classcast exceptions
             -->
-            <Import-Package>!sun.misc,!org.jgroups.*,!org.hibernate.cache,*
-            </Import-Package>
+            <Import-Package>!sun.misc,!org.jgroups.*,!org.hibernate.*,*</Import-Package>
             <Private-Package>org.sakaiproject.nakamura.memory.*</Private-Package>
-            <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
+            <DynamicImport-Package>*</DynamicImport-Package>
             <Embed-Transitive>true</Embed-Transitive>
-            <Embed-Dependency>ehcache,backport-util-concurrent,jsr107cache</Embed-Dependency>
+            <Embed-Dependency>ehcache-core,backport-util-concurrent,jsr107cache</Embed-Dependency>
           </instructions>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>embed-dependencies</id>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <includeArtifactIds>ehcache,backport-util-concurrent,jsr107cache</includeArtifactIds>
-              <excludeTransitive>false</excludeTransitive>
-              <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
+    <pluginManagement>
+      <plugins>
+        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>
+                      maven-scr-plugin
+                    </artifactId>
+                    <versionRange>
+                      [1.7.2,)
+                    </versionRange>
+                    <goals>
+                      <goal>scr</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore></ignore>
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <versionRange>[2.0,)</versionRange>
+                    <goals>
+                      <goal>copy-dependencies</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
   <dependencies>
-    <dependency>
-      <groupId>com.google.collections</groupId>
-      <artifactId>google-collections</artifactId>
-    </dependency>
+  <dependency>
+    <groupId>com.google.guava</groupId>
+    <artifactId>guava</artifactId>
+  </dependency>
     <dependency>
       <groupId>net.sf.ehcache</groupId>
-      <artifactId>ehcache</artifactId>
+      <artifactId>ehcache-core</artifactId>
     </dependency>
     <dependency>
       <groupId>backport-util-concurrent</groupId>
@@ -94,6 +121,10 @@
       <groupId>net.sf.jsr107cache</groupId>
       <artifactId>jsr107cache</artifactId>
       <version>1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.commons.osgi</artifactId>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>

@@ -114,7 +114,7 @@ public class CreateTreeOperation extends AbstractSlingPostOperation {
       while (keys.hasNext()) {
 
         String key = keys.next();
-        if (!key.startsWith("jcr:")) {
+        if (!JcrUtils.isJCRProperty(key)) {
           Object obj = json.get(key);
 
           if (obj instanceof JSONObject) {

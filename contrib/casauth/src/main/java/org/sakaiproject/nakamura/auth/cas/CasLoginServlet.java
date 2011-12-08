@@ -25,6 +25,13 @@ import org.apache.sling.api.auth.Authenticator;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.auth.core.spi.AuthenticationInfo;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +66,13 @@ public class CasLoginServlet extends SlingAllMethodsServlet {
   @Reference
   private TrustedTokenService trustedTokenService;
 
+  /**
+   * We cannot reliably obtain a Sparse Session from the request while authentication
+   * is underway, and so we need to obtain a Repository reference via OSGi.
+   */
+  @Reference
+  Repository repository;
+
   public CasLoginServlet() {
   }
 
@@ -74,15 +88,19 @@ public class CasLoginServlet extends SlingAllMethodsServlet {
     // Check for possible loop after authentication.
     // #1 just went through auth
     // #2 already passed auth
-    if (request.getAuthType() != null) {
-      AuthenticationInfo authnInfo = (AuthenticationInfo) request
-          .getAttribute(CasAuthenticationHandler.AUTHN_INFO);
-      if (authnInfo != null) {
-        CasAuthenticationTokenServiceWrapper tokenServiceWrapper = new CasAuthenticationTokenServiceWrapper(
-            this, trustedTokenService);
-        tokenServiceWrapper.addToken(request, response);
+    String authType = request.getAuthType();
+    if (authType != null) {
+      if (CasAuthenticationHandler.AUTH_TYPE.equals(authType)) {
+        // OAE-on-Sparse currently only respects authentication that maps to a Sparse-stored
+        // User record. If the externally-authenticated principal is not found, expect Bad Things.
+        if (isUserInLocalStorage(request)) {
+          CasAuthenticationTokenServiceWrapper tokenServiceWrapper = new CasAuthenticationTokenServiceWrapper(
+              this, trustedTokenService);
+          tokenServiceWrapper.addToken(request, response);
+        } else {
+          LOGGER.info("Unrecognized principal; authentication will be dropped");
+        }
       }
-
       String redirectTarget = getReturnPath(request);
       if ((redirectTarget == null) || request.getRequestURI().equals(redirectTarget)) {
         redirectTarget = request.getContextPath() + "/";
@@ -104,10 +122,6 @@ public class CasLoginServlet extends SlingAllMethodsServlet {
   /**
    * In imitation of sling.formauth, use the "resource" parameter to determine
    * where the browser should go after successful authentication.
-   * <p>
-   * TODO The "sling.auth.redirect" parameter seems to make more sense, but it
-   * currently causes a redirect to happen in SlingAuthenticator's
-   * getAnonymousResolver method before handlers get a chance to requestCredentials.
    *
    * @param request
    * @return the path to which the browser should be directed after successful
@@ -127,6 +141,36 @@ public class CasLoginServlet extends SlingAllMethodsServlet {
       }
     }
     return returnPath;
+  }
+
+  boolean isUserInLocalStorage(SlingHttpServletRequest request) {
+    boolean isLocal = false;
+    AuthenticationInfo authnInfo = (AuthenticationInfo) request.getAttribute(CasAuthenticationHandler.AUTHN_INFO);
+    String userId = authnInfo.getUser();
+    Session adminSession = null;
+    try {
+      adminSession = repository.loginAdministrative();
+      AuthorizableManager authMgr = adminSession.getAuthorizableManager();
+      Authorizable authorizable = authMgr.findAuthorizable(userId);
+      if (authorizable != null) {
+        isLocal = true;
+      } else {
+        LOGGER.info("Authenticated principal {} does not exist in OAE storage", userId);
+      }
+    } catch (StorageClientException e) {
+      LOGGER.warn(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      LOGGER.warn(e.getMessage(), e);
+    } finally {
+      if (adminSession != null) {
+        try {
+          adminSession.logout();
+        } catch (ClientPoolException e) {
+          LOGGER.warn(e.getMessage(), e);
+        }
+      }
+    }
+    return isLocal;
   }
 
 }

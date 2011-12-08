@@ -3,8 +3,10 @@
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
-  "sortOn": "_created",
-  "sortOrder": "asc",
+  "sakai:query-template-defaults": {
+    "sortOn": "_created",
+    "sortOrder": "asc"
+  },
   "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider": "Comment",
   "sakai:resultprocessor": "Comment",

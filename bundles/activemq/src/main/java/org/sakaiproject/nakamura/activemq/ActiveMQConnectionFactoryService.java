@@ -22,7 +22,7 @@ import org.apache.activemq.pool.PooledConnectionFactory;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
 
@@ -49,7 +49,7 @@ public class ActiveMQConnectionFactoryService implements ConnectionFactoryServic
   @SuppressWarnings("unchecked")
   protected void activate(ComponentContext componentContext) {
     Dictionary<String, Object> props = componentContext.getProperties();
-    String brokerURL = OsgiUtil.toString(props.get(BROKER_URL), "vm://localhost:61616");
+    String brokerURL = PropertiesUtil.toString(props.get(BROKER_URL), "vm://localhost:61616");
     defaultConnectionFactory = new ActiveMQConnectionFactory(brokerURL);
     pooledConnectionFactory = new PooledConnectionFactory(brokerURL);
     pooledConnectionFactory.start();

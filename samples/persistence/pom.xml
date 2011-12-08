@@ -26,7 +26,6 @@
   </parent>
   <artifactId>org.sakaiproject.nakamura.persistence</artifactId>
   <packaging>bundle</packaging>
-  <version>1.0.2</version>
   <name>Sakai Nakamura :: Database Bundle</name>
   <description>Adds database support, JPA implementation clearance, JTA support and Datasources</description>
   <repositories>
@@ -165,11 +164,10 @@ xstream
       <version>1.1.0</version>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>com.google.collections</groupId>
-      <artifactId>google-collections</artifactId>
-      <scope>provided</scope>
-    </dependency>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+      </dependency>
     <dependency>
       <groupId>commons-dbcp</groupId>
       <artifactId>commons-dbcp</artifactId>

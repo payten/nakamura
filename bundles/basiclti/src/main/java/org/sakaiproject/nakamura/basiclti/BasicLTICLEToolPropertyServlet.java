@@ -53,7 +53,7 @@ public class BasicLTICLEToolPropertyServlet extends SlingSafeMethodsServlet {
     ExtendedJSONWriter ejw = new ExtendedJSONWriter(response.getWriter());
     try {
       ejw.object();
-      ejw.key("toolList").value(virtualToolDataProvider.getSupportedVirtualToolIds());
+      ejw.key("toolList").value(virtualToolDataProvider.getSupportedVirtualToolIds().toArray());
       ejw.endObject();
     } catch (JSONException e) {
       final Writer trace = new StringWriter();

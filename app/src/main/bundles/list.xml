@@ -1,10 +1,12 @@
 <?xml version="1.0"?>
+<!-- The Sling bundle entries are based on the entries found in the -->
+<!-- Sling source at launchpad/builder/src/main/bundles/list.xml    -->
 <bundles>
     <startLevel level="0">
         <bundle>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>1.4</version>
+            <version>2.1</version>
         </bundle>
         <bundle>
             <groupId>commons-fileupload</groupId>
@@ -19,17 +21,17 @@
         <bundle>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
-            <version>2.5</version>
+            <version>2.6</version>
         </bundle>
         <bundle>
           <groupId>commons-pool</groupId>
           <artifactId>commons-pool</artifactId>
-          <version>1.5.5</version>
+          <version>1.5.6</version>
         </bundle>
         <bundle>
           <groupId>commons-codec</groupId>
           <artifactId>commons-codec</artifactId>
-          <version>1.4</version>
+          <version>1.5</version>
         </bundle>
         <bundle>
           <groupId>org.apache.commons</groupId>
@@ -39,7 +41,7 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.commons.osgi</artifactId>
-            <version>2.0.6</version>
+            <version>2.1.0</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
@@ -49,29 +51,34 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.commons.classloader</artifactId>
-            <version>1.2.0</version>
+            <version>1.2.2</version>
+        </bundle>
+        <bundle>
+            <groupId>org.apache.sling</groupId>
+            <artifactId>org.apache.sling.commons.scheduler</artifactId>
+            <version>2.3.0</version>
         </bundle>
 
         <!-- Dependencies for Default Start Level -->
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.api</artifactId>
-            <version>2.1.0</version>
+            <version>2.2.2</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.settings</artifactId>
-            <version>1.0.0</version>
-        </bundle>
-        <bundle>
-            <groupId>org.apache.sling</groupId>
-            <artifactId>org.apache.sling.auth.core</artifactId>
             <version>1.0.2</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
+            <artifactId>org.apache.sling.auth.core</artifactId>
+            <version>1.0.6</version>
+        </bundle>
+        <bundle>
+            <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.engine</artifactId>
-            <version>2.1.0</version>
+            <version>2.2.4</version>
         </bundle>
 <!-- 
 OpenID contains some cookie handling bugs, removing it for the moment
@@ -85,17 +92,22 @@ KERN-1187
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.adapter</artifactId>
-            <version>2.0.6</version>
+            <version>2.0.8</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.servlets.resolver</artifactId>
-            <version>2.0.9-20100823</version>
+            <version>2.1.0</version>
+        </bundle>
+        <bundle>
+            <groupId>org.apache.sling</groupId>
+            <artifactId>org.apache.sling.servlets.get</artifactId>
+            <version>2.1.2</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.servlets.post</artifactId>
-            <version>2.0.5-20101012</version>
+            <version>2.1.0</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
@@ -105,7 +117,7 @@ KERN-1187
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.resource</artifactId>
-            <version>2.0.7-20100823</version>
+            <version>2.0.10</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
@@ -115,87 +127,116 @@ KERN-1187
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.classloader</artifactId>
-            <version>3.1.2</version>
+            <version>3.1.4</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.bundleresource.impl</artifactId>
-            <version>2.0.4-incubator</version>
+            <version>2.0.6</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.fsresource</artifactId>
-            <version>1.0.1-20100823</version>
+            <version>1.0.2</version>
         </bundle>
 
         <!-- Launchpad initial content -->
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.launchpad.content</artifactId>
-            <version>2.0.5-20100823</version>
+            <version>2.0.6</version>
         </bundle>
 
         <!-- scripting -->
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.scripting.api</artifactId>
-            <version>2.1.0</version>
+            <version>2.1.2</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.scripting.core</artifactId>
-            <version>2.0.11-20100823</version>
+            <version>2.0.18</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.scripting.javascript</artifactId>
-            <version>2.0.6</version>
+            <version>2.0.12</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.scripting.jsp</artifactId>
-            <version>2.0.9-20100823</version>
+            <version>2.0.18</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.scripting.jsp.taglib</artifactId>
-            <version>2.0.7-20100823</version>
+            <version>2.1.2</version>
         </bundle>
         <bundle>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
-            <version>1.7.4</version>
+            <version>1.8.3</version>
         </bundle>
+<!--
+    <bundle>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.scripting.python</artifactId>
+      <version>2.0.3-SNAPSHOT</version>
+    </bundle>
+    <bundle>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.scripting.ruby</artifactId>
+      <version>2.0.0-SNAPSHOT</version>
+    </bundle>
+-->
 
         <!-- felix httpservice whiteboard -->
         <bundle>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.http.whiteboard</artifactId>
-            <version>2.0.4</version>
+            <version>2.2.0</version>
         </bundle>
 
         <bundle>
             <groupId>org.apache.aries.jmx</groupId>
             <artifactId>org.apache.aries.jmx.api</artifactId>
-            <version>0.1-incubating</version>
+            <version>0.3</version>
         </bundle>
         <bundle>
             <groupId>org.apache.aries.jmx</groupId>
             <artifactId>org.apache.aries.jmx.core</artifactId>
-            <version>0.1-incubating</version>
+            <version>0.3</version>
+        </bundle>
+        <bundle>
+            <groupId>org.apache.aries.jmx</groupId>
+            <artifactId>org.apache.aries.jmx.whiteboard</artifactId>
+            <version>0.3</version>
+        </bundle>
+        <bundle>
+            <groupId>org.apache.aries</groupId>
+            <artifactId>org.apache.aries.util</artifactId>
+            <version>0.3</version>
         </bundle>
     </startLevel>
     <startLevel level="1">
-       <!-- moved becuase of dependency on resource in redirect.snd KERN-660 -->
+        <!--
+        These can be used to separate api from impl but commons.log will need to make a release first
         <bundle>
-            <groupId>org.apache.sling</groupId>
-            <artifactId>org.apache.sling.servlets.get</artifactId>
-            <version>2.0.9-20100823</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.6.1</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.commons.log</artifactId>
-            <version>2.0.7-20100823</version>
+            <version>2.1.3-SNAPSHOT</version>
+        </bundle>
+        -->
+        <bundle>
+            <groupId>org.apache.sling</groupId>
+            <artifactId>org.apache.sling.commons.log</artifactId>
+            <version>2.1.2</version>
         </bundle>
     </startLevel>
     <startLevel level="5">
@@ -212,7 +253,7 @@ KERN-1187
         <bundle>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.webconsole</artifactId>
-            <version>3.1.2</version>
+            <version>3.1.8</version>
         </bundle>
         <bundle>
             <groupId>org.apache.felix</groupId>
@@ -227,7 +268,7 @@ KERN-1187
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.commons.json</artifactId>
-            <version>2.0.5-20110812</version>
+            <version>2.0.6</version>
         </bundle>
         <bundle>
             <groupId>org.apache.felix</groupId>
@@ -242,7 +283,7 @@ KERN-1187
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.webconsole</artifactId>
-            <version>1.0.0-20100823</version>
+            <version>1.0.0</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
@@ -255,7 +296,7 @@ KERN-1187
         <bundle>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.eventadmin</artifactId>
-            <version>1.2.2</version>
+            <version>1.2.14</version>
         </bundle>
         <bundle>
             <groupId>org.apache.felix</groupId>
@@ -265,7 +306,7 @@ KERN-1187
         <bundle>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.configadmin</artifactId>
-            <version>1.2.4</version>
+            <version>1.2.8</version>
         </bundle>
         <bundle>
             <groupId>org.apache.felix</groupId>
@@ -298,17 +339,12 @@ KERN-1187
         <bundle>
             <groupId>org.apache.derby</groupId>
             <artifactId>derby</artifactId>
-            <version>10.5.3.0_1</version>
-        </bundle>
-        <bundle>
-            <groupId>org.sakaiproject.nakamura</groupId>
-    	    <artifactId>org.sakaiproject.nakamura.tika</artifactId>
-            <version>0.9-1.0.2</version>
+            <version>10.8.2.2</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.jackrabbit.accessmanager</artifactId>
-            <version>2.0.5-20100823</version>
+            <version>2.1.0</version>
         </bundle>
         <bundle>
             <groupId>org.apache.jackrabbit</groupId>
@@ -334,33 +370,40 @@ KERN-1187
 <!-- End of Sling Bundles -->
 
 <!-- Start of Sakai Bundles, add new Sakai bundles below this point at the appropriate run level  -->
-
    <startLevel level="1">
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.google-collections</artifactId>
-      <version>0.8-1.0.2</version>
+      <artifactId>org.sakaiproject.nakamura.core</artifactId>
+      <version>1.3</version>
+    </bundle>
+    <bundle>
+      <groupId>com.googlecode.guava-osgi</groupId>
+      <artifactId>guava-osgi</artifactId>
+      <version>10.0.0</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>javax.activation-mail</artifactId>
-      <version>1.1.1-1.4.2-1.0.2</version>
+      <version>1.1.1.1.4.2-1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.woodstox</artifactId>
-      <version>4.0.7-1.0.2</version>
+      <version>4.0.7.1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>javax.xml.bind</groupId>
       <artifactId>jaxb-api-osgi</artifactId>
-      <version>2.2.1</version>
+      <version>2.2.5</version>
     </bundle>
+    <!--
+    Java 6 contains a reference implementation of JAXP
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.jaxp-api</artifactId>
       <version>1.3.0</version>
     </bundle>
+    -->
     <bundle>
       <groupId>org.apache.geronimo.specs</groupId>
       <artifactId>geronimo-ejb_3.0_spec</artifactId>
@@ -389,8 +432,15 @@ KERN-1187
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.activemq</artifactId>
-      <version>5.3.0-1.0.2</version>
+      <version>5.3.0.1.1-SNAPSHOT</version>
     </bundle>
+   </startLevel>
+   <startLevel level="5">
+     <bundle>
+       <groupId>org.sakaiproject.nakamura</groupId>
+       <artifactId>org.sakaiproject.nakamura.webconsole.solr</artifactId>
+       <version>1.1-SNAPSHOT</version>
+     </bundle>
    </startLevel>
    <startLevel level="10" >
     <bundle>
@@ -418,12 +468,12 @@ KERN-1187
     <bundle>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.commons.threads</artifactId>
-      <version>3.0.2</version>
+      <version>3.1.0</version>
     </bundle>
     <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.commons.commons-httpclient</artifactId>
-      <version>3.1-1.0.2</version>
+      <groupId>org.apache.servicemix.bundles</groupId>
+      <artifactId>org.apache.servicemix.bundles.commons-httpclient</artifactId>
+      <version>3.1_6</version>
     </bundle>
    </startLevel>
    <startLevel level="12" >
@@ -448,31 +498,26 @@ KERN-1187
       <version>1.0.2</version>
     </bundle>
     <bundle>
-      <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.commons.scheduler</artifactId>
-      <version>2.2.0</version>
-    </bundle>
-    <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.doc</artifactId>
       <version>1.0.2</version>
     </bundle>
    </startLevel>
    <startLevel level="15" >
-        <bundle>
-            <groupId>org.sakaiproject.nakamura</groupId>
-            <artifactId>org.sakaiproject.nakamura.core</artifactId>
-            <version>1.1-20111013</version>
-        </bundle>
-        <bundle>
-            <groupId>org.sakaiproject.nakamura</groupId>
-            <artifactId>org.sakaiproject.nakamura.solr</artifactId>
-            <version>1.0.2</version>
-        </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.solr</artifactId>
+      <version>1.3-20111205</version>
+    </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.tika</artifactId>
+      <version>0.9.1.1-SNAPSHOT</version>
+    </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
-      <version>2.1.0-1.0.2</version>
+      <version>2.1.0.1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
@@ -553,7 +598,7 @@ KERN-1187
     </bundle>
    </startLevel>
    <startLevel level="30" >
-  <bundle>
+    <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.personal</artifactId>
       <version>1.0.2</version>
@@ -565,31 +610,24 @@ KERN-1187
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.files</artifactId>
-      <version>1.0.2</version>
+      <artifactId>org.sakaiproject.nakamura.files.api</artifactId>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.search</artifactId>
-      <version>1.0.2</version>
-    </bundle>
-<!--
-    <bundle>
-      <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.fsresource</artifactId>
-      <version>0.9.3-sNAPSHOT</version>
+      <artifactId>org.sakaiproject.nakamura.files.impl</artifactId>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
-      <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.scripting.python</artifactId>
-      <version>2.0.3-sNAPSHOT</version>
-    </bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.search.api</artifactId>
+      <version>1.1-SNAPSHOT</version>
+    </bundle>    
     <bundle>
-      <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.scripting.ruby</artifactId>
-      <version>2.0.0-sNAPSHOT</version>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.search.impl</artifactId>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
--->
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.smtp</artifactId>
@@ -617,8 +655,13 @@ KERN-1187
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.profile</artifactId>
-      <version>1.0.2</version>
+      <artifactId>org.sakaiproject.nakamura.profile.api</artifactId>
+      <version>1.1-SNAPSHOT</version>
+    </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.profile.impl</artifactId>
+      <version>1.1-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
@@ -686,5 +729,20 @@ KERN-1187
       <version>1.0.2</version>
     </bundle>
     
-  </startLevel>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.upgrade</artifactId>
+      <version>1.1-SNAPSHOT</version>
+    </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.lom</artifactId>
+      <version>1.1-SNAPSHOT</version>
+    </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.content-packaging</artifactId>
+      <version>1.1-SNAPSHOT</version>
+    </bundle>
+   </startLevel>
 </bundles>

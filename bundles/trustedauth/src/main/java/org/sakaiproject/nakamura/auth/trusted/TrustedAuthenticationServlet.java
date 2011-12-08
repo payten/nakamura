@@ -22,7 +22,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.HttpService;
@@ -80,7 +80,7 @@ import javax.servlet.http.HttpServletResponse;
   methods = {
     @ServiceMethod(name = "GET", description = "",
       parameters = {
-        @ServiceParameter(name = "d", description = "The destination path to be redirected to after saving the authentication token.")
+        @ServiceParameter(name = "url", description = "The destination path to be redirected to after saving the authentication token.")
       },
       response = {
         @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
@@ -97,7 +97,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
   private static final long serialVersionUID = 4265672306115024805L;
 
   
-  private static final String PARAM_DESTINATION = "d";
+  private static final String PARAM_DESTINATION = "url";
 
   @Property(value = "Trusted Authentication Servlet", propertyPrivate = true)
   static final String DESCRIPTION_PROPERTY = "service.description";
@@ -148,9 +148,9 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
   @Activate
   protected void activate(ComponentContext context) {
     Dictionary props = context.getProperties();
-    noUserRedirectLocationFormat = OsgiUtil.toString(props.get(NO_USER_REDIRECT_LOCATION_FORMAT), DEFAULT_NO_USER_REDIRECT_FORMAT);
-    registrationPath = OsgiUtil.toString(props.get(REGISTRATION_PATH), "/system/trustedauth");
-    defaultDestination = OsgiUtil.toString(props.get(DEFAULT_DESTINATION), "/dev");
+    noUserRedirectLocationFormat = PropertiesUtil.toString(props.get(NO_USER_REDIRECT_LOCATION_FORMAT), DEFAULT_NO_USER_REDIRECT_FORMAT);
+    registrationPath = PropertiesUtil.toString(props.get(REGISTRATION_PATH), "/system/trustedauth");
+    defaultDestination = PropertiesUtil.toString(props.get(DEFAULT_DESTINATION), "/dev");
     try {
       httpService.registerServlet(registrationPath, this, null, null);
       LOGGER.info("Registered {} at {} ",this,registrationPath);

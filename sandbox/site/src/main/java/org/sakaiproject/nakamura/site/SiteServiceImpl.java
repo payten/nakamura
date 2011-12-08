@@ -1054,7 +1054,7 @@ public class SiteServiceImpl implements SiteService {
       // TODO do better check
       if (n.isNode()
           && !n.getName().startsWith("rep:")
-          && !n.getName().startsWith("jcr:")
+          && !JcrUtils.isJCRProperty(n.getName())
           && n.hasProperties()
           && !n.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(
               JcrConstants.NT_RESOURCE)) {

@@ -194,7 +194,7 @@ public class ExtendedJSONWriter extends JSONWriter {
    *          The object to write out.
    * @param collapseArray
    *          Whether the output should be collapsed to a single value if (object instance
-   *          Object[] && object.length == 1)
+   *          Object[] && object.length <= 1)
    * @return <code>this</code> for continued writing
    * @throws JSONException
    */
@@ -209,6 +209,13 @@ public class ExtendedJSONWriter extends JSONWriter {
           for ( Object o : oarray) {
             value(o);
           }
+          endArray();
+        }
+      } else {
+        if (collapseArray) {
+          value("");
+        } else {
+          array();
           endArray();
         }
       }

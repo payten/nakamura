@@ -3,12 +3,15 @@
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
-  "_from": "",
-  "sortOn": "_created",
-  "sortOrder": "desc",
+  "sakai:query-template-defaults": {
+    "_from": "",
+    "sortOn": "_created",
+    "sortOrder": "desc"
+  },
   "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "ChatMessage",
   "sakai:resultprocessor": "Message",
+  "sakai:searchresponsedecorator":"Message",
   "sakai:title": "Messaging - User - Chat - All.",
   "sakai:shortDescription": "Get all the chat messages in your message store",
   "sakai:parameters" : [

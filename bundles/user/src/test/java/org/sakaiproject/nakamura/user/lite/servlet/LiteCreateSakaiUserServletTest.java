@@ -44,6 +44,8 @@ import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.SessionAdaptable;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessService;
+import org.sakaiproject.nakamura.api.user.UserFinder;
 import org.sakaiproject.nakamura.user.lite.resource.RepositoryHelper;
 
 import java.io.IOException;
@@ -52,6 +54,7 @@ import java.util.List;
 import java.util.Vector;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class LiteCreateSakaiUserServletTest  {
 
@@ -61,6 +64,12 @@ public class LiteCreateSakaiUserServletTest  {
   
   @Mock
   private ResourceResolver resourceResolver;
+  
+  @Mock
+  private LiteAuthorizablePostProcessService liteAuthorizablePostProcessService;
+  
+  @Mock
+  private UserFinder userFinder;
 
   private Repository repository;
   
@@ -83,7 +92,6 @@ public class LiteCreateSakaiUserServletTest  {
     Mockito.when(resourceResolver.adaptTo(javax.jcr.Session.class)).thenReturn(jcrSession);
     when(request.getRemoteUser()).thenReturn("ieb");
     when(request.getResourceResolver()).thenReturn(resourceResolver);
-
     requestTrustValidatorService = new RequestTrustValidatorService() {
 
       public RequestTrustValidator getValidator(String name) {
@@ -109,7 +117,8 @@ public class LiteCreateSakaiUserServletTest  {
     when(componentContext.getProperties()).thenReturn(props);
     servlet.activate(componentContext);
     servlet.requestTrustValidatorService = requestTrustValidatorService;
-
+    servlet.postProcessorService = liteAuthorizablePostProcessService;
+    servlet.userFinder = userFinder;
   }
 
   @Test
@@ -173,7 +182,7 @@ public class LiteCreateSakaiUserServletTest  {
   
   
   @Test
-  public void testRequestTrusted() throws AccessDeniedException, StorageClientException  {
+  public void testRequestTrusted() throws Exception  {
 
     
     when(request.getParameter(":create-auth")).thenReturn("typeA");
@@ -212,11 +221,65 @@ public class LiteCreateSakaiUserServletTest  {
     when(request.getParameterValues(SlingPostConstants.RP_NODE_NAME)).thenReturn(new String[]{"foo"});
     when(request.getParameterValues("pwd")).thenReturn(new String[] {"bar"});
     when(request.getParameterValues("pwdConfirm")).thenReturn(new String[] {"bar"});
-
+    when(userFinder.userExists("foo")).thenReturn(false);
 
     HtmlResponse response = new HtmlResponse();
 
     List<Modification> changes = Lists.newArrayList();
-      servlet.handleOperation(request, response, changes);
+    servlet.handleOperation(request, response, changes);
+    int responseCode = response.getStatusCode();
+    assertEquals("if user does not already xist, expected response code"
+        + HttpServletResponse.SC_CREATED, HttpServletResponse.SC_CREATED, responseCode);
+  }
+  
+  @Test
+  public void testUserExists() throws Exception  {
+    when(request.getParameter(":create-auth")).thenReturn("typeA");
+    servlet.repository = repository;
+    servlet.eventAdmin = Mockito.mock(EventAdmin.class);
+    servlet.requestTrustValidatorService = new RequestTrustValidatorService() {
+      
+      public RequestTrustValidator getValidator(String name) {
+        if ( "typeA".equals(name)) {
+          return new RequestTrustValidator() {
+            
+            public boolean isTrusted(HttpServletRequest request) {
+              return true;
+            }
+            
+            public int getLevel() {
+              return CREATE_USER;
+            }
+          };
+        }
+        return null;
+      }
+    };
+    
+    when(request.getParameter(SlingPostConstants.RP_NODE_NAME)).thenReturn("foo");
+    when(request.getParameter("pwd")).thenReturn("bar");
+    when(request.getParameter("pwdConfirm")).thenReturn("bar");
+    Vector<String> paramNames= new Vector<String>();
+    paramNames.add(SlingPostConstants.RP_NODE_NAME);
+    paramNames.add("pwd");
+    paramNames.add("pwdConfirm");
+    when(request.getParameterNames()).thenReturn(paramNames.elements());
+    
+    RequestParameterMap requestParameterMap = Mockito.mock(RequestParameterMap.class);
+    when(request.getRequestParameterMap()).thenReturn(requestParameterMap);
+    when(request.getParameterValues(SlingPostConstants.RP_NODE_NAME)).thenReturn(new String[]{"foo"});
+    when(request.getParameterValues("pwd")).thenReturn(new String[] {"bar"});
+    when(request.getParameterValues("pwdConfirm")).thenReturn(new String[] {"bar"});
+    when(userFinder.userExists("foo")).thenReturn(true);
+
+    HtmlResponse response = new HtmlResponse();
+
+    List<Modification> changes = Lists.newArrayList();
+    servlet.handleOperation(request, response, changes);
+
+    int responseCode = response.getStatusCode();
+    assertEquals("if user already exists, expected response code"
+        + HttpServletResponse.SC_BAD_REQUEST, HttpServletResponse.SC_BAD_REQUEST,
+        responseCode);
   }
 }

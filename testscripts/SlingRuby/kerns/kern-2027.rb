@@ -1,11 +1,9 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
-require 'sling/file'
-require 'sling/users'
+require 'nakamura/test'
+require 'nakamura/file'
+require 'nakamura/users'
 include SlingUsers
 
 class TC_Kern2027Test < Test::Unit::TestCase
@@ -18,7 +16,7 @@ class TC_Kern2027Test < Test::Unit::TestCase
     @s.switch_user(u1)
 
     # have user1 create a group
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     groupid = "testgroup-#{m}"
     group = create_group(groupid)
 

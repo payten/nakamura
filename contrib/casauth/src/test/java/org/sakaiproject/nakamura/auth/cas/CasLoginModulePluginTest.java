@@ -51,12 +51,6 @@ public class CasLoginModulePluginTest {
   }
 
   @Test
-  public void coverageBooster() throws Exception {
-    plugin.addPrincipals(null);
-    plugin.doInit(null, null, null);
-  }
-
-  @Test
   public void testCanHandleSsoCredentials() throws RepositoryException {
     assertTrue(plugin.canHandle(credentials));
   }

@@ -1,11 +1,9 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
-require 'sling/file'
-require 'sling/users'
+require 'nakamura/test'
+require 'nakamura/file'
+require 'nakamura/users'
 require 'test/unit.rb'
 include SlingUsers
 
@@ -13,7 +11,7 @@ class TC_Kern2034Test < Test::Unit::TestCase
   include SlingTest
 
   def test_explict_anonymous_viewer
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     @s.switch_user(User.admin_user)
     groupid = "testgroup-#{m}"
     group = create_group(groupid)

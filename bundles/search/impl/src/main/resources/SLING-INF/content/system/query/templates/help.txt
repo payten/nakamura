@@ -1,0 +1,24 @@
+/system/query
+
+Query the Solr index that is available to this server. All Solr options are possible by passing the option as a request parameter.
+
+Usage:
+
+    /system/query?q=query[&option=value[&option=value...]]
+
+Options:
+
+    q
+        Query to run
+
+    fq
+        Filter query to apply to the results
+
+    indent
+        Whether to indent output. Any value is valid.
+
+    addReaders
+        Whether to filter the results by adding an appropriate readers:(..) clause for the logged in user. Any value is valid.
+
+    asAnon
+        Whether to filter the results to show only document visible to anonymous users. Any value is valid.

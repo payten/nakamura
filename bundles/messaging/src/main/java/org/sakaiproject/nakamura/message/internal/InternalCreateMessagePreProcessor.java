@@ -22,7 +22,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.sakaiproject.nakamura.api.message.CreateMessagePreProcessor;
+import org.sakaiproject.nakamura.api.message.LiteCreateMessagePreProcessor;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 
@@ -38,7 +38,7 @@ import javax.servlet.http.HttpServletResponse;
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Checks if the user is allowed to create a message of type internal."),
     @Property(name = "sakai.message.createpreprocessor", value = "internal") })
-public class InternalCreateMessagePreProcessor implements CreateMessagePreProcessor {
+public class InternalCreateMessagePreProcessor implements LiteCreateMessagePreProcessor {
 
   // Constructor so we can use this anywhere else but not trough src.
   // We do this because it is the default preprocessor.

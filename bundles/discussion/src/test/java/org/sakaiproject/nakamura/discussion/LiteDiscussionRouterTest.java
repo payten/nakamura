@@ -21,6 +21,8 @@ import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -31,6 +33,8 @@ import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
+import org.sakaiproject.nakamura.api.message.MessageRoute;
+import org.sakaiproject.nakamura.api.message.MessageRoutes;
 
 /**
  *
@@ -75,4 +79,7 @@ public class LiteDiscussionRouterTest {
         + routing.get(0).getRcpt());
   }
 
+  class MockMessageRoutes extends ArrayList<MessageRoute> implements MessageRoutes {
+    private static final long serialVersionUID = 6908624167365901970L;
+  }
 }

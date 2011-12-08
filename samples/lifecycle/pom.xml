@@ -26,7 +26,6 @@
   </parent>
   <artifactId>org.sakaiproject.nakamura.lifecycle</artifactId>
   <packaging>bundle</packaging>
-  <version>1.0.2</version>
   <name>Sakai Nakamura :: Initialization Bundle</name>
   <description>Provides lifecycle support to Sakai Nakamura bundles outside OSGi.</description>
   <build>

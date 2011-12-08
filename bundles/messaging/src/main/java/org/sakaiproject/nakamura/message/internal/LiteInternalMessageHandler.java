@@ -48,7 +48,6 @@ import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
-import org.sakaiproject.nakamura.api.message.MessageTransport;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
@@ -113,7 +112,7 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
       List<String> recipients = new ArrayList<String>();
       AuthorizableManager authorizableManager = session.getAuthorizableManager();
       for (MessageRoute route : routes) {
-        if (MessageTransport.INTERNAL_TRANSPORT.equals(route.getTransport())) {
+        if (LiteMessageTransport.INTERNAL_TRANSPORT.equals(route.getTransport())) {
           String recipient = route.getRcpt();
           LOG.info("Started handling a message for delivery to {} ", recipient );
           // the path were we want to save messages in.

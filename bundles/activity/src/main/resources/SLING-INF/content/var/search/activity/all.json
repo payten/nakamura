@@ -3,8 +3,10 @@
   "sakai:query-template-options": {
       "sort": "_created desc"
   },
-  "sortOn": "_created",
-  "sortOrder": "desc",
+  "sakai:query-template-defaults": {
+    "sortOn": "_created",
+    "sortOrder": "desc"
+  },
   "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider": "Activity",
   "sakai:resultprocessor": "AllActivities",

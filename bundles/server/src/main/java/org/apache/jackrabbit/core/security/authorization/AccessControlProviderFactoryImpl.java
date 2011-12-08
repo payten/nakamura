@@ -19,7 +19,6 @@ package org.apache.jackrabbit.core.security.authorization;
 import org.apache.jackrabbit.core.config.BeanConfig;
 import org.apache.jackrabbit.core.config.WorkspaceSecurityConfig;
 import org.apache.jackrabbit.core.security.authorization.acl.ACLProvider;
-import org.apache.jackrabbit.core.security.user.UserAccessControlProvider;
 import org.apache.jackrabbit.core.SessionImpl;
 import org.apache.jackrabbit.core.RepositoryImpl;
 import org.sakaiproject.nakamura.lite.jackrabbit.SparseUserAccessControlProvider;

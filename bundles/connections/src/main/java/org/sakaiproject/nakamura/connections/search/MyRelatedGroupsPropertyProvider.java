@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.connections.search;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -25,13 +24,9 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
-import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchUtil;
-import org.sakaiproject.nakamura.api.search.solr.Query;
-import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
-import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,13 +84,13 @@ public class MyRelatedGroupsPropertyProvider implements SolrSearchPropertyProvid
                                          "fl", "*,score",
                                          "rows", "10",
                                          "mlt", "true",
-                                         "mlt.fl", "type,readers,title,name,taguuid",
+                                         "mlt.fl", "type,readers,title,name,tagname",
                                          "mlt.count", "10",
                                          "mlt.maxntp", "0",
                                          "mlt.mintf", "1",
                                          "mlt.mindf", "1",
                                          "mlt.boost", "true",
-                                         "mlt.qf", "type^100 readers^3 name^2 taguuid^1 title^1");
+                                         "mlt.qf", "type^100 readers^3 name^2 tagname^1 title^1");
 
       if (suggestedIds != null) {
         propertiesMap.put("_groupQuery",

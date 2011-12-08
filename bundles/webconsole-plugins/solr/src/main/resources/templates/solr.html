@@ -1,0 +1,39 @@
+<!-- status line for index information -->
+<div class='statline'>${label_total_solr_docs}: ${total_solr_docs}</div>
+
+<!-- header with reindexing options -->
+<div class='ui-widget-header ui-corner-top buttonGroup'>
+  <form action='solr' method='post'>
+    <label>${label_entity_reindex}:</label>
+    <select id='type' name='type'>
+      <option value='auth'>${label_authorizables}</option>
+      <option value='content'>${label_content}</option>
+      <option value='all'>${label_all}</option>
+    </select>
+    <input type='submit' class='reloadButton ui-state-default ui-corner-all' style='min-width: 8em;' value='Reindex'/>
+  </form>
+</div>
+<div class='ui-widget-header ui-corner-bottom'></div>
+
+<br/>
+
+<!-- query form -->
+<div class='ui-widget-header ui-corner-top buttonGroup'>${label_query}</div>
+<form name='queryForm' method='post' action='solr#output'>
+  <table>
+    <tr><td>${label_query}:</td><td><textarea id='q' name='q' style='width:30em;height:10em'>${q}</textarea></td></tr>
+    <tr><td>${label_filter_query}:</td><td><input id='fq' name='fq' value='${fq}'/></td></tr>
+    <tr><td>${label_field_list}:</td><td><input id='fl' name='fl' value='${fl}'/></td></tr>
+    <tr><td>${label_sort}:</td><td><input id='sort' name='sort' value='${sort}'/></td></tr>
+    <tr><td>${label_start}:</td><td><input id='start' name='start' value='${start}'/></td></tr>
+    <tr><td>${label_rows}:</td><td><input id='rows' name='rows' size='3' value='${rows}'/></td></tr>
+    <tr><td colspan='2'><div class='statline'>${msg_no_readers}</div></td></tr>
+    <tr><td colspan='2'><input type='checkbox' id='indent' name='indent' value='1' ${indent}/> <label for='indent'>${label_indent}</label></td></tr>
+    <tr><td colspan='2' align='center'><input type='submit' value='${label_submit_query}'/></td></tr>
+ </table>
+</form>
+<div class='ui-widget-header ui-corner-bottom'>&nbsp;</div>
+
+<br/>
+
+<!-- output below -->

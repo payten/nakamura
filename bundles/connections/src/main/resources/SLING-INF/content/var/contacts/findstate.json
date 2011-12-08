@@ -1,11 +1,15 @@
-{"sakai:query-template": "sakai\\:contactstorepath:${_connectionstore} AND sling\\:resourceType:sakai/contact AND sakai\\:state:(${state})",
+{
+//  "sakai:query-template": "sakai\\:contactstorepath:${_connectionstore} AND sling\\:resourceType:sakai/contact AND sakai\\:state:(${state})",
+  "sakai:query-template": "contactstorepath:${_connectionstore} AND resourceType:sakai/contact AND state:(${state})",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
-  "state": "ACCEPTED",
-  "sortOn": "score",
-  "sortOrder": "desc",
-  "sling:resourceType": "sakai/sparse-search",
+  "sakai:query-template-defaults": {
+    "state": "ACCEPTED",
+    "sortOn": "score",
+    "sortOrder": "desc"
+  },
+  "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "Connection",
   "sakai:resultprocessor": "ConnectionFinder",
   "sakai:title": "Contacts - Search.",

@@ -18,7 +18,6 @@
   </parent>
   <artifactId>org.sakaiproject.nakamura.jpahelloworld</artifactId>
   <packaging>bundle</packaging>
-  <version>1.0.2</version>
   <name>Sakai Nakamura :: Sakai JPA Mysql Hello World</name>
   <description>Example JPA Bundle usage.</description>
   <repositories>

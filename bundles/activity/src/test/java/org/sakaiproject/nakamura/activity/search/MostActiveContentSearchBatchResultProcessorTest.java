@@ -31,8 +31,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sakaiproject.nakamura.api.search.Aggregator;
-
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -55,9 +53,6 @@ public class MostActiveContentSearchBatchResultProcessorTest {
 
   private StringWriter stringWriter;
   private JSONWriter jsonWriter;
-
-  @Mock
-  private Aggregator aggregator;
 
   @Mock
   private RowIterator rowIterator;
@@ -114,8 +109,8 @@ public class MostActiveContentSearchBatchResultProcessorTest {
 
     loadSession(activityNodes, resourceNodes);
 
-    MostActiveContentSearchBatchResultProcessor m = new MostActiveContentSearchBatchResultProcessor();
-    m.writeNodes(request, jsonWriter, aggregator, rowIterator);
+    LiteMostActiveContentSearchBatchResultProcessor m = new LiteMostActiveContentSearchBatchResultProcessor();
+    m.writeResults(request, jsonWriter, rowIterator);
 
     assertEquals(
         "{\"content\":[{\"id\":\"nodeId#1\",\"name\":\"my-term-paper.pdf\",\"count\":1},{\"id\":\"nodeId#2\",\"name\":\"happy-clam.png\",\"count\":1}]}",
@@ -141,8 +136,8 @@ public class MostActiveContentSearchBatchResultProcessorTest {
     when(rowIterator.hasNext()).thenReturn(true, true, false);
     when(rowIterator.nextRow()).thenReturn(goodRow, badRow);
 
-    MostActiveContentSearchBatchResultProcessor m = new MostActiveContentSearchBatchResultProcessor();
-    m.writeNodes(request, jsonWriter, aggregator, rowIterator);
+    LiteMostActiveContentSearchBatchResultProcessor m = new LiteMostActiveContentSearchBatchResultProcessor();
+    m.writeResults(request, jsonWriter, rowIterator);
 
     assertEquals(
         "{\"content\":[{\"id\":\"goodNode#1\",\"name\":\"a-good-joke.txt\",\"count\":1}]}",
@@ -168,8 +163,8 @@ public class MostActiveContentSearchBatchResultProcessorTest {
 
     loadSession(activityNodes, resourceNodes);
 
-    MostActiveContentSearchBatchResultProcessor m = new MostActiveContentSearchBatchResultProcessor();
-    m.writeNodes(request, jsonWriter, aggregator, rowIterator);
+    LiteMostActiveContentSearchBatchResultProcessor m = new LiteMostActiveContentSearchBatchResultProcessor();
+    m.writeResults(request, jsonWriter, rowIterator);
 
     assertEquals(
         "{\"content\":[{\"id\":\"node#1\",\"name\":\"fastest-cars.doc\",\"count\":2}]}",

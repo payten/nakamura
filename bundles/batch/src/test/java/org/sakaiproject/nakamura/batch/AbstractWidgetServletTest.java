@@ -25,9 +25,11 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
+import org.sakaiproject.nakamura.api.tika.TikaService;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,7 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -52,15 +53,17 @@ public abstract class AbstractWidgetServletTest {
   protected SlingHttpServletResponse response;
   @Mock
   protected SlingHttpServletRequest request;
-  @Mock
+  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   protected CacheManagerService cacheManagerService;
+  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+  protected TikaService tikaService;
 
   protected String path;
   protected StringWriter stringWriter;
   protected PrintWriter printWriter;
   protected WidgetServiceImpl widgetService;
 
-  public void setUp() throws IOException, URISyntaxException {
+  public void setUp() throws Exception {
     // Init mocks
     MockitoAnnotations.initMocks(this);
 
@@ -72,6 +75,7 @@ public abstract class AbstractWidgetServletTest {
 
     widgetService = new WidgetServiceImpl();
     widgetService.cacheManagerService = cacheManagerService;
+    widgetService.tikaService = tikaService;
     widgetService.activate(properties);
 
     when(request.getResourceResolver()).thenReturn(resolver);

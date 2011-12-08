@@ -1,0 +1,605 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+
+    "Description": "Create an OAE cluster of at least two app instances running Amazon 32 bit Linux, plus a load balancer and MySQL 5.5 database.",
+
+    "Parameters": {
+        "KeyName": {
+            "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instance",
+            "Type": "String"
+        },
+        "NakamuraBinaryURL": {
+            "Default": "http://builds.sakaiproject.org/org.sakaiproject.nakamura.app-1.0.2.jar",
+            "Description": "The URL to the OAE jar file to use.",
+            "Type": "String",
+            "MinLength": "1",
+            "AllowedPattern": "https?://.*",
+            "ConstraintDescription": "Must be a full web URL, including http://"
+        },
+        "NakamuraBinaryFilename": {
+            "Default": "org.sakaiproject.nakamura.app-1.0.2.jar",
+            "Description": "This is the name of the file that is donwloaded from the specified URL.",
+            "Type": "String"
+        },
+        "AlertEmail": {
+            "Description": "email address to notify of operational issues",
+            "Type": "String"
+        },
+        "DBName": {
+            "Default": "sparsemap",
+            "Description": "The database name",
+            "Type": "String",
+            "MinLength": "1",
+            "MaxLength": "64",
+            "AllowedPattern": "[a-zA-Z][a-zA-Z0-9]*",
+            "ConstraintDescription": "must begin with a letter and contain only alphanumeric characters."
+        },
+        "DBUser": {
+            "Default": "sparseuser",
+            "Description": "The database admin account username",
+            "Type": "String",
+            "MinLength": "1",
+            "MaxLength": "16",
+            "AllowedPattern": "[a-zA-Z][a-zA-Z0-9]*",
+            "ConstraintDescription": "must begin with a letter and contain only alphanumeric characters."
+        },
+        "DBPassword": {
+            "NoEcho": "true",
+            "Description": "The database admin account password",
+            "Type": "String",
+            "MinLength": "1",
+            "MaxLength": "41",
+            "AllowedPattern": "[a-zA-Z0-9]*",
+            "ConstraintDescription": "must contain only alphanumeric characters."
+        },
+        "DBAllocatedStorage": {
+            "Default": "5",
+            "Description": "The size of the database (Gb)",
+            "Type": "Number",
+            "MinValue": "5",
+            "MaxValue": "1024",
+            "ConstraintDescription": "must be between 5 and 1024Gb."
+        },
+        "DBInstanceClass": {
+            "Default": "db.m1.small",
+            "Description": "The database instance type",
+            "Type": "String",
+            "AllowedValues": ["db.m1.small", "db.m1.large", "db.m1.xlarge", "db.m2.xlarge", "db.m2.2xlarge", "db.m2.4xlarge"],
+            "ConstraintDescription": "must select a valid database instance type."
+        },
+        "MultiAZ": {
+            "Default": "false",
+            "Description": "true if redundant mirrored instance",
+            "Type": "String",
+            "AllowedValues": ["true", "false"],
+            "ConstraintDescription": "must be true or false."
+        },
+        "WebServerPort": {
+            "Default": "8080",
+            "Description": "TCP/IP port for nakamura",
+            "Type": "Number",
+            "MinValue": "1",
+            "MaxValue": "65535"
+        }
+    },
+
+    "Mappings": {
+        "RegionMap": {
+            "us-east-1": {
+                "AMI": "ami-76f0061f"
+            },
+            "us-west-1": {
+                "AMI": "ami-655a0a20"
+            },
+            "eu-west-1": {
+                "AMI": "ami-7fd4e10b"
+            },
+            "ap-southeast-1": {
+                "AMI": "ami-72621c20"
+            },
+            "ap-northeast-1": {
+                "AMI": "ami-8e08a38f"
+            }
+        },
+        "InstanceTypeMap": {
+            "db.m1.small": {
+                "CPULimit": "60",
+                "FreeStorageSpaceLimit": "1024",
+                "ReadIOPSLimit": "100",
+                "WriteIOPSLimit": "100"
+            },
+            "db.m1.large": {
+                "CPULimit": "60",
+                "FreeStorageSpaceLimit": "1024",
+                "ReadIOPSLimit": "100",
+                "WriteIOPSLimit": "100"
+            },
+            "db.m1.xlarge": {
+                "CPULimit": "60",
+                "FreeStorageSpaceLimit": "1024",
+                "ReadIOPSLimit": "100",
+                "WriteIOPSLimit": "100"
+            },
+            "db.m2.xlarge": {
+                "CPULimit": "60",
+                "FreeStorageSpaceLimit": "1024",
+                "ReadIOPSLimit": "100",
+                "WriteIOPSLimit": "100"
+            },
+            "db.m2.2xlarge": {
+                "CPULimit": "60",
+                "FreeStorageSpaceLimit": "1024",
+                "ReadIOPSLimit": "100",
+                "WriteIOPSLimit": "100"
+            },
+            "db.m2.4xlarge": {
+                "CPULimit": "60",
+                "FreeStorageSpaceLimit": "1024",
+                "ReadIOPSLimit": "100",
+                "WriteIOPSLimit": "100"
+            }
+        }
+    },
+
+    "Resources": {
+        "AlarmTopic": {
+            "Type": "AWS::SNS::Topic",
+            "Properties": {
+                "Subscription": [{
+                    "Protocol": "email",
+                    "Endpoint": {
+                        "Ref": "AlertEmail"
+                    }
+                }]
+            }
+        },
+        "ElasticLoadBalancer" : {
+          "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+          "Properties" : {
+            "AvailabilityZones" : { "Fn::GetAZs" : "" },
+            "Instances" : [ { "Ref" : "Ec2Instance1" },{ "Ref" : "Ec2Instance2" } ],
+            "AppCookieStickinessPolicy" : [ {
+               "CookieName" : "SAKAI-TRACKING",
+               "PolicyName" : "SakaiStickyPolicy" 
+            } ],
+            "Listeners" : [ {
+              "LoadBalancerPort" : "80",
+              "InstancePort" : { "Ref" : "WebServerPort" },
+              "Protocol" : "HTTP",
+              "PolicyNames" : ["SakaiStickyPolicy"]
+            } ],
+            "HealthCheck" : {
+              "Target" : { "Fn::Join" : [ "", ["HTTP:", { "Ref" : "WebServerPort" }, "/"]]},
+              "HealthyThreshold" : "3",
+              "UnhealthyThreshold" : "5",
+              "Interval" : "30",
+              "Timeout" : "5"
+            }
+          }
+        },
+        "Ec2Instance1": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "SecurityGroups": [{
+                    "Ref": "InstanceSecurityGroup"
+                }],
+                "KeyName": {
+                    "Ref": "KeyName"
+                },
+                "ImageId": {
+                    "Fn::FindInMap": ["RegionMap", {
+                        "Ref": "AWS::Region"
+                    },
+                    "AMI"]
+                },
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": ["", [
+                        "#!/bin/bash -ex", "\n",
+                        "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1", "\n",
+                        "yum -y install nfs-utils rpcbind", "\n",
+                        "mkdir /home/ec2-user/store", "\n",
+                        "cat << EOF > /etc/exports", "\n",
+                        "/home/ec2-user/store *(rw,async)", "\n",
+                        "EOF", "\n",
+                        "exportfs -ar", "\n",
+                        "service rpcbind start", "\n",
+                        "service nfs start", "\n",
+                        "service nfslock start", "\n",
+                        "mkdir /home/ec2-user/load", "\n",
+                        "cat << EOF > /home/ec2-user/load/org.sakaiproject.nakamura.lite.storage.jdbc.JDBCStorageClientPool.cfg", "\n",
+                        "jdbc-driver=com.mysql.jdbc.Driver", "\n",
+                        "jdbc-url=", {
+                            "Fn::Join": ["", ["jdbc:mysql://",
+                            {
+                                "Fn::GetAtt": ["SparseMapDB", "Endpoint.Address"]
+                            },
+                            ":",
+                            {
+                                "Fn::GetAtt": ["SparseMapDB", "Endpoint.Port"]
+                            },
+                            "/",
+                            {
+                                "Ref": "DBName"
+                            }]]
+                        },
+                        "\n",
+                        "username=", {
+                            "Ref": "DBUser"
+                        },
+                        "\n",
+                        "password=", {
+                            "Ref": "DBPassword"
+                        },
+                        "\n",
+                        "EOF", "\n",
+                        "cat << EOF > /home/ec2-user/load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg", "\n",
+                        "disable.protection.for.dev.mode=true", "\n",
+                        "#untrusted.contenturl=http://", "\n",
+                        "#trusted.referer=http://", "\n",
+                        "#trusted.hosts=http://", "\n",
+                        "EOF", "\n",
+                        "cd /home/ec2-user && wget ", {
+                            "Ref": "NakamuraBinaryURL"
+                        },
+                        "\n",
+                        "java -XX:MaxPermSize=128m -Xmx512m -server -Dcom.sun.management.jmxremote -jar ", {
+                            "Ref": "NakamuraBinaryFilename"
+                        },
+                        " -f - 1> run.log 2>&1 &", "\n"]]
+                    }
+                }
+            }
+        },
+        "Ec2Instance2" : {
+          "Type" : "AWS::EC2::Instance",
+          "Properties" : {
+            "SecurityGroups" : [ { "Ref" : "InstanceSecurityGroup" } ],
+            "KeyName" : { "Ref" : "KeyName" },
+            "ImageId": {
+                "Fn::FindInMap": ["RegionMap", {
+                    "Ref": "AWS::Region"
+                },
+                "AMI"]
+            },
+            "UserData": {
+                "Fn::Base64": {
+                    "Fn::Join": ["", [
+                    "#!/bin/bash -ex", "\n",
+                    "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1", "\n",
+                    "yum -y install nfs-utils rpcbind", "\n",
+                    "mkdir /home/ec2-user/store", "\n",
+                    "service rpcbind start", "\n",
+                    "service nfslock start", "\n",
+                    "chkconfig --level 2345 rpcbind on", "\n",
+                    "chkconfig --level 2345 nfslock on", "\n",
+                    "mount -t nfs ", {
+                        "Fn::GetAtt": ["Ec2Instance1", "PublicDnsName"]
+                    },
+                    ":/home/ec2-user/store /home/ec2-user/store", "\n",
+                    "mkdir /home/ec2-user/load", "\n",
+                    "cat << EOF > /home/ec2-user/load/org.sakaiproject.nakamura.lite.storage.jdbc.JDBCStorageClientPool.cfg", "\n",
+                    "jdbc-driver=com.mysql.jdbc.Driver", "\n",
+                    "jdbc-url=", {
+                        "Fn::Join": ["", ["jdbc:mysql://",
+                        {
+                            "Fn::GetAtt": ["SparseMapDB", "Endpoint.Address"]
+                        },
+                        ":",
+                        {
+                            "Fn::GetAtt": ["SparseMapDB", "Endpoint.Port"]
+                        },
+                        "/",
+                        {
+                            "Ref": "DBName"
+                        }]]
+                    },
+                    "\n",
+                    "username=", {
+                        "Ref": "DBUser"
+                    },
+                    "\n",
+                    "password=", {
+                        "Ref": "DBPassword"
+                    },
+                    "\n",
+                    "EOF", "\n",
+                    "cat << EOF > /home/ec2-user/load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg", "\n",
+                    "disable.protection.for.dev.mode=true", "\n",
+                    "#untrusted.contenturl=http://", "\n",
+                    "#trusted.referer=http://", "\n",
+                    "#trusted.hosts=http://", "\n",
+                    "EOF", "\n",
+                    "cd /home/ec2-user && wget ", {
+                        "Ref": "NakamuraBinaryURL"
+                    },
+                    "\n",
+                    "java -XX:MaxPermSize=128m -Xmx512m -server -Dcom.sun.management.jmxremote -jar ", {
+                        "Ref": "NakamuraBinaryFilename"
+                    },
+                    " -f - 1> run.log 2>&1 &", "\n"]]
+                }
+            }
+          }
+        },
+        "InstanceSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Enable SSH, NFS, and HTTP access on the inbound port",
+                "SecurityGroupIngress": [{
+                    "IpProtocol": "tcp",
+                    "FromPort": "22",
+                    "ToPort": "22",
+                    "CidrIp": "0.0.0.0/0"
+                },
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": {
+                        "Ref": "WebServerPort"
+                    },
+                    "ToPort": {
+                        "Ref": "WebServerPort"
+                    },
+                    "CidrIp": "0.0.0.0/0"
+                },
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": "111",
+                    "ToPort": "111",
+                    "CidrIp": "0.0.0.0/0"
+                },
+                {
+                    "IpProtocol": "udp",
+                    "FromPort": "111",
+                    "ToPort": "111",
+                    "CidrIp": "0.0.0.0/0"
+                },
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": "2049",
+                    "ToPort": "2049",
+                    "CidrIp": "0.0.0.0/0"
+                },
+                {
+                    "IpProtocol": "udp",
+                    "FromPort": "32806",
+                    "ToPort": "32806",
+                    "CidrIp": "0.0.0.0/0"
+                }
+                ]
+            }
+        },
+        "SparseMapDB": {
+            "Type": "AWS::RDS::DBInstance",
+            "Properties": {
+                "DBName": {
+                    "Ref": "DBName"
+                },
+                "AllocatedStorage": {
+                    "Ref": "DBAllocatedStorage"
+                },
+                "DBInstanceClass": {
+                    "Ref": "DBInstanceClass"
+                },
+                "Engine": "MySQL",
+                "EngineVersion": "5.5",
+                "DBSecurityGroups": [{
+                    "Ref": "DBSecurityGroup"
+                }],
+                "MasterUsername": {
+                    "Ref": "DBUser"
+                },
+                "MasterUserPassword": {
+                    "Ref": "DBPassword"
+                },
+                "MultiAZ": {
+                    "Ref": "MultiAZ"
+                }
+            },
+            "DeletionPolicy": "Snapshot"
+        },
+
+        "DBSecurityGroup": {
+            "Type": "AWS::RDS::DBSecurityGroup",
+            "Properties": {
+                "DBSecurityGroupIngress": {
+                    "EC2SecurityGroupName": { "Ref" : "InstanceSecurityGroup" }
+                },
+                "GroupDescription": "database access"
+            }
+        },
+
+        "CPUAlarmHigh": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "AlarmDescription": {
+                    "Fn::Join": ["", ["Alarm if ", {
+                        "Ref": "DBName"
+                    },
+                    " CPU > ", {
+                        "Fn::FindInMap": ["InstanceTypeMap", {
+                            "Ref": "DBInstanceClass"
+                        },
+                        "CPULimit"]
+                    },
+                    "% for 5 minutes"]]
+                },
+                "Namespace": "AWS/RDS",
+                "MetricName": "CPUUtilization",
+                "Statistic": "Average",
+                "Period": "60",
+                "Threshold": {
+                    "Fn::FindInMap": ["InstanceTypeMap", {
+                        "Ref": "DBInstanceClass"
+                    },
+                    "CPULimit"]
+                },
+                "ComparisonOperator": "GreaterThanThreshold",
+                "EvaluationPeriods": "5",
+                "AlarmActions": [{
+                    "Ref": "AlarmTopic"
+                }],
+                "Dimensions": [{
+                    "Name": "DBInstanceIdentifier",
+                    "Value": {
+                        "Ref": "SparseMapDB"
+                    }
+                }]
+            }
+        },
+        "FreeStorageSpace": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "AlarmDescription": {
+                    "Fn::Join": ["", ["Alarm if ", {
+                        "Ref": "DBName"
+                    },
+                    " storage space <= ", {
+                        "Fn::FindInMap": ["InstanceTypeMap", {
+                            "Ref": "DBInstanceClass"
+                        },
+                        "FreeStorageSpaceLimit"]
+                    },
+                    " for 5 minutes"]]
+                },
+                "Namespace": "AWS/RDS",
+                "MetricName": "FreeStorageSpace",
+                "Statistic": "Average",
+                "Period": "60",
+                "Threshold": {
+                    "Fn::FindInMap": ["InstanceTypeMap", {
+                        "Ref": "DBInstanceClass"
+                    },
+                    "FreeStorageSpaceLimit"]
+                },
+                "ComparisonOperator": "LessThanOrEqualToThreshold",
+                "EvaluationPeriods": "5",
+                "AlarmActions": [{
+                    "Ref": "AlarmTopic"
+                }],
+                "Dimensions": [{
+                    "Name": "DBInstanceIdentifier",
+                    "Value": {
+                        "Ref": "SparseMapDB"
+                    }
+                }]
+            }
+        },
+        "ReadIOPSHigh": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "AlarmDescription": {
+                    "Fn::Join": ["", ["Alarm if ", {
+                        "Ref": "DBName"
+                    },
+                    " WriteIOPs > ", {
+                        "Fn::FindInMap": ["InstanceTypeMap", {
+                            "Ref": "DBInstanceClass"
+                        },
+                        "ReadIOPSLimit"]
+                    },
+                    " for 5 minutes"]]
+                },
+                "Namespace": "AWS/RDS",
+                "MetricName": "ReadIOPS",
+                "Statistic": "Average",
+                "Period": "60",
+                "Threshold": {
+                    "Fn::FindInMap": ["InstanceTypeMap", {
+                        "Ref": "DBInstanceClass"
+                    },
+                    "ReadIOPSLimit"]
+                },
+                "ComparisonOperator": "GreaterThanThreshold",
+                "EvaluationPeriods": "5",
+                "AlarmActions": [{
+                    "Ref": "AlarmTopic"
+                }],
+                "Dimensions": [{
+                    "Name": "DBInstanceIdentifier",
+                    "Value": {
+                        "Ref": "SparseMapDB"
+                    }
+                }]
+            }
+        },
+        "WriteIOPSHigh": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "AlarmDescription": {
+                    "Fn::Join": ["", ["Alarm if ", {
+                        "Ref": "DBName"
+                    },
+                    " WriteIOPs > ", {
+                        "Fn::FindInMap": ["InstanceTypeMap", {
+                            "Ref": "DBInstanceClass"
+                        },
+                        "WriteIOPSLimit"]
+                    },
+                    " for 5 minutes"]]
+                },
+                "Namespace": "AWS/RDS",
+                "MetricName": "WriteIOPS",
+                "Statistic": "Average",
+                "Period": "60",
+                "Threshold": {
+                    "Fn::FindInMap": ["InstanceTypeMap", {
+                        "Ref": "DBInstanceClass"
+                    },
+                    "WriteIOPSLimit"]
+                },
+                "ComparisonOperator": "GreaterThanThreshold",
+                "EvaluationPeriods": "5",
+                "AlarmActions": [{
+                    "Ref": "AlarmTopic"
+                }],
+                "Dimensions": [{
+                    "Name": "DBInstanceIdentifier",
+                    "Value": {
+                        "Ref": "SparseMapDB"
+                    }
+                }]
+            }
+        }
+    },
+
+    "Outputs": {
+        "URL": {
+            "Description": "URL of the sample website",
+            "Value": {
+                "Fn::Join": ["", ["http://", {
+                    "Fn::GetAtt": ["ElasticLoadBalancer", "DNSName"]
+                }]]
+            }
+        },
+        "JDBCConnectionString": {
+            "Description": "JDBC connection string for database",
+            "Value": {
+                "Fn::Join": ["", ["jdbc:mysql://",
+                {
+                    "Fn::GetAtt": ["SparseMapDB", "Endpoint.Address"]
+                },
+                ":",
+                {
+                    "Fn::GetAtt": ["SparseMapDB", "Endpoint.Port"]
+                },
+                "/",
+                {
+                    "Ref": "DBName"
+                }]]
+            }
+        },
+        "DBAddress": {
+            "Description": "Address of database endpoint",
+            "Value": {
+                "Fn::GetAtt": ["SparseMapDB", "Endpoint.Address"]
+            }
+        },
+        "DBPort": {
+            "Description": "Database endpoint port number",
+            "Value": {
+                "Fn::GetAtt": ["SparseMapDB", "Endpoint.Port"]
+            }
+        }
+    }
+}

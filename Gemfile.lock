@@ -1,0 +1,18 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    daemons (1.1.4)
+    docsplit (0.6.0)
+    getopt (1.4.1)
+    nakamura (0.2)
+    rmagick (2.13.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  daemons
+  docsplit
+  getopt
+  nakamura (>= 0.2)
+  rmagick

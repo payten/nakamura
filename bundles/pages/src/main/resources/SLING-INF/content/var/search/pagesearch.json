@@ -4,9 +4,11 @@
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
-  "sortOn": "score",
-  "sortOrder": "desc",
-  "_filter": "",
+  "sakai:query-template-defaults": {
+    "sortOn": "score",
+    "sortOrder": "desc",
+    "_filter": ""
+  },
   "sakai:propertyprovider": "Page",
   "sakai:title": "Pages.",
   "sakai:shortDescription": "Get page nodes out of the repository.",

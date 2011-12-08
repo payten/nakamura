@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.lite.jackrabbit;
 
 import org.apache.jackrabbit.core.ItemImpl;
+import org.apache.jackrabbit.core.id.ItemId;
 import org.apache.jackrabbit.core.security.authorization.AbstractAccessControlProvider;
 import org.apache.jackrabbit.core.security.authorization.AccessControlEditor;
 import org.apache.jackrabbit.core.security.authorization.CompiledPermissions;
@@ -38,6 +39,16 @@ public class SparseUserAccessControlProvider extends AbstractAccessControlProvid
     return null;
   }
 
+  public AccessControlPolicy[] getEffectivePolicies(Path absPath,
+      CompiledPermissions permissions) throws ItemNotFoundException, RepositoryException {
+    return null;
+  }
+
+  public AccessControlPolicy[] getEffectivePolicies(Set<Principal> principals,
+      CompiledPermissions permissions) throws RepositoryException {
+    return null;
+  }
+
   public AccessControlEditor getEditor(Session session) throws RepositoryException {
     return null;
   }
@@ -51,6 +62,14 @@ public class SparseUserAccessControlProvider extends AbstractAccessControlProvid
       }
 
       public int getPrivileges(Path absPath) throws RepositoryException {
+        // These properties are private on PrivilegeRegistry but this is what we're adding up
+        // 127 == PrivilegeRegistry.READ
+        //        + PrivilegeRegistry.MODIFY_PROPERTIES
+        //        + PrivilegeRegistry.ADD_CHILD_NODES
+        //        + PrivilegeRegistry.REMOVE_CHILD_NODES
+        //        + PrivilegeRegistry.REMOVE_NODE
+        //        + PrivilegeRegistry.READ_AC
+        //        + PrivilegeRegistry.MODIFY_AC
         return 127;
       }
 
@@ -58,6 +77,10 @@ public class SparseUserAccessControlProvider extends AbstractAccessControlProvid
       }
 
       public boolean canReadAll() throws RepositoryException {
+        return true;
+      }
+
+      public boolean canRead(Path itemPath, ItemId itemId) throws RepositoryException {
         return true;
       }
     };
@@ -74,5 +97,4 @@ public class SparseUserAccessControlProvider extends AbstractAccessControlProvid
   public boolean isAcItem(ItemImpl item) throws RepositoryException {
     return false;
   }
-
 }

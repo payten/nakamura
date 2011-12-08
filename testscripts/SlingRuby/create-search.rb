@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 
-require 'sling/sling'
-require 'sling/search'
+require 'nakamura'
+require 'nakamura/search'
 include SlingInterface
 include SlingSearch
 

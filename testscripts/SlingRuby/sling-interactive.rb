@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'sling/sling.rb'
+require 'nakamura.rb'
 require 'irb'
 include SlingInterface
 

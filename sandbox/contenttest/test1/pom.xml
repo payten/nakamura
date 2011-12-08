@@ -23,7 +23,6 @@
   </parent>
   <artifactId>org.sakaiproject.nakamura.contenttest1</artifactId>
   <packaging>bundle</packaging>
-  <version>0.1-SNAPSHOT</version>
   <name>Sakai Nakamura :: Content Test 1</name>
   <description>Bundle to Test Content Loading</description>
   <build>

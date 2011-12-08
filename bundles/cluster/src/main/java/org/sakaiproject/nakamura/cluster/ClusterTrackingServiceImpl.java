@@ -22,7 +22,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.sling.commons.scheduler.Scheduler;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
@@ -30,11 +30,14 @@ import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.cluster.ClusterServer;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.cluster.ClusterUser;
+import org.sakaiproject.nakamura.api.cluster.cache.ClusterServerImpl;
+import org.sakaiproject.nakamura.api.cluster.cache.ClusterUserImpl;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
 import org.sakaiproject.nakamura.api.servlet.HttpOnlyCookie;
 import org.sakaiproject.nakamura.util.StringUtils;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +58,7 @@ import javax.servlet.http.HttpServletResponse;
  * The ClusterTrackingService, maintains an entry for the active server and tracks active
  * users with a cluster replicated shared cache.
  */
-@Component(description = "Cluster tracking, tracks app servers and users within the cluster", label = "Cluster Tracking", immediate = true)
+@Component(description = "Cluster tracking, tracks app servers and users within the cluster", label = "Cluster Tracking", immediate = true, metatype=true)
 @Service({ ClusterTrackingService.class, Runnable.class })
 @Properties(value = {
     @Property(name = Scheduler.PROPERTY_SCHEDULER_CONCURRENT, boolValue = false),
@@ -138,7 +141,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
   protected void activate(ComponentContext ctx) throws Exception {
 
     Dictionary<String, Object> properties = ctx.getProperties();
-    thisSecureUrl = OsgiUtil.toString(properties.get(PROP_SECURE_HOST_URL), "");
+    thisSecureUrl = PropertiesUtil.toString(properties.get(PROP_SECURE_HOST_URL), "");
 
     componentStartTime = String.valueOf(System.currentTimeMillis());
     MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
@@ -348,8 +351,9 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
     messageDict.put(EVENT_TO_SERVER, clusterServer.getServerId());
     messageDict.put(EVENT_TRACKING_COOKIE, trackingCookie);
     messageDict.put(EVENT_USER, remoteUser);
-    Event pingUserEvent = new Event(EVENT_PING_CLUSTER_USER + "/"
-        + clusterServer.getServerId(), messageDict);
+    String remotePingTopic = EVENT_PING_CLUSTER_USER + "/"
+        + EventUtils.safeTopicElement(clusterServer.getServerId());
+    Event pingUserEvent = new Event(remotePingTopic, messageDict);
     eventAdmin.postEvent(pingUserEvent);
 
   }

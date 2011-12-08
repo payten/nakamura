@@ -64,6 +64,6 @@ public class ActivityUtils {
     properties.put("path", path);
     properties.put("userid", userId);
     properties.put("attributes", finalAttributes);
-    eventAdmin.postEvent(new Event("org/sakaiproject/nakamura/activity/POSTED", properties));
+    eventAdmin.postEvent(new Event("org/sakaiproject/nakamura/activity/POSTED", (Map) properties));
   }
 }

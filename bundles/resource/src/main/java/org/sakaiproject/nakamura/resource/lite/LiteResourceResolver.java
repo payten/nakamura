@@ -19,9 +19,13 @@ package org.sakaiproject.nakamura.resource.lite;
 
 import com.google.common.collect.Iterators;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
@@ -31,6 +35,7 @@ import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -44,13 +49,19 @@ public class LiteResourceResolver implements ResourceResolver {
 
   private Session session;
   private String userId;
+  private Map<String, Object> authnInfo;
 
   /**
    *
    */
-  public LiteResourceResolver(Session session, String userId) {
+  public LiteResourceResolver(Session session, String userId, Map<String, Object> authnInfo) {
     this.session = session;
     this.userId = userId;
+    if (authnInfo == null) {
+      authnInfo = Collections.emptyMap();
+    } else {
+      this.authnInfo = authnInfo;
+    }
   }
 
   /**
@@ -219,5 +230,57 @@ public class LiteResourceResolver implements ResourceResolver {
    */
   public String getUserID() {
     return userId;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.apache.sling.api.resource.ResourceResolver#clone(java.util.Map)
+   */
+  public ResourceResolver clone(Map<String, Object> authnInfo)
+      throws LoginException {
+    try {
+      LiteResourceResolver lrr = null;
+      String userId = (String) authnInfo.get(ResourceResolverFactory.USER);
+      if (StringUtils.equals(userId, this.userId)) {
+        lrr = new LiteResourceResolver(session, userId, authnInfo);
+      } else {
+        Repository repo = session.getRepository();
+        Session session = repo.loginAdministrative(userId);
+        lrr = new LiteResourceResolver(session, userId, authnInfo);
+      }
+      return lrr;
+    } catch (AccessDeniedException e) {
+      throw new LoginException(e.getMessage(), e);
+    } catch (StorageClientException e) {
+      throw new LoginException(e.getMessage(), e);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.apache.sling.api.resource.ResourceResolver#isLive()
+   */
+  public boolean isLive() {
+    return session != null;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.apache.sling.api.resource.ResourceResolver#getAttributeNames()
+   */
+  public Iterator<String> getAttributeNames() {
+    return authnInfo.keySet().iterator();
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.apache.sling.api.resource.ResourceResolver#getAttribute(java.lang.String)
+   */
+  public Object getAttribute(String name) {
+    return authnInfo.get(name);
   }
 }

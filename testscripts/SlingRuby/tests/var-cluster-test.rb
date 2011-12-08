@@ -1,11 +1,9 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
 require 'set'
-require 'sling/test'
-require 'sling/message'
+require 'nakamura/test'
+require 'nakamura/message'
 include SlingUsers
 
 class TC_BasicLTI < Test::Unit::TestCase
@@ -13,7 +11,7 @@ class TC_BasicLTI < Test::Unit::TestCase
 
   def setup
     super;
-    @now = Time.now.to_f.to_s.gsub('.', '');
+    @now = Time.now.to_nsec
     @user = create_user("user-test#{@now}");
     assert_not_nil(@user);
     @admin = SlingUsers::User.admin_user();

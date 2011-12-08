@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": '(path:(${_connectionstore}) AND resourceType:sakai/contact AND state:(ACCEPTED -NONE)) OR (type:u AND resourceType:authorizable AND taguuid:(${tagUuids}))',
+  "sakai:query-template": '(path:(${_connectionstore}) AND resourceType:sakai/contact AND state:(ACCEPTED -NONE)) OR (type:u AND resourceType:authorizable AND tag:(${tags}))',
   "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "RelatedContactsSearchPropertyProvider",
   "sakai:batchresultprocessor": "RelatedContactsSearchBatchResultProcessor",

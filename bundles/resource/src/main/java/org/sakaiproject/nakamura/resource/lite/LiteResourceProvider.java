@@ -17,12 +17,15 @@
  */
 package org.sakaiproject.nakamura.resource.lite;
 
+import com.google.common.collect.ImmutableMap;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -35,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.jcr.RepositoryException;
 import javax.servlet.http.HttpServletRequest;
@@ -65,7 +69,8 @@ public class LiteResourceProvider implements ResourceProvider {
       Content content = cm.get(path);
       if (content != null) {
         String userId = jcrSession.getUserID();
-        ResourceResolver rr = new LiteResourceResolver(session, userId);
+        Map<String, Object> props = ImmutableMap.of(ResourceResolverFactory.USER, (Object) userId);
+        ResourceResolver rr = new LiteResourceResolver(session, userId, props);
         retRes = new SparseContentResource(content, session, rr);
       }
     } catch (RepositoryException e) {

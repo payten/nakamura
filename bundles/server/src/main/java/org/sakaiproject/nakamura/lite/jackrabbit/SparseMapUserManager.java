@@ -111,6 +111,12 @@ public class SparseMapUserManager implements UserManager, SessionListener {
     return getAuthorizable(principal.getName());
   }
 
+  //@Override // will be needed in 2.2.5
+//  public Iterator<Authorizable> findAuthorizables(Query query) throws RepositoryException {
+//    // TODO have this call one of the other findAuthorizables methods
+//    return null;
+//  }
+
   public Iterator<Authorizable> findAuthorizables(String propertyName, String value)
       throws RepositoryException {
     return findAuthorizables(propertyName, value, SEARCH_TYPE_AUTHORIZABLE);
@@ -177,12 +183,12 @@ public class SparseMapUserManager implements UserManager, SessionListener {
     }
   }
 
-  public Group createGroup(Principal principal) throws AuthorizableExistsException,
+  //@Override // will be needed in 2.2.5
+  public Group createGroup(String id) throws AuthorizableExistsException,
       RepositoryException {
     try {
-      String id = principal.getName();
-      boolean created = authorizableManager.createGroup(principal.getName(),
-          principal.getName(), new HashMap<String, Object>());
+      boolean created = authorizableManager.createGroup(id, id,
+          new HashMap<String, Object>());
       if (created) {
         return (Group) getAuthorizable(id);
       } else {
@@ -195,9 +201,20 @@ public class SparseMapUserManager implements UserManager, SessionListener {
     }
   }
 
+  public Group createGroup(Principal principal) throws AuthorizableExistsException,
+      RepositoryException {
+    return createGroup(principal.getName());
+  }
+
   public Group createGroup(Principal principal, String intermediatePath)
       throws AuthorizableExistsException, RepositoryException {
     return createGroup(principal);
+  }
+
+  //@Override // will be needed in 2.2.5
+  public Group createGroup(String groupID, Principal principal, String intermediatePath)
+      throws AuthorizableExistsException, RepositoryException {
+    return createGroup(groupID);
   }
 
   public boolean isAutoSave() {
@@ -239,5 +256,4 @@ public class SparseMapUserManager implements UserManager, SessionListener {
   public org.sakaiproject.nakamura.api.lite.Session getSession() {
     return session;
   }
-
 }

@@ -27,10 +27,14 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.auth.trusted.RequestTrustValidator;
@@ -54,6 +58,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.resource.RequestProperty;
 import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.api.user.UserFinder;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProvider;
 import org.sakaiproject.nakamura.user.lite.resource.LiteNameSanitizer;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
@@ -183,13 +188,18 @@ public class LiteCreateSakaiUserServlet extends LiteAbstractUserPostServlet {
    * 
    */
   @Reference
-  private transient LiteAuthorizablePostProcessService postProcessorService;
+  protected transient LiteAuthorizablePostProcessService postProcessorService;
 
   /**
      *
      */
   @Reference
   protected transient RequestTrustValidatorService requestTrustValidatorService;
+  
+  
+  @Reference
+  protected UserFinder userFinder;
+  
 
   /** Returns the JCR repository used by this service. */
   @SuppressWarnings(justification = "OSGi Managed", value = { "UWF_UNWRITTEN_FIELD" })
@@ -234,7 +244,7 @@ public class LiteCreateSakaiUserServlet extends LiteAbstractUserPostServlet {
   protected void activate(ComponentContext componentContext) {
     super.activate(componentContext);
     Dictionary<?, ?> props = componentContext.getProperties();
-    selfRegistrationEnabled = OsgiUtil.toBoolean(props.get(PROP_SELF_REGISTRATION_ENABLED), DEFAULT_SELF_REGISTRATION_ENABLED);
+    selfRegistrationEnabled = PropertiesUtil.toBoolean(props.get(PROP_SELF_REGISTRATION_ENABLED), DEFAULT_SELF_REGISTRATION_ENABLED);
   }
 
   /*
@@ -315,49 +325,61 @@ public class LiteCreateSakaiUserServlet extends LiteAbstractUserPostServlet {
     try {
       selfRegSession = getSession();
       AuthorizableManager authorizableManager = selfRegSession.getAuthorizableManager();
-      if (authorizableManager.createUser(principalName, principalName,
-          digestPassword(pwd), null)) {
-        log.info("User {} created", principalName);
-        User user = (User) authorizableManager.findAuthorizable(principalName);
-        
-        String userPath = LiteAuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
-            + user.getId();
-        Map<String, RequestProperty> reqProperties = collectContent(request, response,
-            userPath);
-        response.setPath(userPath);
-        response.setLocation(userPath);
-        response
-            .setParentLocation(LiteAuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PATH);
-        changes.add(Modification.onCreated(userPath));
-        
-        Map<String, Object> toSave = Maps.newLinkedHashMap();
-        
-        // write content from form
-        writeContent(selfRegSession, user, reqProperties, changes, toSave);
-        
-        saveAll(selfRegSession, toSave);
-        try {
-          postProcessorService.process(user, selfRegSession, ModificationType.CREATE,
-              request);
-        } catch (Exception e) {
-          log.warn(e.getMessage(), e);
-          response
-              .setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-          return;
-        }
+      try {
+        if (!userFinder.userExists(principalName)) {
+          if (authorizableManager.createUser(principalName, principalName,
+              digestPassword(pwd), null)) {
+            log.info("User {} created", principalName);
+            User user = (User) authorizableManager.findAuthorizable(principalName);
 
-        // Launch an OSGi event for creating a user.
-        try {
-          Dictionary<String, String> properties = new Hashtable<String, String>();
-          properties.put(UserConstants.EVENT_PROP_USERID, principalName);
-          EventUtils.sendOsgiEvent(properties, UserConstants.TOPIC_USER_CREATED,
-              eventAdmin);
-        } catch (Exception e) {
-          // Trap all exception so we don't disrupt the normal behaviour.
-          log.error("Failed to launch an OSGi event for creating a user.", e);
+            String userPath = LiteAuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
+                + user.getId();
+            Map<String, RequestProperty> reqProperties = collectContent(request,
+                response, userPath);
+            response.setPath(userPath);
+            response.setLocation(userPath);
+            response
+                .setParentLocation(LiteAuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PATH);
+            changes.add(Modification.onCreated(userPath));
+
+            Map<String, Object> toSave = Maps.newLinkedHashMap();
+
+            // write content from form
+            writeContent(selfRegSession, user, reqProperties, changes, toSave);
+
+            saveAll(selfRegSession, toSave);
+            try {
+              postProcessorService.process(user, selfRegSession, ModificationType.CREATE,
+                  request);
+            } catch (Exception e) {
+              log.warn(e.getMessage(), e);
+              response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                  e.getMessage());
+              return;
+            }
+            response.setStatus(HttpServletResponse.SC_CREATED, "user " + principalName + " created");
+            // Launch an OSGi event for creating a user.
+            try {
+              Dictionary<String, String> properties = new Hashtable<String, String>();
+              properties.put(UserConstants.EVENT_PROP_USERID, principalName);
+              EventUtils.sendOsgiEvent(properties, UserConstants.TOPIC_USER_CREATED,
+                  eventAdmin);
+            } catch (Exception e) {
+              // Trap all exception so we don't disrupt the normal behaviour.
+              log.error("Failed to launch an OSGi event for creating a user.", e);
+            }
+          } else {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
+                "Unable To create User " + principalName);
+          }
+        } else {
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST, "User with name "
+              + principalName + " already exists");
         }
-      } else {
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST,"Unable To create User");
+      } catch (Exception e1) {
+        log.warn("Could not create user " + principalName, e1);
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
+            "Could not create user " + principalName + " because " + e1.getMessage());
       }
     } finally {
       ungetSession(selfRegSession);

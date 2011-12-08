@@ -1,10 +1,9 @@
 #!/usr/bin/env ruby
 
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
-require 'sling/file'
-require 'sling/users'
+require 'nakamura/test'
+require 'nakamura/file'
+require 'nakamura/users'
 include SlingUsers
 
 class TC_Kern2035Test < Test::Unit::TestCase

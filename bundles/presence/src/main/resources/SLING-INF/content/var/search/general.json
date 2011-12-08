@@ -1,16 +1,19 @@
 {
   "sling:resourceType": "sakai/solr-search",
-  "sakai:query-template": "(name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) OR title:(${q}) OR content:(${q}) OR widgetdata:(${q}) OR ngram:(${q}) OR edgengram:(${q})${_taguuids}) OR ((name:(${q}) OR title:(${q}) OR description:(${q}) OR content:(${q}) OR widgetdata:(${q}) OR ngram:(${q}) OR edgengram:(${q})${_taguuids})${_categoryAnd}) OR (resourceType:sakai/pooled-content AND (content:(${q}) OR filename:(${q}) OR tag:(${q}) OR description:(${q}) OR ngram:(${q}) OR edgengram:(${q})${_taguuids}))",
+  "sakai:query-template": "name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) OR title:(${q}) OR description:(${q}) OR content:(${q}) OR widgetdata:(${q}) OR ngram:(${q}) OR edgengram:(${q}) OR filename:(${q}) OR tag:(${q})",
   "sakai:query-template-options": {
       "fq": "resourceType:(authorizable OR sakai/pooled-content)",
-      "sort": "${sortOn} ${sortOrder}"
-      //"group": true,
-      //"group.field": "returnpath"
+      "sort": "${sortOn} ${sortOrder}",
+      "facet" : true,
+      "facet.field" : "tagname",
+      "facet.mincount" : 1
   },
-  "sortOn": "score",
-  "sortOrder": "desc",
-  "_categoryAnd": "",
-  "sakai:propertyprovider" : ["TagMatch","CategoryPropertyProvider"],
+  "sakai:query-template-defaults": {
+    "sortOn": "general",
+    "sortOrder": "asc",
+    "_categoryAnd": ""
+  },
+  "sakai:propertyprovider" : ["CategoryPropertyProvider"],
   "sakai:batchresultprocessor": "GeneralFeed",
   "sakai:title": "General",
   "sakai:shortDescription": "Get profile nodes out of the repository.",

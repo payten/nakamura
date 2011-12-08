@@ -1,13 +1,11 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby 'require' search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
-require 'sling/file'
-require 'sling/users'
+require 'nakamura/test'
+require 'nakamura/file'
+require 'nakamura/users'
 require 'test/unit.rb'
-require 'sling/file'
+require 'nakamura/file'
 include SlingUsers
 include SlingFile
 
@@ -17,7 +15,7 @@ class TC_Kern2078Test < Test::Unit::TestCase
   def test_get_redirected_content
     @s.log.level = Logger::INFO
     @fm = FileManager.new(@s)
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
 
     u1 = create_user("testuser-#{m}", "The", "Author")
     @s.switch_user(u1)

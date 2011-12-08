@@ -1,11 +1,9 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
-require 'sling/file'
-require 'sling/authz'
+require 'nakamura/test'
+require 'nakamura/file'
+require 'nakamura/authz'
 include SlingUsers
 include SlingFile
 include SlingAuthz
@@ -35,7 +33,7 @@ class TC_Kern1877Test < Test::Unit::TestCase
   def test_get_pooled_content_activities
     @fm = FileManager.new(@s)
     @authz = SlingAuthz::Authz.new(@s)
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     manager = create_user("user-manager-#{m}")
     @s.switch_user(manager)
     res = @fm.upload_pooled_file("random-#{m}.txt", "Plain content", "text/plain")

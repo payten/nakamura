@@ -9,7 +9,6 @@
   <artifactId>org.sakaiproject.nakamura.persondirectory</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: Person Directory Bundle</name>
-  <version>1.0.2</version>
   <build>
     <plugins>
       <plugin>
@@ -29,6 +28,39 @@
         </configuration>
       </plugin>
     </plugins>
+    <pluginManagement>
+      <plugins>
+        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>
+                      maven-scr-plugin
+                    </artifactId>
+                    <versionRange>
+                      [1.7.0,)
+                    </versionRange>
+                    <goals>
+                      <goal>scr</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore></ignore>
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
   <dependencies>
 <!-- annotations -->
@@ -51,14 +83,20 @@
 <!-- nakamura -->
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.core</artifactId>
+      <version>1.1-SNAPSHOT</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.ldap</artifactId>
       <version>1.0.2</version>
     </dependency>
 
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.profile</artifactId>
-      <version>1.0.2</version>
+      <artifactId>org.sakaiproject.nakamura.profile.api</artifactId>
+      <version>1.1-SNAPSHOT</version>
     </dependency>
 
 <!-- sling -->
@@ -103,8 +141,8 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.profile</artifactId>
-      <version>1.0.2</version>
+      <artifactId>org.sakaiproject.nakamura.profile.api</artifactId>
+      <version>1.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>

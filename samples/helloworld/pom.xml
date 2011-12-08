@@ -20,7 +20,6 @@
   </parent>
   <artifactId>org.sakaiproject.nakamura.samples.helloworld</artifactId>
   <packaging>bundle</packaging>
-  <version>1.0.2</version>
   <name>Sakai Nakamura Samples: Hello World</name>
   <description>Sample Bundle: Hello World.</description>
   <build>

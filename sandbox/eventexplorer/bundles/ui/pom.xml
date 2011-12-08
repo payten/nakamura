@@ -10,7 +10,6 @@
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.eventexplorer.ui</artifactId>
   <packaging>bundle</packaging>
-  <version>1.0.2</version>
   <name>Sakai Nakamura :: Sakai Event explorer UI.</name>
   <description>The UI that displays the JMS events stored in cassandra.</description>
   <build>

@@ -27,10 +27,12 @@ import javax.jcr.RepositoryException;
 public class JackrabbitSparseUtils {
   
   public static Session getSparseSession(javax.jcr.Session session) throws RepositoryException {
-    UserManager  userManager = AccessControlUtil.getUserManager(session);
-    if ( userManager instanceof SparseMapUserManager ) {
-      SparseMapUserManager sparseMapUserManager = (SparseMapUserManager) userManager;
-      return sparseMapUserManager.getSession();
+    if (session != null) {
+      UserManager  userManager = AccessControlUtil.getUserManager(session);
+      if ( userManager instanceof SparseMapUserManager ) {
+        SparseMapUserManager sparseMapUserManager = (SparseMapUserManager) userManager;
+        return sparseMapUserManager.getSession();
+      }
     }
     return null;
   }

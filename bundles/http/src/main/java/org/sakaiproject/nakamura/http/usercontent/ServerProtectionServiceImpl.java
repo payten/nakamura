@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.http.usercontent;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
@@ -36,7 +38,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
@@ -100,9 +102,7 @@ import javax.servlet.http.HttpServletResponse;
 public class ServerProtectionServiceImpl implements ServerProtectionService {
   private static final String HMAC_SHA512 = "HmacSHA512";
   private static final String HMAC_PARAM = ":hmac";
-  private static final String[] DEFAULT_TRUSTED_HOSTS = { "http://localhost:8080" };
-  private static final String[] DEFAULT_TRUSTED_REFERERS = { "/",
-      "http://localhost:8080" };
+  private static final String[] DEFAULT_TRUSTED_HOSTS = { "localhost:8080 = http://localhost:8082" };
   private static final String[] DEFAULT_TRUSTED_PATHS = { "/dev", "/devwidgets", "/system", "/logout" };
   private static final String[] DEFAULT_TRUSTED_EXACT_PATHS = { "/", 
     "/index.html", 
@@ -122,17 +122,12 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
     "/s2site",
     "/search/sakai2",
     "/search"  };
-  private static final String DEFAULT_UNTRUSTED_CONTENT_URL = "http://localhost:8082";
   private static final String DEFAULT_TRUSTED_SECRET_VALUE = "This Must Be set in production";
   private static final String[] DEFAULT_WHITELIST_POST_PATHS = {"/system/console"};
   private static final String[] DEFAULT_ANON_WHITELIST_POST_PATHS = {"/system/userManager/user.create"};
 
   @Property(boolValue=false)
   private static final String DISABLE_XSS_PROTECTION_FOR_UI_DEV = "disable.protection.for.dev.mode";
-  @Property(value = { DEFAULT_UNTRUSTED_CONTENT_URL } )
-  static final String UNTRUSTED_CONTENTURL_CONF = "untrusted.contenturl";
-  @Property
-  static final String UNTRUSTED_REDIRECT_HOST = "untrusted.redirect.host";
   @Property(value = { "/dev", "/devwidgets", "/system", "/logout" })
   private static final String TRUSTED_PATHS_CONF = "trusted.paths";
   @Property(value = { "/", 
@@ -151,10 +146,8 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
       "/search/sakai2",
       "/search"  })
   private static final String TRUSTED_EXACT_PATHS_CONF = "trusted.exact.paths";
-  @Property(value = { "/", "http://localhost:8080" })
-  static final String TRUSTED_REFERER_CONF = "trusted.referer";
-  @Property(value = { "http://localhost:8080" }, cardinality = 9999999)
-  static final String TRUSTED_HOSTS_CONF = "trusted.hosts";
+  @Property(value = { "localhost:8080 = http://localhost:8082" }, cardinality = 9999999)
+  protected static final String TRUSTED_HOSTS_CONF = "trusted.hosts";
   @Property(value = { DEFAULT_TRUSTED_SECRET_VALUE })
   private static final String TRUSTED_SECRET_CONF = "trusted.secret";
   @Property(value = {"/system/console"}, cardinality = 9999999)
@@ -165,13 +158,13 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
       .getLogger(ServerProtectionServiceImpl.class);
 
   /**
-   * Set of hosts, that it is safe to receive non GET operations from.
+   * Map of Host headers to content hosts.
    */
-  private Set<String> safeHosts;
+  private Map<String, String> applicationContentRedirects;
   /**
-   * List of referer stems its safe to accept non GET operations from
+   * Map of Host headers to acceptable refereres. 
    */
-  private String[] safeReferers;
+  private Map<String, String> applicationReferrerHeaders;
   /**
    * List of path stems its safe to stream content bodies from using a trusted host
    */
@@ -180,19 +173,6 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
    * List of path stems its safe to stream content bodies from using a trusted host
    */
   private Set<String> safeToStreamExactPaths;
-  /**
-   * The protocol, domain, and port used to deliver untrusted content bodies, as
-   * specified in the URL of the internal request as seen by the application, after
-   * any proxying.
-   */
-  private String contentUrl;
-  /**
-   * The protocol, domain, and port to which streaming requests for untrusted content
-   * should be redirected. This is the host of the external redirect URL as seen by
-   * the browser. This is only needed if a front-end proxies to the application from
-   * a different protocol, domain, or port. If not specified, the contentUrl is used.
-   */
-  private String contentRedirectHost;
   /**
    * Array of keys created from the secret, indexed by the second digit of the timestamp
    */
@@ -210,11 +190,11 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, strategy = ReferenceStrategy.EVENT, bind = "bindServerProtectionValidator", unbind = "unbindServerProtectionValidator")
   private ServerProtectionValidator[] serverProtectionValidators = new ServerProtectionValidator[0];
   private Map<ServiceReference, ServerProtectionValidator> serverProtectionValidatorsStore = Maps
-      .newConcurrentHashMap();
+      .newConcurrentMap();
   @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, strategy = ReferenceStrategy.EVENT, bind = "bindServerProtectionVeto", unbind = "unbindServerProtectionVeto")
   private ServerProtectionVeto[] serverProtectionVetos = new ServerProtectionVeto[0];
   private Map<ServiceReference, ServerProtectionVeto> serverProtectionVetosStore = Maps
-      .newConcurrentHashMap();
+      .newConcurrentMap();
 
   private BundleContext bundleContext;
   private boolean disableProtectionForDevMode;
@@ -226,28 +206,84 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
     @SuppressWarnings("unchecked")
 
     Dictionary<String, Object> properties = componentContext.getProperties();
-    disableProtectionForDevMode = OsgiUtil.toBoolean(properties.get(DISABLE_XSS_PROTECTION_FOR_UI_DEV), false);
+    disableProtectionForDevMode = PropertiesUtil.toBoolean(properties.get(DISABLE_XSS_PROTECTION_FOR_UI_DEV), false);
     if ( disableProtectionForDevMode ) {
       LOGGER.warn("XSS Protection is disabled");
       return;
     }
-    safeHosts = ImmutableSet.of(OsgiUtil.toStringArray(
-        properties.get(TRUSTED_HOSTS_CONF), DEFAULT_TRUSTED_HOSTS));
-    safeReferers = OsgiUtil.toStringArray(properties.get(TRUSTED_REFERER_CONF),
-        DEFAULT_TRUSTED_REFERERS);
-    safeToStreamPaths = OsgiUtil.toStringArray(properties.get(TRUSTED_PATHS_CONF),
+    String[] trustedHosts = PropertiesUtil.toStringArray(
+        properties.get(TRUSTED_HOSTS_CONF), DEFAULT_TRUSTED_HOSTS);
+		Builder<String, String> redirects = ImmutableMap.builder();
+		Builder<String, String> referrers = ImmutableMap.builder();
+		for (String h : trustedHosts) {
+			String[] applicationContentHostPair = StringUtils.split(h, "=", 2);
+			if (applicationContentHostPair == null
+					|| applicationContentHostPair.length != 2) {
+				throw new IllegalArgumentException(
+						"Application Content Host Pair invalid " + h);
+			}
+			applicationContentHostPair[0] = applicationContentHostPair[0]
+					.trim();
+			applicationContentHostPair[1] = applicationContentHostPair[1]
+					.trim();
+			String[] proto = StringUtils.split(applicationContentHostPair[1],
+					":", 2);
+      if (applicationContentHostPair[0].startsWith("http")) {
+        throw new IllegalArgumentException("Trusted host must not start with protocol: "
+            + applicationContentHostPair[0]);
+      }
+			if (proto == null || proto.length != 2) {
+				throw new IllegalArgumentException(
+						"Content Host Must contain protocol " + h);
+			}
+			String[] hostHeader = StringUtils.split(
+					applicationContentHostPair[0], ":", 2);
+			if (hostHeader == null || hostHeader.length == 0) {
+				throw new IllegalArgumentException(
+						"Application Host Must contain port " + h);
+			}
+			// we don't allow redirect onto a different protocol, which implies
+			// the app is on the same protocol as
+			// the content. Also this ensures that the trusted host does not
+			// discriminate on protocol.
+			LOGGER.info("Adding {} {} ", applicationContentHostPair[0],
+					applicationContentHostPair[1]);
+			redirects.put(applicationContentHostPair[0],
+						applicationContentHostPair[1]);
+			if ("http".equals(proto[0])) {
+				if (hostHeader.length > 1 && "80".equals(hostHeader[1])) {
+					referrers.put(applicationContentHostPair[0], "http://"
+							+ hostHeader[0]);
+				} else {
+					referrers.put(applicationContentHostPair[0], "http://"
+							+ applicationContentHostPair[0]);
+				}
+			} else if ("https".equals(proto[0])) {
+				// requests on default ports will not have the port in the referrer.
+				if (hostHeader.length > 1 && "443".equals(hostHeader[1])) {
+					referrers.put(applicationContentHostPair[0], "https://"
+							+ hostHeader[0]);
+				} else {
+					referrers.put(applicationContentHostPair[0], "https://"
+							+ applicationContentHostPair[0]);
+				}
+			} else {
+				LOGGER.warn("Protocol was not recognised {} {} ", proto[0], h);
+				throw new IllegalArgumentException("Protocol not recognised "
+						+ h);
+			}
+		}
+		applicationContentRedirects = redirects.build();
+		applicationReferrerHeaders = referrers.build();
+    safeToStreamPaths = PropertiesUtil.toStringArray(properties.get(TRUSTED_PATHS_CONF),
         DEFAULT_TRUSTED_PATHS);
-    safeToStreamExactPaths = ImmutableSet.of(OsgiUtil.toStringArray(
+    safeToStreamExactPaths = ImmutableSet.copyOf(PropertiesUtil.toStringArray(
         properties.get(TRUSTED_EXACT_PATHS_CONF), DEFAULT_TRUSTED_EXACT_PATHS));
-    contentUrl = OsgiUtil.toString(properties.get(UNTRUSTED_CONTENTURL_CONF),
-        DEFAULT_UNTRUSTED_CONTENT_URL);
-    contentRedirectHost = OsgiUtil.toString(properties.get(UNTRUSTED_REDIRECT_HOST),
-        "");
-    postWhiteList = OsgiUtil.toStringArray(
+    postWhiteList = PropertiesUtil.toStringArray(
         properties.get(WHITELIST_POST_PATHS_CONF), DEFAULT_WHITELIST_POST_PATHS);
-    safeForAnonToPostPaths = OsgiUtil.toStringArray(
+    safeForAnonToPostPaths = PropertiesUtil.toStringArray(
         properties.get(ANON_WHITELIST_POST_PATHS_CONF), DEFAULT_ANON_WHITELIST_POST_PATHS);
-    String transferSharedSecret = OsgiUtil.toString(properties.get(TRUSTED_SECRET_CONF),
+    String transferSharedSecret = PropertiesUtil.toString(properties.get(TRUSTED_SECRET_CONF),
         DEFAULT_TRUSTED_SECRET_VALUE);
     if (DEFAULT_TRUSTED_SECRET_VALUE.equals(transferSharedSecret)) {
       LOGGER.error("Configuration Error =============================");
@@ -256,13 +292,10 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
       LOGGER.error("Configuration Error =============================");
     }
 
-    LOGGER.info("Trusted Hosts {}",safeHosts);
-    LOGGER.info("Trusted Referers {} ",Arrays.toString(safeReferers));
+    LOGGER.info("Trusted Hosts {}", applicationContentRedirects);
     LOGGER.info("Trusted Stream Paths {} ",Arrays.toString(safeToStreamPaths));
     LOGGER.info("Trusted Stream Resources {} ",safeToStreamExactPaths);
     LOGGER.info("POST Whitelist {} ",postWhiteList);
-    LOGGER.info("Content Host {} ",contentUrl);
-    LOGGER.info("Content Redirect Host {} ",contentRedirectHost);
     LOGGER.info("Content Shared Secret [{}] ",transferSharedSecret);
 
     transferKeys = new Key[10];
@@ -358,6 +391,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
           for (String safePath : safeToStreamPaths) {
             if (path.startsWith(safePath)) {
               safeToStream = true;
+              LOGGER.debug("Safe To stream becuase starts with {} ",safePath);
               break;
             }
           }
@@ -370,6 +404,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
                 // KERN-1930 and list discussion.
                 // Also trust a "GET" of non-existing content so that the 404 comes from
                 // the right port (KERN-2001)
+                LOGGER.debug("Node not null  or non existing {} {} ",node, resource.getResourceType());
                 return true;
               }
               String resourcePath = resource.getPath();
@@ -384,6 +419,8 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
                 }
               }
             }
+          } else {
+              LOGGER.debug("Content was safe to stream ");
           }
         }
       } else {
@@ -434,13 +471,12 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
    * @throws UnsupportedEncodingException
    */
   private String getTransferUrl(HttpServletRequest request, String urlPath) {
-    final String finalUrl = contentUrl + urlPath;
-    String redirectUrl;
-    if (StringUtils.isBlank(contentRedirectHost)) {
-      redirectUrl = finalUrl;
-    } else {
-      redirectUrl = contentRedirectHost + urlPath;
-    }
+	  String trustedHostHeader = buildTrustedHostHeader(request);
+	  if ( trustedHostHeader == null || !applicationContentRedirects.containsKey(trustedHostHeader) ) {
+		  LOGGER.warn("No Content Host found for {} ", request.getRequestURL());
+		  throw new IllegalArgumentException("No Content Host foudn for request, cant transfer ");
+	  }
+	  String redirectUrl = applicationContentRedirects.get(trustedHostHeader) + urlPath;
     // only transfer authN from a trusted safe host
     if (isSafeHost(request)) {
       String userId = request.getRemoteUser();
@@ -451,22 +487,53 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
           Mac m = Mac.getInstance(HMAC_SHA512);
           m.init(transferKeys[keyIndex]);
 
-          String message = finalUrl + ";" + userId + ";" + ts;
+          String message = createMessage(redirectUrl, userId, String.valueOf(ts));
+          
           m.update(message.getBytes("UTF-8"));
           String hmac = Base64.encodeBase64URLSafeString(m.doFinal());
           hmac = Base64.encodeBase64URLSafeString((hmac + ";" + userId + ";" + ts)
               .getBytes("UTF-8"));
           String spacer = "?";
-          if ( finalUrl.indexOf('?') >  0) {
+          if ( redirectUrl.indexOf('?') >  0) {
             spacer = "&";
           }
           redirectUrl = redirectUrl + spacer + HMAC_PARAM + "=" + hmac;
+          LOGGER.debug("Message was [{}] ", message);
+          LOGGER.debug("Key was [{}] [{}] ", keyIndex, transferKeys[keyIndex]);
+          LOGGER.debug("Transfer URL created as [{}] ",redirectUrl);
         } catch (Exception e) {
           LOGGER.warn(e.getMessage(), e);
         }
       }
     }
     return redirectUrl;
+  }
+
+  private String buildTrustedHostHeader(HttpServletRequest request) {
+	  // try the host header first
+	  String host = request.getHeader("Host");
+	  if ( host != null && host.trim().length() > 0 ) {
+		  return host;
+	  }
+	  // if not suitable resort to letting jetty build the host header
+	  int port = request.getServerPort();
+	  String scheme = request.getScheme();
+	  String serverName = request.getServerName();
+	  // default ports are not added to the header.
+	  if ( (port == 80 && "http".equals(scheme)) || (port == 443 && "https".equals(scheme))) {
+		  return serverName; 
+	  } else {
+		  return serverName+":"+port;
+	  }
+  }
+  private String createMessage(String url, String userId, String ts ) {
+    // strip the protocol since it wont survive front end proxies, if those proxies re-write the protocol.
+    if ( url.startsWith("http:") ) {
+       url = url.substring(5);
+    } else if ( url.startsWith("https:") ) {
+       url = url.substring(6);
+    }
+    return url + ";" + userId + ";" + ts;
   }
 
   public String getTransferUserId(HttpServletRequest request) {
@@ -494,7 +561,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
           String requestHmac = parts[0];
           String requestUserId = parts[1];
           String requestTs = parts[2];
-          String message = finalUrl + ";" + requestUserId + ";" + requestTs;
+          String message = createMessage(finalUrl, requestUserId, requestTs);
           long requestTsL = Long.parseLong(requestTs);
           if (Math.abs(System.currentTimeMillis() - requestTsL) < 60000L) {
             int keyIndex = (int) (requestTsL - ((requestTsL / 10) * 10));
@@ -506,10 +573,12 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
               LOGGER.debug("Successfully extracted requestUserId {} from HMAC", requestUserId);
               return requestUserId;
             } else {
-              LOGGER.info("Mismatched HMAC. Request HMAC was '{}'", hmac);
+              LOGGER.debug("Message was [{}] ", message);
+              LOGGER.debug("Key was [{}] [{}] ", keyIndex, transferKeys[keyIndex]);
+              LOGGER.debug("Hmac did not validate testHmac was [{}], requestHmac [{}] ", testHmac, requestHmac); 
             }
           } else {
-            LOGGER.info("Out of date HMAC. Request TsL = {}, current time = {}", requestTs, String.valueOf(System.currentTimeMillis()));
+            LOGGER.debug("Hmac has expired, older than 60s, hmac message was {} ", message);
           }
         } catch (Exception e) {
           LOGGER.warn(e.getMessage());
@@ -562,16 +631,22 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
       // Do we allow non get operations to this host ?
       if (safeHost) {
         // and if we do, do we accept them from the Referer mentioned ?
-        safeHost = false;
-        for (String safeReferer : safeReferers) {
-          if (referer.startsWith(safeReferer)) {
-            safeHost = true;
-            LOGGER.debug("Accepted referred {}  {}", safeReferer, referer);
-            break;
-          } else {
-            LOGGER.debug("Rejecting referred {}  {}", safeReferer, referer);
-          }
-        }
+				String safeReferer = applicationReferrerHeaders
+						.get(buildTrustedHostHeader(hrequest));
+				if (referer.startsWith("/")) {
+					LOGGER.warn(
+							"Referer header from test script, allowed safe:[{}] request:[{}] ",
+							safeReferer, referer);
+					safeHost = true;
+				} else if (referer.startsWith(safeReferer)) {
+					safeHost = true;
+					LOGGER.debug("Accepted referred safe:[{}] request:[{}]", safeReferer,
+							referer);
+				} else {
+					safeHost = false;
+					LOGGER.debug("Rejecting referred safe:[{}] request:[{}]", safeReferer,
+							referer);
+				}
       }
       if (!safeHost) {
         hresponse
@@ -588,19 +663,8 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
     if ( disableProtectionForDevMode ) {
       LOGGER.warn("XSS Protection is disabled");
       return true;
-    }
-    // special case for ssl referers, which come in with no port, usually
-    if ( "https".equals(hrequest.getScheme()) ) {
-      String portlessHost = "https://" + hrequest.getServerName();
-      if ( safeHosts.contains(portlessHost)) {
-        return true;
-      }
-    }
-
-    String requestHost = hrequest.getScheme() + "://" + hrequest.getServerName() + ":"
-          + hrequest.getServerPort();
-    // safe hosts are defiend as hosts from which we we can accept non get operations
-    return safeHosts.contains(requestHost);
+    }    
+    return applicationReferrerHeaders.containsKey(buildTrustedHostHeader(hrequest));
   }
 
   public void bindServerProtectionValidator(ServiceReference serviceReference) {

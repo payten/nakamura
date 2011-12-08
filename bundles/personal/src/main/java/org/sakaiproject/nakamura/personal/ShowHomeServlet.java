@@ -28,7 +28,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -87,8 +87,8 @@ public class ShowHomeServlet extends SlingSafeMethodsServlet implements OptingSe
 
   @Activate @Modified
   protected void activate(Map<?, ?> props) {
-    groupHome = OsgiUtil.toString(props.get(GROUP_HOME_RES), DEFAULT_GROUP_HOME);
-    userHome = OsgiUtil.toString(props.get(USER_HOME_RES), DEFAULT_USER_HOME);
+    groupHome = PropertiesUtil.toString(props.get(GROUP_HOME_RES), DEFAULT_GROUP_HOME);
+    userHome = PropertiesUtil.toString(props.get(USER_HOME_RES), DEFAULT_USER_HOME);
   }
 
   @Override

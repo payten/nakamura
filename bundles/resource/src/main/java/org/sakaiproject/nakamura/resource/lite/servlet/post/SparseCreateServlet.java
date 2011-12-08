@@ -17,27 +17,40 @@
  */
 package org.sakaiproject.nakamura.resource.lite.servlet.post;
 
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_SUPER_TYPE_PROPERTY;
+import static org.apache.sling.servlets.post.SlingPostConstants.OPERATION_IMPORT;
+import static org.apache.sling.servlets.post.SlingPostConstants.RP_CONTENT;
+import static org.apache.sling.servlets.post.SlingPostConstants.RP_CONTENT_FILE;
+import static org.apache.sling.servlets.post.SlingPostConstants.RP_OPERATION;
+import static org.sakaiproject.nakamura.api.resource.lite.SparseContentResource.SPARSE_CONTENT_RT;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestDispatcherOptions;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.JSONObject;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.sakaiproject.nakamura.api.resource.lite.SparseNonExistingResource;
+import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -62,56 +75,115 @@ public class SparseCreateServlet extends SlingAllMethodsServlet implements Optin
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     final Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
-    final ContentManager contentManager;
+    if (session == null) {
+      LOGGER.warn("Unable to get a Sparse session while handling POST to {}", request.getPathInfo());
+      return;
+    }
+
     try {
-      contentManager = session.getContentManager();
+      ContentManager contentManager = session.getContentManager();
+      final String targetPath = (String) request.getAttribute(CONTENT_TARGET_PATH_ATTRIBUTE);
+      SparseNonExistingResource resourceWrapper = new SparseNonExistingResource(request.getResource(),
+          targetPath, session, contentManager);
+      RequestDispatcherOptions options = new RequestDispatcherOptions();
+      request.getRequestDispatcher(resourceWrapper, options).forward(request, response);
     } catch (StorageClientException e) {
       LOGGER.warn("No content manager", e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-      return;
     }
-    final String targetPath = (String) request.getAttribute(CONTENT_TARGET_PATH_ATTRIBUTE);
-    SparseNonExistingResource resourceWrapper = new SparseNonExistingResource(request.getResource(),
-        targetPath, session, contentManager);
-    RequestDispatcherOptions options = new RequestDispatcherOptions();
-    request.getRequestDispatcher(resourceWrapper, options).forward(request, response);
   }
 
+  // ---------- OptingServlet interface ----------------------------------------
   public boolean accepts(SlingHttpServletRequest request) {
-    ResourceResolver resourceResolver = request.getResourceResolver();
-    Resource resource = request.getResource();
-    String path = resource.getPath();
-    if ((path != null) && (path.length() > 0)) {
-      // Search for the nearest parent.
-      String nearestPath = path;
-      Resource nearestResource = null;
-      while ((nearestResource == null) && (nearestPath.length() > 0)) {
-        nearestResource = resourceResolver.getResource(nearestPath);
-        if (nearestResource == null) {
-          int pos = nearestPath.lastIndexOf('/');
-          if (pos > 0) {
-            nearestPath = nearestPath.substring(0, pos);
+    // check for a parent resource that lives in sparse
+    String path = request.getResource().getPath();
+    if (!StringUtils.isBlank(path)) {
+      ResourceResolver resourceResolver = request.getResourceResolver();
+      // search each parent to see if we should store this resource in sparse
+      String parentPath = path;
+      Resource parentResource = null;
+      // loop while we haven't found a parent resource and the parent path hasn't hit the
+      // root yet
+      while (parentResource == null && !parentPath.equalsIgnoreCase("/")
+          && !StringUtils.isBlank(parentPath)) {
+        parentResource = resourceResolver.getResource(parentPath);
+        if (parentResource == null) {
+          // get the next parent and loop again
+          parentPath = PathUtils.getParentReference(parentPath);
+        } else {
+          // if the parent resource lives in sparse, we should try to save this resource
+          // in sparse.
+          Content parentContent = parentResource.adaptTo(Content.class);
+          if (parentContent != null
+              && SPARSE_CONTENT_RT.equals(parentResource.getResourceSuperType())) {
+            // Because the final path of the resolved parent Resource might differ
+            // from the path we started out with, we do not use the original raw path
+            // obtained from the request. For example, the original URL may specify the
+            // parent path "/~somebody/private" but then be resolved to
+            // "a:somebody/private".
+            String childPath = path.substring(parentPath.length());
+            String contentTargetPath = parentContent.getPath() + childPath;
+            LOGGER
+                .info(
+                    "Going to create Resource {} with Content {} starting from Resource {} with child path {}",
+                    new Object[] { path, contentTargetPath, parentResource.getPath(),
+                        childPath });
+            request.setAttribute(CONTENT_TARGET_PATH_ATTRIBUTE, contentTargetPath);
+            return true;
           } else {
-            break;
+            // a parent resource was found but we couldn't prove that it is a sparse
+            // resource so we should stop processing
+            return false;
           }
         }
       }
-      if (nearestResource != null) {
-        if (SparseContentResource.SPARSE_CONTENT_RT.equals(nearestResource.getResourceSuperType())) {
-          String childPath = path.substring(nearestPath.length());
-          // Because the final path of the resolved parent Resource might differ
-          // from the path we started out with, we do not use the original raw path
-          // obtained from the request. For example, the original URL may specify the
-          // parent path "/~somebody/private" but then be resolved to "a:somebody/private".
-          Content nearestContent = nearestResource.adaptTo(Content.class);
-          String contentTargetPath = nearestContent.getPath() + childPath;
-          LOGGER.info("Going to create Resource {} with Content {} starting from Resource {} with child path {}",
-              new Object[] {resource.getPath(), contentTargetPath, nearestResource.getPath(), childPath});
-          request.setAttribute(CONTENT_TARGET_PATH_ATTRIBUTE, contentTargetPath);
-          return true;
-        }
+
+      // no parent resources found. check the request for resourceSuperType
+      String resourceSuperType = getResourceSuperType(request);
+      if (SPARSE_CONTENT_RT.equals(resourceSuperType)) {
+        request.setAttribute(CONTENT_TARGET_PATH_ATTRIBUTE, request.getResource().getPath());
+        return true;
       }
     }
+
+    // default to returning false as it seems we shouldn't handle this resource.
     return false;
+  }
+
+  /**
+   * Get the requested resource super type (sling:resourceSuperType) from the request.
+   * This could be a request parameter or as part of content import (:operation=import).
+   *
+   * @param request
+   * @return The found resource super type or null if none could be found.
+   */
+  private String getResourceSuperType(SlingHttpServletRequest request) {
+    String resourceSuperType = request.getParameter(SLING_RESOURCE_SUPER_TYPE_PROPERTY);
+    if (resourceSuperType == null && OPERATION_IMPORT.equals(request.getParameter(RP_OPERATION))) {
+      InputStream contentStream = null;
+      String content = request.getParameter(RP_CONTENT);
+      try {
+        if (content == null) {
+          RequestParameter contentFile = request
+              .getRequestParameter(RP_CONTENT_FILE);
+          if (contentFile != null) {
+            contentStream = contentFile.getInputStream();
+            content = IOUtils.toString(contentStream, "UTF-8");
+          }
+        }
+
+        if (content != null) {
+          JSONObject json = new JSONObject(content);
+          if (json.has(SLING_RESOURCE_SUPER_TYPE_PROPERTY)) {
+            resourceSuperType = json.getString(SLING_RESOURCE_SUPER_TYPE_PROPERTY);
+          }
+        }
+      } catch (IOException e) {
+        LOGGER.warn("Error extracting resource super type: " + e.getMessage(), e);
+      } catch (JSONException e) {
+        LOGGER.warn("Error extracting resource super type: " + e.getMessage(), e);
+      }
+    }
+    return resourceSuperType;
   }
 }

@@ -1,16 +1,14 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
+require 'nakamura/test'
 include SlingUsers
 
 class TC_Kern1064Test < Test::Unit::TestCase
   include SlingTest
 
   def test_restrict_group_visibility_to_logged_in_users
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     nonmember = create_user("user-nonmember-#{m}")
     group = Group.new("g-test-#{m}")
     @s.switch_user(User.admin_user())

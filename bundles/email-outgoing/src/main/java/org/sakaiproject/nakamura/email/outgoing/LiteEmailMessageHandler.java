@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -87,7 +88,7 @@ public class LiteEmailMessageHandler implements LiteMessageTransport {
       props.put(EventDeliveryConstants.MESSAGE_MODE, EventMessageMode.PERSISTENT);
       props.put(LiteOutgoingEmailMessageListener.RECIPIENTS, recipients);
       props.put(LiteOutgoingEmailMessageListener.CONTENT_PATH_PROPERTY, message.getPath());
-      Event emailEvent = new Event(LiteOutgoingEmailMessageListener.QUEUE_NAME, props);
+      Event emailEvent = new Event(LiteOutgoingEmailMessageListener.QUEUE_NAME, (Map) props);
 
       LOGGER.debug("Sending event [" + emailEvent + "]");
       eventAdmin.postEvent(emailEvent);

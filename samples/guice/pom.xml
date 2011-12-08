@@ -26,7 +26,6 @@
   </parent>
   <artifactId>org.sakaiproject.nakamura.guice</artifactId>
   <packaging>bundle</packaging>
-  <version>1.0.2</version>
   <name>Sakai Nakamura :: Sakai Guice Bundle</name>
   <description>Support libraries for simple Guice1 usage within a bundle. Does not work for Guice based bundles that contain non listed concrete classes in the bundle (requires Guice2).</description>
   <build>
@@ -71,10 +70,10 @@
       <artifactId>org.osgi.compendium</artifactId> </dependency> <dependency>
       <groupId>javax.servlet</groupId> <artifactId>servlet-api</artifactId> </dependency>
     -->
+
     <dependency>
-      <groupId>com.google.collections</groupId>
-      <artifactId>google-collections</artifactId>
-      <scope>compile</scope>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.code.guice</groupId>

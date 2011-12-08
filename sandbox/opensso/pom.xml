@@ -9,7 +9,6 @@
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.opensso</artifactId>
-  <version>1.0.2</version>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: Open SSO Authenticator</name>
   <build>

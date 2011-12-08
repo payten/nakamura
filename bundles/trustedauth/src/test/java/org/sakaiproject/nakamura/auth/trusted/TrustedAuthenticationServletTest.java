@@ -96,7 +96,7 @@ public class TrustedAuthenticationServletTest {
     EasyMock.expect(request.getRemoteAddr()).andReturn("192.168.0.123");
     EasyMock.expect(request.getUserPrincipal()).andReturn(null);
     EasyMock.expect(request.getRemoteUser()).andReturn(null);
-    EasyMock.expect(request.getParameter("d")).andReturn("/test");
+    EasyMock.expect(request.getParameter("url")).andReturn("/test");
     response.sendRedirect("/test");
     EasyMock.expectLastCall();
     HttpService httpService = createMock(HttpService.class);

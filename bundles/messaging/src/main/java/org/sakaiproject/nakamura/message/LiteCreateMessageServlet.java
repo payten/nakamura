@@ -17,6 +17,17 @@
  */
 package org.sakaiproject.nakamura.message;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -48,7 +59,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.api.message.CreateMessagePreProcessor;
+import org.sakaiproject.nakamura.api.message.LiteCreateMessagePreProcessor;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingException;
@@ -58,17 +69,6 @@ import org.sakaiproject.nakamura.message.internal.InternalCreateMessagePreProces
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * Will create a message in the user his mesagestore (/_user/s/si/simong/messages/... folder. If the box is set to outbox and
@@ -80,7 +80,7 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Endpoint to create a message") })
-@Reference(name = "createMessagePreProcessor", referenceInterface = CreateMessagePreProcessor.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+@Reference(name = "createMessagePreProcessor", referenceInterface = LiteCreateMessagePreProcessor.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
 @ServiceDocumentation(
     name = "CreateMessageServlet", okForVersion = "0.11",
     shortDescription = "Create a message.",
@@ -115,7 +115,7 @@ public class LiteCreateMessageServlet extends SlingAllMethodsServlet {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(LiteCreateMessageServlet.class);
 
-  protected Map<String, CreateMessagePreProcessor> processors = new ConcurrentHashMap<String, CreateMessagePreProcessor>();
+  protected Map<String, LiteCreateMessagePreProcessor> processors = new ConcurrentHashMap<String, LiteCreateMessagePreProcessor>();
 
   @Reference
   protected transient LiteMessagingService messagingService;
@@ -157,7 +157,7 @@ public class LiteCreateMessageServlet extends SlingAllMethodsServlet {
     // If no preprocessor is found we use the internal one.
     String type = request.getRequestParameter(MessageConstants.PROP_SAKAI_TYPE)
         .getString();
-    CreateMessagePreProcessor preProcessor = null;
+    LiteCreateMessagePreProcessor preProcessor = null;
     preProcessor = processors.get(type);
     if (preProcessor == null) {
       preProcessor = new InternalCreateMessagePreProcessor();
@@ -327,11 +327,11 @@ public class LiteCreateMessageServlet extends SlingAllMethodsServlet {
     }
   }
 
-  protected void bindCreateMessagePreProcessor(CreateMessagePreProcessor preProcessor) {
+  protected void bindCreateMessagePreProcessor(LiteCreateMessagePreProcessor preProcessor) {
     processors.put(preProcessor.getType(), preProcessor);
   }
 
-  protected void unbindCreateMessagePreProcessor(CreateMessagePreProcessor preProcessor) {
+  protected void unbindCreateMessagePreProcessor(LiteCreateMessagePreProcessor preProcessor) {
     processors.remove(preProcessor.getType());
   }
 }

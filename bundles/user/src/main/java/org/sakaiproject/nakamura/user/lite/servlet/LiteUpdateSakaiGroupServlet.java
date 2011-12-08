@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.user.lite.servlet;
 
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_MANAGERS;
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_VIEWERS;
 
@@ -25,6 +26,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestParameterMap;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.servlets.HtmlResponse;
@@ -46,8 +48,11 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.resource.RequestProperty;
 import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
@@ -56,6 +61,8 @@ import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -160,6 +167,8 @@ public class LiteUpdateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServl
   private static final Logger LOGGER = LoggerFactory
       .getLogger(LiteUpdateSakaiGroupServlet.class);
 
+  private static final List<String> ALLOWED_PARAMETERS = Arrays.asList(new String[] {":member", ":member@Delete", ":viewer", ":viewer@Delete", "_charset_"});
+
   /**
    * The post processor service.
    *
@@ -210,86 +219,145 @@ public class LiteUpdateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServl
     if (authorizable == null) {
       throw new ResourceNotFoundException("Group to update could not be determined");
     }
-    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
-    if (session == null) {
-      throw new StorageClientException("Sparse Session not found");
-    }
-
-    // let's check permission right up front. KERN-2143
-    AccessControlManager accessControlManager = session.getAccessControlManager();
-    Authorizable currentUser = session.getAuthorizableManager().findAuthorizable(session.getUserId());
-    if (currentUser == null || !accessControlManager.can(currentUser, "AU", authorizable.getId(), Permissions.CAN_WRITE)) {
-      htmlResponse.setStatus(HttpServletResponse.SC_FORBIDDEN, "No permission to update authorizable:" + authorizable.getId());
-      return;
-    }
-
-    String groupPath = LiteAuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
-    + authorizable.getId();
-
-    Map<String, RequestProperty> reqProperties = collectContent(request, htmlResponse, groupPath);
-    // cleanup any old content (@Delete parameters)
-    // This is the only way to make a private group (one with a "rep:group-viewers"
-    // property) no longer private.
-    Map<String, Object> toSave = new HashMap<String, Object>() {
-      /**
-       * 
-       */
-      private static final long serialVersionUID = 726298727259672826L;
-
-      @Override
-      public Object put(String key, Object object) {
-        if ( containsKey(key) && object != get(key)) {
-          LOGGER.warn("Overwriting existing object to save, may loose data key:{} old:{} new:{} ",new Object[]{key,get(key),object});
-        }
-        return super.put(key, object);
+    Session session = null;
+    boolean releaseSession = false;
+    try {
+      session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
+      if (session == null) {
+        throw new StorageClientException("Sparse Session not found");
       }
-    };
-    
-    processDeletes(authorizable, reqProperties, changes, toSave);
 
-    // It is not allowed to touch the rep:group-managers and rep:group-viewers
-    // properties directly except to delete them.
-    reqProperties.remove(groupPath + "/" + PROP_GROUP_MANAGERS);
-    reqProperties.remove(groupPath + "/" + PROP_GROUP_VIEWERS);
+      if (User.ANON_USER.equals(session.getUserId())) {
+        htmlResponse.setStatus(SC_FORBIDDEN, "Anonymous users cannot update group.");
+        return;
+      }
 
-    // write content from form
-    writeContent(session, authorizable, reqProperties, changes, toSave);
+      // let's check permission right up front. KERN-2143
+      AccessControlManager accessControlManager = session.getAccessControlManager();
+      AuthorizableManager authorizableManager = session.getAuthorizableManager();
+      Authorizable currentUser = authorizableManager.findAuthorizable(session.getUserId());
 
-    // update the group memberships
-    
-    dumpToSave(toSave, "after write content");
+      if (currentUser == null || !accessControlManager.can(currentUser, Security.ZONE_AUTHORIZABLES, authorizable.getId(), Permissions.CAN_READ)) {
+        htmlResponse.setStatus(SC_FORBIDDEN, "No permission to read authorizable: " + authorizable.getId());
+        return;
+      }
 
-    if (authorizable instanceof Group) {
-      updateGroupMembership(request, session, authorizable, changes, toSave);
-      dumpToSave(toSave, "after updateGroup membership");
-      updateOwnership(request, (Group)authorizable, new String[0], changes, toSave);
+      if (!accessControlManager.can(currentUser, Security.ZONE_AUTHORIZABLES, authorizable.getId(), Permissions.CAN_WRITE)) {
+        if (!(Boolean.TRUE.equals(authorizable.getProperty("sakai:pseudoGroup")) && "collection".equals(authorizable.getProperty("sakai:category")))) {
+          htmlResponse.setStatus(SC_FORBIDDEN, "Non-manager may not update unless pseudo-group AND collection: " + authorizable.getId());
+          return;
+        }
+
+        if (!allParametersAllowed(request.getRequestParameterMap())) {
+          htmlResponse.setStatus(SC_FORBIDDEN, "Insufficient privileges to use those parameters: " + authorizable.getId());
+          return;
+        }
+        List<String> addViewers = new ArrayList<String>();
+        addViewers.addAll(Arrays.asList(StorageClientUtils.nonNullStringArray(request.getParameterValues(":viewer"))));
+        addViewers.addAll(Arrays.asList(StorageClientUtils.nonNullStringArray(request.getParameterValues(":member"))));
+        if (addViewers.contains(Group.EVERYONE) || addViewers.contains(User.ANON_USER)) {
+          htmlResponse.setStatus(SC_FORBIDDEN, "Cannot add 'anonymous' or 'everyone' as viewer or member: " + authorizable.getId());
+          return;
+        }
+
+        List<String> removeViewers = new ArrayList<String>();
+        removeViewers.addAll(Arrays.asList(StorageClientUtils.nonNullStringArray(request.getParameterValues(":viewer@Delete"))));
+        removeViewers.addAll(Arrays.asList(StorageClientUtils.nonNullStringArray(request.getParameterValues(":member@Delete"))));
+        for (String name : removeViewers) {
+          if (!currentUser.getId().equals(name)) {
+            Authorizable viewer = authorizableManager.findAuthorizable(name);
+            if (viewer != null && !accessControlManager.can(currentUser, Security.ZONE_AUTHORIZABLES, name, Permissions.CAN_WRITE)) {
+              htmlResponse.setStatus(SC_FORBIDDEN, "Non-managers may not remove any viewer other than themselves or a group which they manage.");
+            }
+          }
+        }
+        // the request has passed all the rules that govern non-manager users
+        // so we'll grant an administrative session
+        releaseSession = true;
+        session = session.getRepository().loginAdministrative();
+      }
+
+      String groupPath = LiteAuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
+      + authorizable.getId();
+
+      Map<String, RequestProperty> reqProperties = collectContent(request, htmlResponse, groupPath);
+      // cleanup any old content (@Delete parameters)
+      // This is the only way to make a private group (one with a "rep:group-viewers"
+      // property) no longer private.
+      Map<String, Object> toSave = new HashMap<String, Object>() {
+        /**
+         *
+         */
+        private static final long serialVersionUID = 726298727259672826L;
+
+        @Override
+        public Object put(String key, Object object) {
+          if ( containsKey(key) && object != get(key)) {
+            LOGGER.warn("Overwriting existing object to save, may loose data key:{} old:{} new:{} ",new Object[]{key,get(key),object});
+          }
+          return super.put(key, object);
+        }
+      };
+
+      processDeletes(authorizable, reqProperties, changes, toSave);
+
+      // It is not allowed to touch the rep:group-managers and rep:group-viewers
+      // properties directly except to delete them.
+      reqProperties.remove(groupPath + "/" + PROP_GROUP_MANAGERS);
+      reqProperties.remove(groupPath + "/" + PROP_GROUP_VIEWERS);
+
+      // write content from form
+      writeContent(session, authorizable, reqProperties, changes, toSave);
+
+      // update the group memberships
+
+      dumpToSave(toSave, "after write content");
+
+      if (authorizable instanceof Group) {
+        updateGroupMembership(request, session, authorizable, changes, toSave);
+        dumpToSave(toSave, "after updateGroup membership");
+        updateOwnership(request, (Group)authorizable, new String[0], changes, toSave);
+      }
+      dumpToSave(toSave, "before save");
+
+      saveAll(session, toSave);
+
+      try {
+        postProcessorService.process(authorizable, session, ModificationType.MODIFY, request);
+      } catch (Exception e) {
+        LOGGER.warn(e.getMessage(), e);
+
+        htmlResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+            .getMessage());
+        return;
+      }
+
+      // Launch an OSGi event for updating a group.
+      try {
+        Dictionary<String, String> properties = new Hashtable<String, String>();
+        properties.put(UserConstants.EVENT_PROP_USERID, authorizable.getId());
+        properties.put("path", authorizable.getId());
+        EventUtils
+            .sendOsgiEvent(properties, UserConstants.TOPIC_GROUP_UPDATE, eventAdmin);
+      } catch (Exception e) {
+        // Trap all exception so we don't disrupt the normal behaviour.
+        LOGGER.error("Failed to launch an OSGi event for creating a user.", e);
+      }
+    } finally {
+      if (session != null && releaseSession) {
+        session.logout();
+      }
     }
-    dumpToSave(toSave, "before save");
-      
-    saveAll(session, toSave);
 
-    try {
-      postProcessorService.process(authorizable, session, ModificationType.MODIFY, request);
-    } catch (Exception e) {
-      LOGGER.warn(e.getMessage(), e);
+  }
 
-      htmlResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
-          .getMessage());
-      return;
+  private boolean allParametersAllowed(RequestParameterMap requestParameterMap) {
+    for (String parameterName : requestParameterMap.keySet()) {
+      if (!ALLOWED_PARAMETERS.contains(parameterName)) {
+        return false;
+      }
     }
-
-    // Launch an OSGi event for updating a group.
-    try {
-      Dictionary<String, String> properties = new Hashtable<String, String>();
-      properties.put(UserConstants.EVENT_PROP_USERID, authorizable.getId());
-      properties.put("path", authorizable.getId());
-      EventUtils
-          .sendOsgiEvent(properties, UserConstants.TOPIC_GROUP_UPDATE, eventAdmin);
-    } catch (Exception e) {
-      // Trap all exception so we don't disrupt the normal behaviour.
-      LOGGER.error("Failed to launch an OSGi event for creating a user.", e);
-    }
-    
+    return true;
   }
 
   /**

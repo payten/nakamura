@@ -22,7 +22,6 @@ import static org.junit.Assert.assertEquals;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
@@ -62,12 +61,6 @@ public class ChatMessageSearchResultProviderTest {
     resourceResolver = mock(ResourceResolver.class);
     when(resourceResolver.adaptTo(Session.class)).thenReturn(session);
     when(messagingService.getFullPathToStore(user, session)).thenReturn("/full/path/to/store");
-  }
-
-  @After
-  public void tearDown() {
-    propProvider.messagingService = null;
-    verify(messagingService);
   }
 
   @Test

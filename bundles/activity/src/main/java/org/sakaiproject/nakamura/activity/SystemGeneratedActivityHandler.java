@@ -66,7 +66,12 @@ public class SystemGeneratedActivityHandler implements EventHandler {
       String userId = (String) event.getProperty("userid");
       @SuppressWarnings("unchecked")
       final Map<String, Object> activityProperties = (Map<String, Object>) event.getProperty("attributes");
-      
+
+      // don't add activity when we're just creating a preview
+      if ("CREATED_ALT_FILE".equals(activityProperties.get("sakai:activityMessage"))) {
+        return;
+      }
+
       final ContentManager contentManager = adminSession.getContentManager();
       Content location = contentManager.get(path);
       if ( location != null ) {

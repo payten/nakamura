@@ -1,10 +1,8 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
-require 'sling/search'
+require 'nakamura/test'
+require 'nakamura/search'
 require 'test/unit.rb'
 include SlingSearch
 
@@ -12,7 +10,7 @@ class TC_Kern292Test < Test::Unit::TestCase
   include SlingTest
 
   def test_add_member_acyclic
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     g1 = create_group("g-testgroup1-#{m}")
     g2 = create_group("g-testgroup2-#{m}")
     @log.info("adding group #{g1.name} to #{g2.name} ")
@@ -28,7 +26,7 @@ class TC_Kern292Test < Test::Unit::TestCase
   end
 
   def test_add_members_acyclic
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     g1 = create_group("g-testgroup3-#{m}")
     g2 = create_group("g-testgroup4-#{m}")
     @log.info("Adding #{g1.name} to #{g2.name} ")
@@ -45,7 +43,7 @@ class TC_Kern292Test < Test::Unit::TestCase
   end
 
   def test_remove_ignores_nonmembers
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     g1 = create_group("g-testgroup5-#{m}")
     users = [ "pav", "simon", "steve" ].collect do |u|
       create_user("#{u}-#{m}")

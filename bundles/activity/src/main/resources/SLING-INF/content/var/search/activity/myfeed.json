@@ -3,8 +3,10 @@
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
-  "sortOn": "_created",
-  "sortOrder": "desc",
+  "sakai:query-template-defaults": {
+    "sortOn": "_created",
+    "sortOrder": "desc",
+  },
   "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider": "Activity",
   "sakai:title": "Activity - My feed.",

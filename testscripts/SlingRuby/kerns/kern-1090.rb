@@ -1,16 +1,14 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
+require 'nakamura/test'
 include SlingUsers
 
 class TC_Kern1090Test < Test::Unit::TestCase
   include SlingTest
 
   def test_default_group_access
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     @s.switch_user(User.admin_user())
     member = create_user("user-manager-#{m}")
     manager = create_user("user-member-#{m}")

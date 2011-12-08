@@ -21,7 +21,6 @@
   </parent>
   <artifactId>org.sakaiproject.nakamura.auth.rest</artifactId>
   <packaging>bundle</packaging>
-  <version>1.0.2</version>
   <name>Sakai Nakamura :: REST Authentication Bundle</name>
   <description>Provides REST based authentication support to the request cycle.</description>
   <build>
@@ -46,12 +45,10 @@
     <dependency>
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
-      <version>2.4</version>
     </dependency>
    <dependency>
       <groupId>javax.jcr</groupId>
       <artifactId>jcr</artifactId>
-      <version>2.0</version>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -60,7 +57,6 @@
     <dependency>
       <groupId>org.apache.jackrabbit</groupId>
       <artifactId>jackrabbit-api</artifactId>
-      <version>2.0.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
@@ -73,45 +69,34 @@
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.osgi.foundation</artifactId>
-      <version>1.2.0</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.api</artifactId>
-      <version>2.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.auth.core</artifactId>
-      <version>0.9.0-20100823</version>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.jcr.api</artifactId>
-      <version>2.0.6</version>
-      <type>bundle</type>
     </dependency>
      <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.jcr.base</artifactId>
-      <version>2.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
-      <version>2.1.0</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.servlets.post</artifactId>
-      <version>2.0.5-20100823</version>
     </dependency>
     <dependency>
       <groupId>commons-httpclient</groupId>
       <artifactId>commons-httpclient</artifactId>
-      <version>3.1</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
@@ -161,6 +146,6 @@
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
-    
+
   </dependencies>
 </project>

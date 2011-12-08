@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 
-require 'sling/sling'
-require 'sling/users'
+require 'nakamura'
+require 'nakamura/users'
 include SlingInterface
 include SlingUsers
 

@@ -22,6 +22,7 @@ import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.sakaiproject.nakamura.api.auth.trusted.ExpiringSecretKeyData;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
@@ -503,6 +504,7 @@ public class TokenStore {
     LOG.debug("Looking key {} in {} ", serverId, keyNumber);
     if ( secretKeyRingBuffer[keyNumber] != null ) {
       if ( serverId.equals(secretKeyRingBuffer[keyNumber].getServerId())) {
+        LOG.debug("Found Key {} will expire at {}", keyNumber, secretKeyRingBuffer[keyNumber].getExpires());
         return secretKeyRingBuffer[keyNumber];
       }
     }
@@ -513,10 +515,19 @@ public class TokenStore {
     // load tokens for the server up
     if (keyCache.containsKey(cacheKey)) {
       ExpiringSecretKeyData cachedServerKeyData = keyCache.get(cacheKey);
-      if (cachedServerKeyData.getExpires() < System.currentTimeMillis()) {
-        return new ExpiringSecretKey(cachedServerKeyData);
+      LOG.debug("Got Cache Key {} as  {} ", cacheKey, cachedServerKeyData);
+      if ( System.currentTimeMillis() < cachedServerKeyData.getExpires()) {
+          LOG.debug("Got Key is valid using {} as  {} ", cacheKey, cachedServerKeyData);
+         return new ExpiringSecretKey(cachedServerKeyData);
+      } else if ( System.currentTimeMillis() < cachedServerKeyData.getExpires() + 600000L  ){
+          LOG.debug("Got Key is Not valid {}, ", cacheKey, cachedServerKeyData);
+      } else {
+	  keyCache.remove(cacheKey);
+          LOG.debug("Got Key is Not valid and old removing {}, ", cacheKey, cachedServerKeyData);
+       }
+    } else {
+        LOG.debug("No Key found {} {} ", cacheKey);
       }
-    }
     // none found.
     return null;
   }

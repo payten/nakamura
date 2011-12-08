@@ -1,16 +1,14 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
+require 'nakamura/test'
 include SlingUsers
 
 class TC_Kern1540Test < Test::Unit::TestCase
   include SlingTest
 
   def test_calendar_in_user_home
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     user = create_user("user-#{m}")
     home = user.home_path_for(@s)
     public = user.public_path_for(@s)

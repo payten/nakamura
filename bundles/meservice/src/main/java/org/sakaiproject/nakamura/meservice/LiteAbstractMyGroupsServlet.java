@@ -17,6 +17,14 @@
  */
 package org.sakaiproject.nakamura.meservice;
 
+import com.google.common.base.Functions;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Multisets;
+import com.google.common.collect.Ordering;
+import com.google.common.primitives.Ints;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ValueMap;
@@ -38,9 +46,13 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
@@ -166,6 +178,8 @@ public abstract class LiteAbstractMyGroupsServlet extends SlingSafeMethodsServle
       }
       writer.endArray();
 
+      writeFacetFields(filteredProfiles, writer);
+
       writer.key(TOTAL);
       writer.value(filteredProfiles.size());
 
@@ -219,14 +233,14 @@ public abstract class LiteAbstractMyGroupsServlet extends SlingSafeMethodsServle
   }
 
   protected boolean isPseudoGroup(Group group) {
-    return ("true".equals(group.getProperty(UserConstants.PROP_PSEUDO_GROUP)) &&
-            group.getProperty(UserConstants.PROP_PSEUDO_GROUP_PARENT) != null);
+    return (Boolean.TRUE.equals(group.getProperty(UserConstants.PROP_PSEUDO_GROUP)) &&
+            group.getProperty(UserConstants.PROP_PARENT_GROUP_ID) != null);
   }
 
   protected boolean isManagerGroup(Group group, AuthorizableManager userManager)
     throws AccessDeniedException, StorageClientException {
     String groupId = group.getId();
-    String childGroupId = (String)group.getProperty(UserConstants.PROP_PSEUDO_GROUP_PARENT);    
+    String childGroupId = (String)group.getProperty(UserConstants.PROP_PARENT_GROUP_ID);    
 
     Authorizable childGroup = (Authorizable)userManager.findAuthorizable(childGroupId);
 
@@ -287,7 +301,7 @@ public abstract class LiteAbstractMyGroupsServlet extends SlingSafeMethodsServle
   }
 
   private boolean isValueMapPattternMatch(ValueMap valueMap, Pattern queryFilter) {
-    for (Entry<String, Object> entry : valueMap.entrySet()) {
+    for (Map.Entry<String, Object> entry : valueMap.entrySet()) {
       Object rawValue = entry.getValue();
       if ( !IGNORE_PROPERTIES.contains(entry.getKey())) {
         if (isObjectPatternMatch(rawValue, queryFilter)) {
@@ -301,6 +315,40 @@ public abstract class LiteAbstractMyGroupsServlet extends SlingSafeMethodsServle
 
   private boolean isStringPatternMatch(String stringValue, Pattern queryFilter) {
     return queryFilter.matcher(stringValue).matches();
+  }
+
+  private void writeFacetFields(List<ValueMap> filteredProfiles, ExtendedJSONWriter writer) throws JSONException {
+    Multiset<String> tags = HashMultiset.create();
+    for (ValueMap profile : filteredProfiles) {
+      Object profileTags = profile.get("sakai:tags");
+      if (profileTags != null && profileTags instanceof String[]) {
+        Collections.addAll(tags, (String[]) profileTags);
+      }
+    }
+    // sort the tags in descending order of their occurrence
+    List<Multiset.Entry<String>> sortedTags = Lists.newArrayList(tags.entrySet());
+    Collections.sort(sortedTags, new Comparator<Multiset.Entry<String>>() {
+      @Override
+      public int compare(Multiset.Entry<String> a, Multiset.Entry<String> b) {
+        return Ints.compare(b.getCount(), a.getCount());
+      }
+    });
+
+    // write out the tag names and their counts
+    writer.key("facet_fields");
+    writer.array();
+    writer.object();
+    writer.key("tagname");
+    writer.array();
+    for (Multiset.Entry<String> tag : sortedTags) {
+      writer.object();
+      writer.key(tag.getElement());
+      writer.value(tag.getCount());
+      writer.endObject();
+    }
+    writer.endArray();
+    writer.endObject();
+    writer.endArray();
   }
 
 }

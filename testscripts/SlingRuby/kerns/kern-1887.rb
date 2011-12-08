@@ -1,9 +1,7 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
+require 'nakamura/test'
 include SlingUsers
 
 class TC_Kern1887Test < Test::Unit::TestCase
@@ -11,7 +9,7 @@ class TC_Kern1887Test < Test::Unit::TestCase
 
   def setup
     super
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     @user = create_user("user-#{m}")
     @home = @user.home_path_for(@s)
 

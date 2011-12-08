@@ -1,10 +1,8 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
-require 'sling/file'
+require 'nakamura/test'
+require 'nakamura/file'
 include SlingUsers
 include SlingFile
 
@@ -14,7 +12,7 @@ class TC_Kern1895Test < Test::Unit::TestCase
 
   def test_delete_pool_property
     @fm = FileManager.new(@s)
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     manager = create_user("user-manager-#{m}")
     @s.switch_user(manager)
     res = @fm.upload_pooled_file("random-#{m}.txt", "Plain content", "text/plain")

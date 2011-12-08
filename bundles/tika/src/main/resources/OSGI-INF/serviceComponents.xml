@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0">
+    <scr:component enabled="true" name="org.sakaiproject.nakamura.tika.TikaServiceImpl" activate="activate" deactivate="deactivate" modified="activate">
+        <implementation class="org.sakaiproject.nakamura.tika.TikaServiceImpl"/>
+        <service servicefactory="false">
+            <provide interface="org.sakaiproject.nakamura.api.tika.TikaService"/>
+        </service>
+        <property name="sakai.tika.max_string_length" type="Integer" value="100000"/>
+        <property name="service.pid" value="org.sakaiproject.nakamura.tika.TikaServiceImpl"/>
+    </scr:component>
+</components>

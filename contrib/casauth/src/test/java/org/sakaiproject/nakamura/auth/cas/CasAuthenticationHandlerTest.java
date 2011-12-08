@@ -17,6 +17,17 @@
  */
 package org.sakaiproject.nakamura.auth.cas;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -24,11 +35,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
-import org.apache.jackrabbit.api.JackrabbitSession;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.auth.Authenticator;
 import org.apache.sling.auth.core.spi.AuthenticationInfo;
-import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.junit.After;
 import org.junit.Before;
@@ -37,28 +45,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.jcr.RepositoryException;
-import javax.jcr.SimpleCredentials;
-import javax.jcr.ValueFactory;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.security.Principal;
 import java.util.HashMap;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertSame;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import javax.jcr.RepositoryException;
+import javax.jcr.SimpleCredentials;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CasAuthenticationHandlerTest {
@@ -71,26 +64,14 @@ public class CasAuthenticationHandlerTest {
   HttpServletRequest request;
   @Mock
   HttpServletResponse response;
-  @Mock
-  ValueFactory valueFactory;
-  @Mock
-  SlingRepository repository;
-  @Mock
-  JackrabbitSession adminSession;
-  @Mock
-  UserManager userManager;
 
   LocalTestServer server;
   HashMap<String, Object> props = new HashMap<String, Object>();
 
   @Before
   public void setUp() throws RepositoryException {
-    authnHandler = new CasAuthenticationHandler(repository);
-    authnHandler.activate(props);
-
-    when(adminSession.getUserManager()).thenReturn(userManager);
-    when(adminSession.getValueFactory()).thenReturn(valueFactory);
-    when(repository.loginAdministrative(null)).thenReturn(adminSession);
+    authnHandler = new CasAuthenticationHandler();
+    authnHandler.modified(props);
   }
 
   @After
@@ -98,12 +79,6 @@ public class CasAuthenticationHandlerTest {
     if (server != null) {
       server.stop();
     }
-  }
-
-  @Test
-  public void coverageBooster() throws Exception {
-    CasAuthenticationHandler handler = new CasAuthenticationHandler();
-    handler.authenticationFailed(null, null, null);
   }
 
   @Test
@@ -183,21 +158,6 @@ public class CasAuthenticationHandlerTest {
 
     verify(request).setAttribute(eq(CasAuthenticationHandler.AUTHN_INFO),
         isA(AuthenticationInfo.class));
-  }
-
-  // AuthenticationFeedbackHandler tests.
-
-  @Test
-  public void unknownUserNoCreation() throws Exception {
-    setUpSsoCredentials(true);
-    AuthenticationInfo authenticationInfo = authnHandler.extractCredentials(
-        request, response);
-    boolean actionTaken = authnHandler.authenticationSucceeded(request,
-        response, authenticationInfo);
-    assertFalse(actionTaken);
-    verify(userManager, never()).createUser(anyString(), anyString());
-    verify(userManager, never()).createUser(anyString(), anyString(),
-        any(Principal.class), anyString());
   }
 
   @Test

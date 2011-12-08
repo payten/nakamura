@@ -23,8 +23,8 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.tika</artifactId>
-  <packaging>bundle</packaging>
-  <version>0.9-1.0.2</version>
+  <packaging>jar</packaging>
+  <version>0.9.1.1-SNAPSHOT</version>
   <name>Sakai Nakamura :: Tika Bundle</name>
   <description>Wraps the Tika functionality but uses a slightly different tika-mimetypes.xml for extracting HTML.</description>
   <build>
@@ -43,7 +43,7 @@
               <goal>unpack-dependencies</goal>
             </goals>
             <configuration>
-              <includeArtifactIds>tika-core,tika-parsers</includeArtifactIds>
+              <includeArtifactIds>tika-bundle</includeArtifactIds>
               <excludeTransitive>false</excludeTransitive>
               <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
               <excludes>META-INF/MANIFEST.MF,org/apache/tika/mime/tika-mimetypes.xml,org/apache/tika/tika-config.xml</excludes>
@@ -53,36 +53,65 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <extensions>true</extensions>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
         <configuration>
-          <instructions>
-            <Bundle-Category>sakai-nakamura</Bundle-Category>
-            <Export-Package>
-              org.apache.tika*;-split-package:=merge-first,
-              org.sakaiproject.nakamura.api.*
-            </Export-Package>
-            <Embed-Dependency>
-              commons-compress,
-              pdfbox,fontbox,jempbox,
-              poi,poi-scratchpad,poi-ooxml,poi-ooxml-schemas,
-              xmlbeans,
-              dom4j,
-              tagsoup,
-              asm,
-              metadata-extractor,
-            </Embed-Dependency>
-            <Embed-Transitive>true</Embed-Transitive>
-            <Bundle-DocURL>${project.url}</Bundle-DocURL>
-            <Import-Package>
-              org.w3c.dom,
-              *;resolution:=optional
-            </Import-Package>
-          </instructions>
+          <archive>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
         </configuration>
       </plugin>
     </plugins>
+    <pluginManagement>
+      <plugins>
+        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>
+                      org.apache.maven.plugins
+                    </groupId>
+                    <artifactId>
+                      maven-dependency-plugin
+                    </artifactId>
+                    <versionRange>[2.3,)</versionRange>
+                    <goals>
+                      <goal>unpack-dependencies</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore></ignore>
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>
+                      maven-scr-plugin
+                    </artifactId>
+                    <versionRange>
+                      [1.7.2,)
+                    </versionRange>
+                    <goals>
+                      <goal>scr</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore></ignore>
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
   <dependencies>
     <dependency>
@@ -96,16 +125,10 @@
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.commons.osgi</artifactId>
-      <version>2.0.6</version>
     </dependency>
     <dependency>
       <groupId>org.apache.tika</groupId>
-      <artifactId>tika-core</artifactId>
-      <version>0.9</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.tika</groupId>
-      <artifactId>tika-parsers</artifactId>
+      <artifactId>tika-bundle</artifactId>
       <version>0.9</version>
     </dependency>
   </dependencies>

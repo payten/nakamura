@@ -37,6 +37,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.util.ISO8601Date;
+import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +91,7 @@ public class LiteJsonImporter {
     while (keys.hasNext()) {
 
       String key = keys.next();
-      if (!key.startsWith("jcr:")) {
+      if (!JcrUtils.isJCRProperty(key)) {
         Object obj = json.get(key);
 
         String pathKey = getPathElement(key);

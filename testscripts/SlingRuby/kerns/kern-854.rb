@@ -1,9 +1,7 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
+require 'nakamura/test'
 require 'test/unit.rb'
 include SlingUsers
 
@@ -12,7 +10,7 @@ class TC_Kern854 < Test::Unit::TestCase
   include SlingTest
 
   def test_widgetlisting
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
 
     # Store the original widget settings somewhere.
     @widget_options = getWidgetServiceConfiguration()

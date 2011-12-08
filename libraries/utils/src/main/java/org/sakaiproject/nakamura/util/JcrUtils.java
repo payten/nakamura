@@ -437,4 +437,9 @@ public class JcrUtils {
       node.setProperty(propertyName, valueList.toArray(new Value[0]));
     }
   }
+
+  public static boolean isJCRProperty(String key) {
+    return key != null && key.startsWith("jcr:");
+  }
+
 }

@@ -1,9 +1,7 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
+require 'nakamura/test'
 require 'test/unit.rb'
 include SlingSearch
 include SlingUsers
@@ -28,7 +26,7 @@ class TC_Kern740Test < Test::Unit::TestCase
   end
 
   def test_change_password_basicAuth
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     @s.trustedauth = false
 	@s.execute_get(@s.url_for("/var/cluster/user.json?Starting_Basic_AuthTest"))
 	@log.info("Changing Admin Password with Basic Auth")
@@ -38,7 +36,7 @@ class TC_Kern740Test < Test::Unit::TestCase
   end
 
   def test_change_password_basicAuthNewUser
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     @s.trustedauth = false
 
 	u = "user"+m
@@ -79,7 +77,7 @@ class TC_Kern740Test < Test::Unit::TestCase
 
 
   def test_change_password_basicAuthNewUser
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     @s.trustedauth = false
 
 	u = "userbasic"+m
@@ -88,7 +86,7 @@ class TC_Kern740Test < Test::Unit::TestCase
   end
 
   def test_change_password_trustedAuthNewUser
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     @s.trustedauth = true
 
 	u = "usertrusted"+m
@@ -97,7 +95,7 @@ class TC_Kern740Test < Test::Unit::TestCase
   end
 
   def test_change_password_trustedAuth
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     @s.trustedauth = true
 	@s.execute_get(@s.url_for("/var/cluster/user.json?Starting_Trusted_AuthTest"))
 
@@ -144,7 +142,7 @@ class TC_Kern740Test < Test::Unit::TestCase
 	# check basic node update functionallity and make certain that the user we think is performing the operation.
 	# this should check that the session is correctly authenticated inside JCR since if not the lastModifiedBy wont be
 	# correct.
-        m = Time.now.to_f.to_s.gsub('.', '')
+        m = Time.now.to_nsec
 	homeFolderTestFile = "/testarea/"+m+v
 	res = @s.execute_post(@s.url_for(homeFolderTestFile),"testprop" => "testvalue",  "jcr:mixinTypes" => "mix:lastModified" )
 	assert_equal("201",res.code, res.body+"\n Failed to create a node logged in as admin, must be a problem with the login, ie not really admin ?")

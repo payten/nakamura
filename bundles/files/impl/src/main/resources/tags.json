@@ -1,0 +1,16 @@
+{
+  "jcr:primaryType":"sling:Folder",
+  "sakai:description":"Holder for shared tags",
+  "everyone@grant": {
+    "operation": "replace",
+    "permission": [
+        "write"
+    ]
+  },
+  "anonymous@deny": {
+    "operation": "replace",
+    "permission": [
+        "write"
+    ]
+  }
+}

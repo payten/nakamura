@@ -1,12 +1,15 @@
-{ "sakai:query-template": "(path:${_userMessagePath} AND resourceType:sakai/message AND messagebox:(${box})${_categoryClause}) AND (title:(${q}) OR content:(${q}) OR ngram:(${q}) OR edgengram:(${q}))",
+{ "sakai:query-template": "(messagestore:${_userMessagePath} AND resourceType:sakai/message AND messagebox:(${box})${_categoryClause}) AND (title:(${q}) OR content:(${q}) OR ngram:(${q}) OR edgengram:(${q}) OR from:(${q}) OR firstName:(${q}) OR lastName:(${q}))",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
-  "sortOn": "_created",
-  "sortOrder": "desc",
+  "sakai:query-template-defaults": {
+    "sortOn": "_created",
+    "sortOrder": "desc"
+  },
   "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "MessageSparse",
   "sakai:batchresultprocessor": "MessageContacts",
+  "sakai:searchresponsedecorator":"Message",
   "sakai:title": "Messaging - User - Box and category with query term.",
   "sakai:shortDescription": "Get all the messages for a specified box and category.",
   "sakai:parameters" : [

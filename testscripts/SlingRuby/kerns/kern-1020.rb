@@ -1,16 +1,14 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
+require 'nakamura/test'
 include SlingUsers
 
 class TC_Kern1020Test < Test::Unit::TestCase
   include SlingTest
 
   def test_find_all_groups
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     @s.switch_user(User.admin_user())
     manager = create_user("user-manager-#{m}")
     member = create_user("user-member-#{m}")
@@ -69,7 +67,7 @@ class TC_Kern1020Test < Test::Unit::TestCase
   end
 
   def test_find_matching_groups
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     other = Time.now.to_f.to_s.gsub('.', 'XX')
     excluded = Time.now.to_f.to_s.gsub('.', 'YY')
     @s.switch_user(User.admin_user())

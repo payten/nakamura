@@ -36,7 +36,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
@@ -215,11 +215,15 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   public static final String PARAM_ADD_TO_MANAGERS_GROUP = ":sakai:manager";
   public static final String PARAM_REMOVE_FROM_MANAGERS_GROUP = PARAM_ADD_TO_MANAGERS_GROUP
       + SlingPostConstants.SUFFIX_DELETE;
-
-  @Property(description = "The default access settings for the home of a new user or group.", value = VISIBILITY_PUBLIC, options = {
+  
+  static final String VISIBILITY_PREFERENCE_DEFAULT = VISIBILITY_PUBLIC;
+  @Property(value = VISIBILITY_PREFERENCE_DEFAULT, options = {
       @PropertyOption(name = VISIBILITY_PRIVATE, value = "The home is private."),
       @PropertyOption(name = VISIBILITY_LOGGED_IN, value = "The home is blocked to anonymous users; all logged-in users can see it."),
       @PropertyOption(name = VISIBILITY_PUBLIC, value = "The home is completely public.") })
+  static final String VISIBILITY_PREFERENCE = "visibility.preference";    
+  private String visibilityPreference;
+  
   static final String PROFILE_IMPORT_TEMPLATE = "sakai.user.profile.template.default";
   static final String PROFILE_IMPORT_TEMPLATE_DEFAULT = "{'basic':{'elements':{'firstName':{'value':'@@firstName@@'},'lastName':{'value':'@@lastName@@'},'email':{'value':'@@email@@'}},'access':'everybody'}}";
 
@@ -233,8 +237,6 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
   private String defaultProfileTemplate;
   private ArrayList<String> profileParams = new ArrayList<String>();
-  static final String VISIBILITY_PREFERENCE = "visibility.preference";
-  static final String VISIBILITY_PREFERENCE_DEFAULT = VISIBILITY_PUBLIC;
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(DefaultPostProcessor.class);
@@ -254,14 +256,12 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   @Reference
   protected EventAdmin eventAdmin;
 
-  private String visibilityPreference;
-
 
   @Activate
   @Modified
   protected void modified(Map<?, ?> props) throws Exception {
 
-    visibilityPreference = OsgiUtil.toString(props.get(VISIBILITY_PREFERENCE),
+    visibilityPreference = PropertiesUtil.toString(props.get(VISIBILITY_PREFERENCE),
         VISIBILITY_PREFERENCE_DEFAULT);
 
     defaultProfileTemplate = PROFILE_IMPORT_TEMPLATE_DEFAULT;
@@ -278,9 +278,9 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       startPos = endPos;
     }
 
-    defaultUserPagesTemplate = OsgiUtil.toString(props.get(DEFAULT_USER_PAGES_TEMPLATE),
+    defaultUserPagesTemplate = PropertiesUtil.toString(props.get(DEFAULT_USER_PAGES_TEMPLATE),
         "");
-    defaultGroupPagesTemplate = OsgiUtil.toString(
+    defaultGroupPagesTemplate = PropertiesUtil.toString(
         props.get(DEFAULT_GROUP_PAGES_TEMPLATE), "");
 
     createDefaultUsers();
@@ -899,14 +899,14 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
     Set<String> managerSettings = null;
     if (authorizable.hasProperty(UserConstants.PROP_GROUP_MANAGERS)) {
-      managerSettings = ImmutableSet.of((String[]) authorizable
+      managerSettings = ImmutableSet.copyOf((String[]) authorizable
           .getProperty(UserConstants.PROP_GROUP_MANAGERS));
     } else {
       managerSettings = ImmutableSet.of();
     }
     Set<String> viewerSettings = null;
     if (authorizable.hasProperty(UserConstants.PROP_GROUP_VIEWERS)) {
-      viewerSettings = ImmutableSet.of((String[]) authorizable
+      viewerSettings = ImmutableSet.copyOf((String[]) authorizable
           .getProperty(UserConstants.PROP_GROUP_VIEWERS));
     } else {
       viewerSettings = ImmutableSet.of();

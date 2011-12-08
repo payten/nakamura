@@ -174,7 +174,7 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
               changed = true;
             }
             if (peerGroup != null && peerGroup.getId() != group.getId()) {
-              Set<String> members = ImmutableSet.of(peerGroup.getMembers());
+              Set<String> members = ImmutableSet.copyOf(peerGroup.getMembers());
               if (members.contains(memberAuthorizable.getId())) {
                 membersToRemoveFromPeer.add(memberAuthorizable);
               }

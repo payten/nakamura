@@ -1,18 +1,8 @@
 This migration iterates over all of the sakai content items and renames the a property to another property.
 
-## The .cfg file should be in place before you install the migratesparseuuid bundle.
+Migration is performed by configuring ContentUUIDMigrator, with the old ID field and enabling the ContenMigrationComponent
+from the SparseMapBundle, this bundle will not do anything until its used by the ContentMigrationComponent.
 
-These property are configurable with a .cfg file in:
-
-load/org.sakaiproject.nakamura.migratesparseuuid.ContentUUIDMigrator.cfg
-
-    migrateuuid.original.field = _id
-    migrateuuid.destination.field = _sparseId
-    migrateuuid.dryrun = true
-
-To install the bundle
-
-    mvn -f contrib/migratesparseuuid/pom.xml -Predeploy install
 
 Original rationale for the id change the subsequent migration:
 

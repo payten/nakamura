@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0">
     <!--
-    Jndi and Rmi interfaces are disabled 
+    Disable test content loader and JNDI, RMI interfaces
+    <scr:component enabled="true" name="org.apache.sling.jcr.jackrabbit.server.impl.TestContentLoaderImpl">
+        <implementation class="org.apache.sling.jcr.jackrabbit.server.impl.TestContentLoaderImpl"/>
+        <service servicefactory="false">
+            <provide interface="org.apache.sling.jcr.jackrabbit.server.TestContentLoader"/>
+        </service>
+        <property name="service.description" value="Test Content Loader"/>
+        <property name="service.vendor" value="The Apache Software Foundation"/>
+        <property name="service.pid" value="org.apache.sling.jcr.jackrabbit.server.impl.TestContentLoaderImpl"/>
+        <reference name="repository" interface="org.apache.sling.jcr.api.SlingRepository" cardinality="1..1" policy="static" bind="bindRepository" unbind="unbindRepository"/>
+    </scr:component>
     <scr:component enabled="true" immediate="true" name="org.apache.sling.jcr.jackrabbit.server.JndiRegistrationSupport">
         <implementation class="org.apache.sling.jcr.jackrabbit.server.impl.JndiRegistrationSupport"/>
         <property name="java.naming.factory.initial" value="org.apache.jackrabbit.core.jndi.provider.DummyInitialContextFactory"/>
@@ -9,21 +19,21 @@
         <property name="service.vendor" value="The Apache Software Foundation"/>
         <property name="service.description" value="JNDI Repository Registration"/>
         <property name="service.pid" value="org.apache.sling.jcr.jackrabbit.server.JndiRegistrationSupport"/>
-        <reference name="Log" interface="org.osgi.service.log.LogService" cardinality="0..1" policy="dynamic" bind="bindLog" unbind="unbindLog"/>
         <reference name="Repository" interface="javax.jcr.Repository" cardinality="0..n" policy="dynamic" bind="bindRepository" unbind="unbindRepository"/>
+        <reference name="Log" interface="org.osgi.service.log.LogService" cardinality="0..1" policy="dynamic" bind="bindLog" unbind="unbindLog"/>
     </scr:component>
     <scr:component enabled="true" immediate="true" name="org.apache.sling.jcr.jackrabbit.server.RmiRegistrationSupport">
         <implementation class="org.apache.sling.jcr.jackrabbit.server.impl.RmiRegistrationSupport"/>
         <property name="service.vendor" value="The Apache Software Foundation"/>
         <property name="service.description" value="RMI based Repository Registration"/>
-        <property name="port" type="Integer" value="1098"/>
+        <property name="port" type="Integer" value="1099"/>
         <property name="service.pid" value="org.apache.sling.jcr.jackrabbit.server.RmiRegistrationSupport"/>
-        <reference name="Log" interface="org.osgi.service.log.LogService" cardinality="0..1" policy="dynamic" bind="bindLog" unbind="unbindLog"/>
         <reference name="Repository" interface="javax.jcr.Repository" cardinality="0..n" policy="dynamic" bind="bindRepository" unbind="unbindRepository"/>
+        <reference name="Log" interface="org.osgi.service.log.LogService" cardinality="0..1" policy="dynamic" bind="bindLog" unbind="unbindLog"/>
     </scr:component>
     -->
 
-    <scr:component enabled="true" name="org.apache.sling.jcr.jackrabbit.server.SlingServerRepository">
+    <scr:component enabled="true" name="org.apache.sling.jcr.jackrabbit.server.SlingServerRepository" configuration-policy="require">
         <implementation class="org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.SakaiSlingServerRepository"/>
         <property name="service.vendor" value="The Apache Software Foundation"/>
         <property name="service.description" value="Factory for embedded Jackrabbit Repository Instances"/>
@@ -36,14 +46,15 @@
         <property name="admin.name" type="String" value="admin"/>
         <property name="admin.password" type="String" value="admin"/>
         <property name="poll.active" type="Integer" value="10"/>
+        <property name="poll.inactive" type="Integer" value="10"/>
         <property name="pool.maxActiveWait" type="Integer" value="1"/>
         <property name="pool.maxIdle" type="Integer" value="10"/>
-        <property name="poll.inactive" type="Integer" value="10"/>
         <property name="pool.maxActive" type="Integer" value="-1"/>
         <property name="pool.maxIdle" type="Integer" value="0"/>
         <property name="service.pid" value="org.apache.sling.jcr.base.AbstractSlingRepository"/>
+        <property name="service.pid" value="org.apache.sling.jcr.jackrabbit.server.SlingServerRepository"/>
         <reference name="log" interface="org.osgi.service.log.LogService" cardinality="1..1" policy="static" bind="bindLog" unbind="unbindLog"/>
-        <!--  this binds to the Lite Reposiotry to ensure its available before the Sling repo starts -->
+        <!--  this binds to the Sparse repository to ensure it's available before the Sling repo starts -->
         <reference name="repository" interface="org.sakaiproject.nakamura.api.lite.Repository" cardinality="1..1" policy="static" bind="bindRepository" unbind="unbindRepository"/>
     </scr:component>
 </components>

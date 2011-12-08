@@ -53,7 +53,7 @@ public class LiteDiscussionRouter implements LiteMessageRouter {
   @Reference
   protected Repository contentRepository;
 
-  private static final Logger LOG = LoggerFactory.getLogger(DiscussionRouter.class);
+  private static final Logger LOG = LoggerFactory.getLogger(LiteDiscussionRouter.class);
 
   @Property(value = "The Sakai Foundation")
   static final String SERVICE_VENDOR = "service.vendor";

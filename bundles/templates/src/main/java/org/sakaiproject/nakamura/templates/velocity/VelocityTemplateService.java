@@ -57,10 +57,13 @@ public class VelocityTemplateService implements TemplateService, TemplateNodeSou
   protected Repository repository;
 
   public String evaluateTemplate(Map<String, ? extends Object> parameters, String template) {
+    return evaluateTemplate(parameters, new StringReader(template));
+  }
+
+  public String evaluateTemplate(Map<String, ? extends Object> parameters, Reader templateReader) {
     Map<String, String> sanitizedParameters = sanitize(parameters);
     VelocityContext context = new VelocityContext(sanitizedParameters);
     // combine template with parameter map
-    Reader templateReader = new StringReader(template);
     StringWriter templateWriter = new StringWriter();
     try {
       velocityEngine.evaluate(context, templateWriter, "templateprocessing",

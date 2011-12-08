@@ -1,10 +1,8 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
-require 'sling/sling'
+require 'nakamura/test'
+require 'nakamura'
 require 'test/unit.rb'
 include SlingInterface
 include SlingUsers
@@ -15,7 +13,7 @@ class TC_Kern308Test < Test::Unit::TestCase
 
 
   def test_308
-    @m = Time.now.to_f.to_s.gsub('.', '')
+    @m = Time.now.to_nsec
 	u = create_user("ian"+@m)
 	n = create_user("nico"+@m)
 	@s.switch_user(u)
@@ -28,7 +26,7 @@ class TC_Kern308Test < Test::Unit::TestCase
   end
 
   def test_delegation
-    @m = Time.now.to_f.to_s.gsub('.', '')
+    @m = Time.now.to_nsec
     u1 = create_user("bob"+@m)
     u2 = create_user("sam"+@m)
     u3 = create_user("eve"+@m)

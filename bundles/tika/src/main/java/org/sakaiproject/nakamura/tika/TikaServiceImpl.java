@@ -1,0 +1,148 @@
+/**
+ * Licensed to the Sakai Foundation (SF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The SF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+package org.sakaiproject.nakamura.tika;
+
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.tika.Tika;
+import org.apache.tika.exception.TikaException;
+import org.apache.tika.metadata.Metadata;
+import org.sakaiproject.nakamura.api.tika.TikaService;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.net.URL;
+import java.util.Map;
+
+/**
+ * OSGi service to wrap {@link Tika} and load a config file found local this bundle. This
+ * service can be updated to match whatever underlying version of Tika that is being used.
+ * 
+ * The traditional way of getting a reference to Tika is still applicable which is how
+ * this service gets its internal reference.
+ * 
+ * <code>
+ * URL configUrl = bundleContext.getBundle().getResource("/org/apache/tika/tika-config.xml");
+ * Tika tika = new Tika(new TikaConfig(configUrl));
+ * </code>
+ *
+ * The annotations on this class are used only to generate the serviceComponents.xml file
+ * but the maven bundle plugin is not used since we copy the manifest from the tika-bundle
+ * artifact, so don't change these annotations and expect the changes to magically appear.
+ */
+@Component
+@Service
+public class TikaServiceImpl implements TikaService {
+  private Tika tika;
+
+  // set the default to 100k (default in Tika is 100k)
+  static final int DEFAULT_MAX_STRING_LENGTH = 100 * 1000;
+  @Property(intValue = TikaServiceImpl.DEFAULT_MAX_STRING_LENGTH)
+  private static final String MAX_STRING_LENGTH = "sakai.tika.max_string_length";
+  private int maxStringLength;
+
+  // ---------- SCR integration ----------
+  @Activate @Modified
+  protected void activate(Map<?, ?> props) throws Exception {
+    tika = new Tika();
+    maxStringLength = PropertiesUtil.toInteger(props.get(MAX_STRING_LENGTH), DEFAULT_MAX_STRING_LENGTH);
+    tika.setMaxStringLength(maxStringLength);
+  }
+
+  @Deactivate
+  protected void deactivate() {
+    tika = null;
+  }
+
+  // ---------- Tika methods ----------
+  public String detect(byte[] prefix) {
+    return tika.detect(prefix);
+  }
+
+  public String detect(byte[] prefix, String name) {
+    return tika.detect(prefix, name);
+  }
+
+  public String detect(InputStream stream, String name) throws IOException {
+    return tika.detect(stream, name);
+  }
+
+  public String detect(InputStream stream, Metadata metadata) throws IOException {
+    return tika.detect(stream, metadata);
+  }
+
+  public String detect(InputStream stream) throws IOException {
+    return tika.detect(stream);
+  }
+
+  public String detect(File file) throws IOException {
+    return tika.detect(file);
+  }
+
+  public String detect(URL url) throws IOException {
+    return tika.detect(url);
+  }
+
+  public String detect(String name) {
+    return tika.detect(name);
+  }
+
+  public Reader parse(InputStream stream, Metadata metadata) throws IOException {
+    return tika.parse(stream, metadata);
+  }
+
+  public Reader parse(InputStream stream) throws IOException {
+    return tika.parse(stream);
+  }
+
+  public Reader parse(File file) throws IOException {
+    return tika.parse(file);
+  }
+
+  public Reader parse(URL url) throws IOException {
+    return tika.parse(url);
+  }
+
+  public String parseToString(InputStream stream, Metadata metadata) throws IOException,
+      TikaException {
+    return tika.parseToString(stream, metadata);
+  }
+
+  public String parseToString(InputStream stream) throws IOException, TikaException {
+    return tika.parseToString(stream);
+  }
+
+  public String parseToString(File file) throws IOException, TikaException {
+    return tika.parseToString(file);
+  }
+
+  public String parseToString(URL url) throws IOException, TikaException {
+    return tika.parseToString(url);
+  }
+
+  public int getMaxStringLength() {
+    return tika.getMaxStringLength();
+  }
+}

@@ -19,7 +19,7 @@ package org.sakaiproject.nakamura.connections.search;
 
 import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.SEARCH_PROP_CONNECTIONSTORE;
 
-import com.google.common.base.Join;
+import com.google.common.base.Joiner;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -110,11 +110,11 @@ public class RelatedContactsSearchPropertyProvider implements SolrSearchProperty
       final Session session = StorageClientUtils.adaptToSession(request
           .getResourceResolver().adaptTo(javax.jcr.Session.class));
       final AuthorizableManager authorizableManager = session.getAuthorizableManager();
-      final Set<String> allTagUuids = new HashSet<String>();
-      final String[] myTagUuids = (String[]) authorizableManager.findAuthorizable(me)
-          .getProperty("sakai:tag-uuid");
-      if (myTagUuids != null) {
-        allTagUuids.addAll(Arrays.asList(myTagUuids));
+      final Set<String> allTags = new HashSet<String>();
+      final String[] myTags= (String[]) authorizableManager.findAuthorizable(me)
+          .getProperty("sakai:tags");
+      if (myTags!= null) {
+        allTags.addAll(Arrays.asList(myTags));
       }
       final List<String> myConnections = connectionManager.getConnectedUsers(request, me,
           ConnectionState.ACCEPTED);
@@ -133,13 +133,13 @@ public class RelatedContactsSearchPropertyProvider implements SolrSearchProperty
         // to prevent solr parse errors
         relatedConnectionPaths.add(String.valueOf(false));
       }
-      final String connectionPath = Join.join(" OR ", relatedConnectionPaths);
+      final String connectionPath = Joiner.on(" OR ").join(relatedConnectionPaths);
       propertiesMap.put(SEARCH_PROP_CONNECTIONSTORE, connectionPath);
 
-      if (allTagUuids.isEmpty()) { // to prevent solr parse errors
-        allTagUuids.add(String.valueOf(false));
+      if (allTags.isEmpty()) { // to prevent solr parse errors
+        allTags.add(String.valueOf(false));
       }
-      propertiesMap.put("tagUuids", Join.join(" OR ", allTagUuids));
+      propertiesMap.put("tags", Joiner.on(" OR ").join(allTags));
 
     } catch (AccessDeniedException e) {
       LOG.error(e.getLocalizedMessage(), e);

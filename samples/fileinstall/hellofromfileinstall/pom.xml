@@ -25,7 +25,6 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.samples.fileinstall.hellofromfileinstall</artifactId>
-  <version>1.0.2</version>
   <name>Sakai Nakamura :: Sample Installation to FileInstall Directory</name>
   <packaging>bundle</packaging>
   <build>

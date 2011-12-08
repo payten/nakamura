@@ -21,7 +21,6 @@
   <artifactId>org.sakaiproject.nakamura.samples.fileinstall</artifactId>
   <packaging>pom</packaging>
   <name>Felix FileInstall on Sling Sample</name>
-  <version>1.0.2</version>
   <modules>
 	<module>slingrunner</module>
 	<module>hellofromfileinstall</module>

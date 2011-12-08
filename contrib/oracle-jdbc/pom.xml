@@ -9,7 +9,6 @@
     </parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>org.sakaiproject.nakamura.ojdbc</artifactId>
-    <version>1.0.2</version>
     <packaging>bundle</packaging>
     <name>Sakai Nakamura :: Oracle JDBC Bundle</name>
     <description>

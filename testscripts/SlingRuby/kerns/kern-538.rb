@@ -1,9 +1,7 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
+require 'nakamura/test'
 require 'test/unit.rb'
 include SlingSearch
 
@@ -15,7 +13,7 @@ class TC_Kern538Test < Test::Unit::TestCase
   #
 
   def test_normal
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     treeuser = create_user("treeuser1#{m}")
     @s.switch_user(treeuser)
 
@@ -27,7 +25,7 @@ class TC_Kern538Test < Test::Unit::TestCase
   end
 
   def test_with_jcr_in_property
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     treeuser = create_user("treeuser2#{m}")
     @s.switch_user(treeuser)
 
@@ -41,7 +39,7 @@ class TC_Kern538Test < Test::Unit::TestCase
   end
 
   def test_noneExistingResource
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     treeuser = create_user("treeuser3#{m}")
     @s.switch_user(treeuser)
 
@@ -53,7 +51,7 @@ class TC_Kern538Test < Test::Unit::TestCase
   end
 
   def test_accessdenied
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     treeuser = create_user("treeuser4#{m}")
     @s.switch_user(treeuser)
 
@@ -74,7 +72,7 @@ class TC_Kern538Test < Test::Unit::TestCase
   end
 
   def test_withdelete
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     treeuser = create_user("treeuser5#{m}")
     @s.switch_user(treeuser)
 

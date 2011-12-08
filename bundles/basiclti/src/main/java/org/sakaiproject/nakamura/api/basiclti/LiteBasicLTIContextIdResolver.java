@@ -17,8 +17,10 @@
  */
 package org.sakaiproject.nakamura.api.basiclti;
 
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
-
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
 /**
  * A simple abstraction so that local implementers can choose a different LTI context_id
  * mapping strategy.
@@ -31,6 +33,6 @@ public interface LiteBasicLTIContextIdResolver {
    * @param node
    * @return Return <code>null</code> if the LTI context_id cannot be determined.
    */
-  public String resolveContextId(Content node);
+  public String resolveContextId(Content node, String groupId, Session session) throws AccessDeniedException, StorageClientException;
 
 }

@@ -35,7 +35,6 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
-import org.sakaiproject.nakamura.api.search.SearchResponseDecorator;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -52,7 +51,7 @@ import java.util.Iterator;
     @Property(name = SearchConstants.REG_BATCH_PROCESSOR_NAMES, value = "MessageContacts")
 })
 public class MessageContactsSearchBatchResultProcessor extends MessageSearchResultProcessor
-    implements SolrSearchBatchResultProcessor, SearchResponseDecorator {
+    implements SolrSearchBatchResultProcessor {
 
   @Reference
   protected ConnectionManager connMgr;

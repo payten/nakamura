@@ -1,16 +1,14 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
+require 'nakamura/test'
 include SlingUsers
 
 class TC_Kern1055Test < Test::Unit::TestCase
   include SlingTest
 
   def test_user_search_after_deletion
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     @s.switch_user(User.admin_user())
     user = create_user("testuser-#{m}", "Thurston", "Howell #{m}")
     wait_for_indexer()
@@ -29,7 +27,7 @@ class TC_Kern1055Test < Test::Unit::TestCase
   end
 
   def test_group_search_after_deletion
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     @s.switch_user(User.admin_user())
     group = create_group("testgroup-#{m}", "Test Group #{m}")
     wait_for_indexer()

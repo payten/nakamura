@@ -76,7 +76,7 @@ public class FormLoginServletTest {
     EasyMock.expect(session.getUserID()).andReturn("ieb");
 
 
-    EasyMock.expect(request.getParameter("d")).andReturn("/test");
+    EasyMock.expect(request.getParameter("url")).andReturn("/test");
     response.sendRedirect("/test");
     EasyMock.expectLastCall();
     replay();

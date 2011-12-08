@@ -23,6 +23,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +59,7 @@ public class GroupMembersCounter {
       try {
         Authorizable auth = authMgr.findAuthorizable(member);
         // only count the members in a pseudogroup; not the group itself
-        if (auth instanceof Group && "true".equals(auth.getProperty(PROP_PSEUDO_GROUP))) {
+		if (auth instanceof Group && Boolean.TRUE.equals(auth.getProperty(UserConstants.PROP_PSEUDO_GROUP))) {
           Group group = (Group) auth;
           LOGGER.debug("Processing pseudoGroup: " + group.getId());
           if (!groupsAlreadyProcessed.contains(group.getId())) {

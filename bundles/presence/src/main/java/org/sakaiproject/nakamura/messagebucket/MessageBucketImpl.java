@@ -34,8 +34,8 @@ import javax.servlet.http.HttpServletResponse;
 
 public class MessageBucketImpl implements MessageBucket {
 
-  private Map<Waiter, Waiter> waiters = Maps.newConcurrentHashMap();
-  private Map<String, HttpServletRequest> bound = Maps.newConcurrentHashMap();
+  private Map<Waiter, Waiter> waiters = Maps.newConcurrentMap();
+  private Map<String, HttpServletRequest> bound = Maps.newConcurrentMap();
   private boolean ready = false;
   private Map<String, Object> messagePayload;
 

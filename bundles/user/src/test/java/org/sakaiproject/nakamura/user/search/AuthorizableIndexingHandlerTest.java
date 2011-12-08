@@ -40,6 +40,7 @@ import org.sakaiproject.nakamura.api.user.UserConstants;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 
 /**
  *
@@ -75,7 +76,7 @@ public class AuthorizableIndexingHandlerTest {
   public void delete() {
     Hashtable<String, Object> props = new Hashtable<String, Object>();
     props.put("path", "user1");
-    Event event = new Event(StoreListener.DELETE_TOPIC, props);
+    Event event = new Event(StoreListener.DELETE_TOPIC, (Map) props);
 
     Collection<String> queries = handler.getDeleteQueries(repoSession, event);
 
@@ -90,7 +91,7 @@ public class AuthorizableIndexingHandlerTest {
 
     Hashtable<String, Object> props = new Hashtable<String, Object>();
     props.put("path", "user1");
-    Event event = new Event(StoreListener.UPDATED_TOPIC, props);
+    Event event = new Event(StoreListener.UPDATED_TOPIC, (Map) props);
 
     Collection<String> queries = handler.getDeleteQueries(repoSession, event);
 
@@ -104,7 +105,7 @@ public class AuthorizableIndexingHandlerTest {
 
     Hashtable<String, Object> props = new Hashtable<String, Object>();
     props.put("path", "user1");
-    Event event = new Event(StoreListener.UPDATED_TOPIC, props);
+    Event event = new Event(StoreListener.UPDATED_TOPIC, (Map) props);
 
     Collection<SolrInputDocument> queries = handler.getDocuments(repoSession, event);
 
@@ -116,7 +117,7 @@ public class AuthorizableIndexingHandlerTest {
   public void doNotdeleteNonExcluded() {
     Hashtable<String, Object> props = new Hashtable<String, Object>();
     props.put("path", "user1");
-    Event event = new Event(StoreListener.UPDATED_TOPIC, props);
+    Event event = new Event(StoreListener.UPDATED_TOPIC, (Map) props);
 
     Collection<String> queries = handler.getDeleteQueries(repoSession, event);
 

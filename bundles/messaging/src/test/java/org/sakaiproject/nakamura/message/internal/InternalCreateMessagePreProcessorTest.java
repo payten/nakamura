@@ -25,12 +25,15 @@ import static org.mockito.Mockito.when;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 
 /**
  *
  */
+@RunWith(MockitoJUnitRunner.class)
 public class InternalCreateMessagePreProcessorTest {
 
   @Test

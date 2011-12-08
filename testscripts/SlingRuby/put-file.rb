@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 
-require 'sling/sling'
+require 'nakamura'
 include SlingInterface
 
 if $ARGV.size < 2

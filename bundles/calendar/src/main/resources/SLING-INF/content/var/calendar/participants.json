@@ -3,8 +3,10 @@
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
-  "sortOn": "lastName",
-  "sortOrder": "asc",
+  "sakai:query-template-defaults": {
+    "sortOn": "lastName",
+    "sortOrder": "asc"
+  },
   "sling:resourceType": "sakai/solr-search",
   "sakai:resultprocessor": "Calendar",
   "sakai:propertyprovider" : "Calendar",

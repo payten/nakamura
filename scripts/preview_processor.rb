@@ -1,15 +1,16 @@
 #!/usr/bin/env ruby
 require 'fileutils'
-require './ruby-lib-dir'
-require 'sling/sling'
+require 'nakamura'
 include SlingInterface
-require 'sling/users'
+require 'nakamura/users'
 include SlingUsers
 require 'rubygems'
 require 'docsplit'
 RMAGICK_BYPASS_VERSION_TEST = true
 require 'RMagick'
+require "getopt/long"
 
+Dir.chdir(File.dirname(__FILE__))
 MAIN_DIR = Dir.getwd
 DOCS_DIR = "#{MAIN_DIR}/docs"
 PREV_DIR = "#{MAIN_DIR}/previews"
@@ -19,11 +20,22 @@ LOGS_DIR = "#{MAIN_DIR}/logs"
 # in order to properly set the referrer.
 module Net::HTTPHeader
   def initialize_http_header(initheader)
-    @header = {"Referer" => [ARGV[0]]}
+    @header = {"Referer" => [$preview_referer]}
     return unless initheader
     initheader.each do |key, value|
       warn "net/http: warning: duplicated HTTP header: #{key}" if key?(key) and $VERBOSE
       @header[key.downcase] = [value.strip]
+    end
+  end
+  def encode_kvpair(k, vs)
+    if vs.nil? or vs == '' then
+      "#{urlencode(k)}="
+    elsif vs.kind_of?(Array)
+      # In Ruby 1.8.7, Array(string-with-newlines) will split the string
+      # after each embedded newline.
+      Array(vs).map {|v| "#{urlencode(k)}=#{urlencode(v.to_s)}" }
+    else
+      "#{urlencode(k)}=#{urlencode(vs.to_s)}"
     end
   end
 end
@@ -76,7 +88,7 @@ end
 # mimetype entry in mime.types and use it for the extension to create a preview
 def determine_file_extension_with_mime_type(mimetype, given_extension)
   # strip off the leading . in the given extension
-  if given_extension
+  if given_extension and given_extension.match(/^\./)
     given_extension = given_extension[1..-1]
   end
   File.open("../mime.types", "r") do |f|
@@ -110,21 +122,21 @@ def log msg, level = :info
   @loggers.each { |logger| logger.send(level, msg) }
 end
 
-# This is the main method we call at the end of the script.
-def main
+def setup(server, admin_password)
   # Setup loggers.
   Dir.mkdir LOGS_DIR unless File.directory? LOGS_DIR
   @loggers << Logger.new(STDOUT)
   @loggers << Logger.new("#{LOGS_DIR}/#{Date.today}.log", 'daily')
   @loggers.each { |logger| logger.level = Logger::INFO }
 
-  server=ARGV[0]
-  admin_password = ARGV[1] || "admin"
   @s = Sling.new(server)
   admin = User.new("admin", admin_password)
   @s.switch_user(admin)
   @s.do_login
+end
 
+# This is the main method we call at the end of the script.
+def main(term_server)
   res = @s.execute_get(@s.url_for("var/search/needsprocessing.json"))
   unless res.code == '200'
     raise "Failed to retrieve list to process [#{res.code}]"
@@ -193,6 +205,62 @@ def main
 
           FileUtils.rm DOCS_DIR + "/#{filename_thumb}"
         else
+          begin
+            # Check if user wants autotagging
+            uid = meta["sakai:pool-content-created-for"]
+            user_file = @s.execute_get @s.url_for("/system/me?uid=#{uid}")
+            unless user_file.code == '200'
+              raise "Failed to get user: #{uid}"
+            end
+            user = JSON.parse(user_file.body)
+            if user["user"]["properties"]["isAutoTagging"]
+              # Get text from the document
+              Docsplit.extract_text filename, :ocr => false
+              text_content = IO.read(id + ".txt")
+              postData = Net::HTTP.post_form(URI.parse(term_server), {'context' => text_content})
+              if postData != nil
+                postData = JSON.parse postData.body
+              end
+              tags = ""
+              if postData != nil
+                for i in (0..postData.length - 1)
+                  tags += "- " + postData[i] + "\n"
+                end
+              end
+              # Add old tags to new tags
+              origin_tags = meta["sakai:tags"]
+              if origin_tags != nil && origin_tags.length > 0
+                for tag in origin_tags
+                  postData << tag
+                end
+              end
+              # Generate tags for document
+              @s.execute_post @s.url_for("p/#{id}"), {"sakai:tags" => postData}
+              log "Generate tags for #{id}, #{postData}"
+              FileUtils.rm id + ".txt"
+              user_id = meta["sakai:pool-content-created-for"]
+              admin_id = "admin"
+              origin_file_name = meta["sakai:pooled-content-file-name"]
+              if postData != nil && postData.length > 0
+                msg_body = "We have automatically added the following tags for #{origin_file_name}:\n\n #{tags}\n\nThese tags were created to aid in the discoverability of your content.\n\nRegards, \nThe Sakai Team"
+                @s.execute_post(@s.url_for("~#{admin_id}/message.create.html"), {
+                  "sakai:type" => "internal",
+                  "sakai:sendstate" => "pending",
+                  "sakai:messagebox" => "outbox",
+                  "sakai:to" => "internal:#{user_id}",
+                  "sakai:from" => "#{admin_id}",
+                  "sakai:subject" => "We've added some tags to #{origin_file_name}",
+                  "sakai:body" => msg_body,
+                  "_charset_" => "utf-8",
+                  "sakai:category" => "message"
+                })
+                log "sending message from #{admin_id} user to #{user_id}"
+              end
+            end
+          rescue Exception => msg
+            log "failed to generate document tags: #{msg}", :warn
+          end
+
           # Generating image previews of the document.
           Docsplit.extract_images filename, :size => '1000x', :format => :jpg
 
@@ -239,7 +307,7 @@ def main
     rescue Exception => msg
       # Output a timestamp + the error message whenever an exception is raised
       # and flag this file as failed for processing.
-      log "error generating preview/thumbnail (ID: #{id}): #{msg}", :warn
+      log "error generating preview/thumbnail (ID: #{id}): #{msg.inspect}\n#{msg.backtrace.join("\n")}", :warn
       @s.execute_post @s.url_for("p/#{id}"), {"sakai:processing_failed" => "true"}
     ensure
       # No matter what we flag the file as processed and delete the temp copied file.
@@ -252,4 +320,38 @@ def main
   FileUtils.remove_dir DOCS_DIR
 end
 
-main
+def usage
+  puts "usage: #{$0} [-h|--help] [-s|--server] <server> [-p|--password] <adminpassword> [-t|--term] <term-extraction address> [-i|--interval] [interval]"
+  puts "example: #{$0} http://localhost:8080/ admin http://localhost:8085/ 20"
+end
+
+## Parse command line opts and call main ##
+opt = Getopt::Long.getopts(
+  ["--help", "-h", Getopt::BOOLEAN],
+  ["--server", "-s", Getopt::REQUIRED],
+  ["--password", "-p", Getopt::REQUIRED],
+  ["--term", "-t", Getopt::REQUIRED],
+  ["--interval", "-i", Getopt::REQUIRED],
+  ["--count", "-n", Getopt::REQUIRED]
+)
+
+if opt['help'] || not(opt['server'] && opt['password'] && opt['term'])
+  usage()
+else
+  setup(opt['server'], opt['password'])
+  $preview_referer = opt['server']
+  interval = opt['interval'] || 15
+  interval = Integer(interval)
+  count = opt['count'] || 0
+  count = Integer(count)
+  begin
+    main(opt['term'])
+    if opt['count']
+      if count > 1
+        count -= 1
+      else
+        break
+      end
+    end
+  end while sleep(interval)
+end

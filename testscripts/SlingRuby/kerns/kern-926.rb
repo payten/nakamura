@@ -1,11 +1,9 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
-require 'sling/file'
-require 'sling/users'
+require 'nakamura/test'
+require 'nakamura/file'
+require 'nakamura/users'
 require 'test/unit.rb'
 include SlingUsers
 include SlingFile
@@ -26,7 +24,7 @@ class TC_Kern926Test < Test::Unit::TestCase
   end
 
   def test_manager_users
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
 
     # Create some users
     creator = create_user("creator-#{m}")
@@ -91,7 +89,7 @@ class TC_Kern926Test < Test::Unit::TestCase
 
 
   def test_search_me
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
 
     # Create some users
     owner = create_user("creator2-#{m}")

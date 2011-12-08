@@ -1,0 +1,18 @@
+{
+  "sakai:query-template": "path:${_pNodePath}/activity AND resourceType:sakai/activity-post",
+  "sakai:query-template-options": {
+      "sort": "${sortOn} ${sortOrder}"
+  },
+  "sakai:query-template-defaults": {
+    "sortOn": "_created",
+    "sortOrder": "desc"
+  },
+  "sling:resourceType": "sakai/solr-search",
+  "sakai:resultprocessor": "ActivityFeed", // this is in the activity bundle
+  "sakai:propertyprovider" : "PooledContentNode",
+  "sakai:title": "Pooled Content - Activity Feed",
+  "sakai:shortDescription": "Returns recent activity nodes under a Pooled Content node.",
+  "sakai:parameters" : [
+  	  "{\"name\" : \"p\", \"description\" : \"The path of the pooled content (such as '/p/1UeiYirUibuh4HWal7yfTKbe').\"}"
+  ],
+}

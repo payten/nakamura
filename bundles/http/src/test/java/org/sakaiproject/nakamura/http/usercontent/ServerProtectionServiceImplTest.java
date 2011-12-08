@@ -159,15 +159,6 @@ public class ServerProtectionServiceImplTest {
     Assert.assertFalse(serverProtectionService.isMethodSafe(hrequest, hresponse));
     Mockito.verify(hresponse, Mockito.times(n400++)).sendError(Mockito.eq(400), Mockito.anyString());
 
-    Mockito.when(hrequest.getMethod()).thenReturn("POST");
-    Mockito.when(hrequest.getScheme()).thenReturn("https");
-    Mockito.when(hrequest.getServerName()).thenReturn("localhost");
-    Mockito.when(hrequest.getServerPort()).thenReturn(8080);
-    referers.clear();
-    referers.add("http://localhost:8080/somewhereelse/index.html");
-    Mockito.when(hrequest.getHeaders("Referer")).thenReturn(referers.elements());
-    Assert.assertFalse(serverProtectionService.isMethodSafe(hrequest, hresponse));
-    Mockito.verify(hresponse, Mockito.times(n400++)).sendError(Mockito.eq(400), Mockito.anyString());
 
 
   }
@@ -248,8 +239,8 @@ public class ServerProtectionServiceImplTest {
       throws UnsupportedEncodingException, IOException, NoSuchAlgorithmException, InvalidSyntaxException {
     serverProtectionService = new ServerProtectionServiceImpl();
     Dictionary<String, Object> properties = new Hashtable<String, Object>();
-    properties.put(ServerProtectionServiceImpl.UNTRUSTED_REDIRECT_HOST,
-    "https://localhost:9443");
+    properties.put(ServerProtectionServiceImpl.TRUSTED_HOSTS_CONF,
+    "localhost:8080 = https://localhost:9443");
     Mockito.when(componentContext.getProperties()).thenReturn(properties);
     Mockito.when(componentContext.getBundleContext()).thenReturn(bundleContext);
     serverProtectionService.activate(componentContext);
@@ -286,10 +277,26 @@ public class ServerProtectionServiceImplTest {
         URLDecoder.decode(hmac, "UTF-8"));
     // Use a different protocol for the incoming URL.
     Mockito.when(trequest.getRequestURL()).thenReturn(
-        new StringBuffer("http://localhost:8082/p/sdsdfsdfs"));
+        new StringBuffer("http://someotherhost:9443/p/sdsdfsdfs"));
     Mockito.when(trequest.getQueryString()).thenReturn(queryString);
     String userId = serverProtectionService.getTransferUserId(trequest);
+    // the request URL must matche where the redirect went to for the token to be considered valid.
+    Assert.assertNull(userId);
+    
+    Mockito.when(trequest.getMethod()).thenReturn("GET");
+    Mockito.when(trequest.getScheme()).thenReturn("http");
+    Mockito.when(trequest.getServerName()).thenReturn("localhost");
+    Mockito.when(trequest.getServerPort()).thenReturn(8082);
+    Mockito.when(trequest.getParameter(":hmac")).thenReturn(
+        URLDecoder.decode(hmac, "UTF-8"));
+    // Use a different protocol for the incoming URL.
+    Mockito.when(trequest.getRequestURL()).thenReturn(
+        new StringBuffer("https://localhost:9443/p/sdsdfsdfs"));
+    Mockito.when(trequest.getQueryString()).thenReturn(queryString);
+    userId = serverProtectionService.getTransferUserId(trequest);
+    // the request URL must match where the redirect went to for the token to be considered valid.
     Assert.assertEquals("ieb", userId);
+
   }
 
   @Test
@@ -298,12 +305,7 @@ public class ServerProtectionServiceImplTest {
     serverProtectionService = new ServerProtectionServiceImpl();
     Dictionary<String, Object> properties = new Hashtable<String, Object>();
     properties.put(ServerProtectionServiceImpl.TRUSTED_HOSTS_CONF, new String[]{
-            "https://www.somehost.edu",
-            "https://www.somehost.edu:443"
-    });
-    properties.put(ServerProtectionServiceImpl.TRUSTED_REFERER_CONF, new String[]{
-            "https://www.somehost.edu/somewhereelse/index.html",
-            "https://www.somehost.edu:443/somewhereelse/index.html"
+            "www.somehost.edu = https://www.somehost.edu/somewhereelse/index.html"
     });
     Mockito.when(componentContext.getProperties()).thenReturn(properties);
     Mockito.when(componentContext.getBundleContext()).thenReturn(bundleContext);

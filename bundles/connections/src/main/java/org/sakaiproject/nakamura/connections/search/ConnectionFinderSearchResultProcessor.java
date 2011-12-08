@@ -95,9 +95,9 @@ public class ConnectionFinderSearchResultProcessor implements SolrSearchResultPr
       }
     } catch (StorageClientException e) {
       throw new RuntimeException(e.getMessage(), e);
-    } catch (AccessDeniedException e) {
-      throw new RuntimeException(e.getMessage(), e);
-    } 
+    } catch (AccessDeniedException ignored) {
+      // user can't read the contact's profile, that's ok, just skip
+    }
   }
   /**
    * {@inheritDoc}

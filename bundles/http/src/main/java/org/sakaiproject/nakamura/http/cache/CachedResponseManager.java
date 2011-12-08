@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.http.cache;
 
+import org.sakaiproject.nakamura.api.http.cache.CachedResponse;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

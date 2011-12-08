@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +61,7 @@ public class ClusterUserMessageListener implements MessageListener {
       connection = connFactoryService.getDefaultConnectionFactory().createConnection();
       Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
       Topic dest = session.createTopic(ClusterTrackingService.EVENT_PING_CLUSTER_USER
-          + "/" + serverId);
+          + "/" + EventUtils.safeTopicElement(serverId));
       MessageConsumer consumer = session.createConsumer(dest);
       consumer.setMessageListener(this);
       connection.start();

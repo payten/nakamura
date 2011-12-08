@@ -1,11 +1,9 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby 'require' search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
-require 'sling/file'
-require 'sling/users'
+require 'nakamura/test'
+require 'nakamura/file'
+require 'nakamura/users'
 include SlingUsers
 include SlingFile
 
@@ -20,14 +18,14 @@ class TC_Kern1998Test < Test::Unit::TestCase
     @s.switch_user(u1)
 
     # create a new tag to work with
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     tagname = "test#{m}"
     res = @s.execute_post(@s.url_for("/tags/#{tagname}"), {'_charset_' => 'utf8', 'sakai:tag-name' => tagname, 'sling:resourceType' => 'sakai/tag'})
     assert_equal('201', res.code, 'Should be able to create a new tag.')
 
     # add some content and tag each thing added
     4.times do |i|
-      m = Time.now.to_f.to_s.gsub('.', '')
+      m = Time.now.to_nsec
       res = @fm.upload_pooled_file("random-#{m}.txt", 'Plain content', 'text/plain')
       assert_equal('201', res.code, 'Expected to be able to create pooled content')
       uploadresult = JSON.parse(res.body)
@@ -39,7 +37,7 @@ class TC_Kern1998Test < Test::Unit::TestCase
 
     # add some content but don't tag it to create the negative case
     2.times do |i|
-      m = Time.now.to_f.to_s.gsub('.', '')
+      m = Time.now.to_nsec
       res = @fm.upload_pooled_file("random-#{m}.txt", 'Plain content', 'text/plain')
       assert_equal('201', res.code, 'Expected to be able to create pooled content')
     end
@@ -77,14 +75,14 @@ class TC_Kern1998Test < Test::Unit::TestCase
     @s.switch_user(u1)
 
     # create a new tag to work with
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     tagname = "test#{m}"
     res = @s.execute_post(@s.url_for("/tags/#{tagname}"), {'_charset_' => 'utf8', 'sakai:tag-name' => tagname, 'sling:resourceType' => 'sakai/tag'})
     assert_equal('201', res.code, 'Should be able to create a new tag.')
 
     # add some content and tag each thing added
     2.times do |i|
-      m = Time.now.to_f.to_s.gsub('.', '')
+      m = Time.now.to_nsec
       res = @fm.upload_pooled_file("random-#{m}.txt", 'Plain content', 'text/plain')
       assert_equal('201', res.code, 'Expected to be able to create pooled content')
       uploadresult = JSON.parse(res.body)
@@ -96,7 +94,7 @@ class TC_Kern1998Test < Test::Unit::TestCase
 
     # add some content but don't tag it to create the negative case
     4.times do |i|
-      m = Time.now.to_f.to_s.gsub('.', '')
+      m = Time.now.to_nsec
       res = @fm.upload_pooled_file("random-#{m}.txt", 'Plain content', 'text/plain')
       assert_equal('201', res.code, 'Expected to be able to create pooled content')
     end
@@ -135,7 +133,7 @@ class TC_Kern1998Test < Test::Unit::TestCase
 
     # add some content but don't tag it to create the negative case
     4.times do |i|
-      m = Time.now.to_f.to_s.gsub('.', '')
+      m = Time.now.to_nsec
       res = @fm.upload_pooled_file("random-#{m}.txt", 'Plain content', 'text/plain')
       assert_equal('201', res.code, 'Expected to be able to create pooled content')
     end

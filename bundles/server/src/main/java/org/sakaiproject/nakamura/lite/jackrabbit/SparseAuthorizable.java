@@ -31,6 +31,7 @@ import org.sakaiproject.nakamura.api.lite.util.PreemptiveIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableSet;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -164,6 +165,15 @@ public class SparseAuthorizable implements Authorizable {
 
   public Iterator<String> getPropertyNames() throws RepositoryException {
     return sparseAuthorizable.getSafeProperties().keySet().iterator();
+  }
+  
+  //@Override // will be needed in 2.2.5
+  public Iterator<String> getPropertyNames(String name) throws RepositoryException {
+    Iterator<String> retval = null;
+    if (hasProperty(name)) {
+      retval = ImmutableSet.of(name).iterator();
+    }
+    return retval;
   }
 
   public boolean hasProperty(String name) throws RepositoryException {

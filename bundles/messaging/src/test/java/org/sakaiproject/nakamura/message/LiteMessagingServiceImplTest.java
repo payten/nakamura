@@ -25,16 +25,16 @@ import static org.mockito.Mockito.when;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_SENDSTATE;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.SAKAI_MESSAGE_RT;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.STATE_NOTIFIED;
-import static org.sakaiproject.nakamura.api.message.MessageConstants.STATE_PENDING;
-
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -55,6 +55,7 @@ import javax.jcr.RepositoryException;
 /**
  *
  */
+@RunWith(MockitoJUnitRunner.class)
 public class LiteMessagingServiceImplTest {
   private LiteMessagingServiceImpl messagingServiceImpl;
   @Mock

@@ -55,6 +55,7 @@ import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,7 +74,7 @@ import java.util.Map;
 @Service
 public class LiteDiscussionMessageTransport implements LiteMessageTransport {
   private static final Logger LOG = LoggerFactory
-      .getLogger(DiscussionMessageTransport.class);
+      .getLogger(LiteDiscussionMessageTransport.class);
   private static final String TYPE = DiscussionConstants.TYPE_DISCUSSION;
 
   @Reference
@@ -129,8 +130,9 @@ public class LiteDiscussionMessageTransport implements LiteMessageTransport {
 
           Map<String, Object> messageProps = originalMessage.getProperties();
           for (String propertyKey : messageProps.keySet()) {
-            if (!propertyKey.contains("jcr:"))
-              propertyBuilder.put(propertyKey,messageProps.get(propertyKey));
+            if (!JcrUtils.isJCRProperty(propertyKey)) {
+              propertyBuilder.put(propertyKey, messageProps.get(propertyKey));
+            }
           }
 
           // Add some extra properties in preparation for creating the content

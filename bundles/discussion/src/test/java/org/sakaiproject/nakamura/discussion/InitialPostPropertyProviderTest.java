@@ -27,6 +27,8 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.discussion.searchresults.DiscussionInitialPostPropertyProvider;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
@@ -37,6 +39,7 @@ import java.util.Map;
 /**
  *
  */
+@RunWith(MockitoJUnitRunner.class)
 public class InitialPostPropertyProviderTest extends AbstractEasyMockTest {
 
   /**

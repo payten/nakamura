@@ -29,7 +29,7 @@ import java.util.Set;
 
 public class PropertyConverter implements Converter {
 
-  private static final Set<String> filter = ImmutableSet.of("eclipselink.jdbc.url","eclipselink.jdbc.driver",
+  private static final Set<String> filter = ImmutableSet.copyOf("eclipselink.jdbc.url","eclipselink.jdbc.driver",
       "eclipselink.jdbc.user", "eclipselink.jdbc.password", "eclipselink.target-server",
       "eclipselink.jdbc.write-connections.min", "eclipselink.jdbc.read-connections.min",
       "eclipselink.logging.level", "eclipselink.logging.timestamp",

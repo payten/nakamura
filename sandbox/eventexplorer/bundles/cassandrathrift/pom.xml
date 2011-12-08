@@ -9,7 +9,6 @@
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.eventexplorer.cassandra-thrift</artifactId>
   <packaging>bundle</packaging>
-  <version>1.0.2</version>
   <name>Sakai Nakamura :: Sakai Cassandra-Thrift implementation.</name>
   <description>The thrift class files that are needed to talk to Cassandra.</description>
   <build>

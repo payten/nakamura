@@ -28,15 +28,13 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.commons.osgi.OsgiUtil;
-import org.apache.tika.detect.Detector;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.tika.metadata.Metadata;
-import org.apache.tika.mime.MediaType;
-import org.apache.tika.parser.AutoDetectParser;
 import org.sakaiproject.nakamura.api.batch.WidgetService;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
+import org.sakaiproject.nakamura.api.tika.TikaService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.IOUtils;
 import org.slf4j.Logger;
@@ -69,7 +67,10 @@ public class WidgetServiceImpl implements WidgetService {
   private List<String> widgetFolders;
 
   @Reference
-  protected transient CacheManagerService cacheManagerService;
+  protected CacheManagerService cacheManagerService;
+
+  @Reference
+  protected TikaService tikaService;
 
   /**
    * The name for the cache that holds all the HTML, CSS, .. files for widgets
@@ -87,34 +88,22 @@ public class WidgetServiceImpl implements WidgetService {
 
   private List<String> skipDirectories;
   private List<String> validMimetypes;
-  private Detector detector;
 
-  @SuppressWarnings("rawtypes")
-  @Activate
-  protected void activate(Map properties) {
-    AutoDetectParser parser = new AutoDetectParser();
-    detector = parser.getDetector();
-
-    modified(properties);
-  }
-
-  @SuppressWarnings("rawtypes")
-  @Modified
-  protected void modified(Map properties) {
-    init(properties);
-  }
-
-  @SuppressWarnings("rawtypes")
-  private void init(Map props) {
-    String[] names = OsgiUtil
+  @Activate @Modified
+  protected void activate(Map<?, ?> props) {
+    String[] names = PropertiesUtil
         .toStringArray(props.get(WIDGET_IGNORE_NAMES), new String[0]);
-    String[] types = OsgiUtil.toStringArray(props.get(WIDGET_VALID_MIMETYPES),
+    String[] types = PropertiesUtil.toStringArray(props.get(WIDGET_VALID_MIMETYPES),
         new String[0]);
-    String[] folders = OsgiUtil.toStringArray(props.get(WIDGET_FOLDERS), new String[0]);
+    String[] folders = PropertiesUtil.toStringArray(props.get(WIDGET_FOLDERS), new String[0]);
 
     skipDirectories = Arrays.asList(names);
     validMimetypes = Arrays.asList(types);
     widgetFolders = Arrays.asList(folders);
+
+    // clear the cache so changes in widgetFolders et al are picked up
+    cacheManagerService.getCache(CACHE_NAME_WIDGET_CONFIGS, CacheScope.INSTANCE).clear();
+    cacheManagerService.getCache(CACHE_NAME_WIDGET_FILES, CacheScope.INSTANCE).clear();
   }
 
   /**
@@ -374,14 +363,14 @@ public class WidgetServiceImpl implements WidgetService {
         // Get the mimetype of this stream
         BufferedInputStream bufStream = new BufferedInputStream(stream);
         Metadata metadata = new Metadata();
-        MediaType type = detector.detect(bufStream, metadata);
+        String type = tikaService.detect(bufStream, metadata);
 
-        if (validMimetypes.contains(type.toString())) {
+        if (validMimetypes.contains(type)) {
 
           // This Node (be it FsResource or not) is a valid file.
           // Output it.
           String content = IOUtils.readFully(bufStream, "UTF-8");
-          if ("application/json".equals(type.toString())) {
+          if ("application/json".equals(type)) {
             getJsonResource(resource, writer);
           } else {
             writer.value(content);

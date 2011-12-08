@@ -4,8 +4,10 @@
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
-  "sortOn": "score",
-  "sortOrder": "desc",
+  "sakai:query-template-defaults": {
+    "sortOn": "score",
+    "sortOrder": "desc"
+  },
   "sakai:resultprocessor": "Profile",
   "sakai:title": "Users, Groups - All",
   "sakai:shortDescription": "Get the profile of each user and group.",

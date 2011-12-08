@@ -106,4 +106,39 @@ public class SparseUser extends SparseAuthorizable implements User {
     }
   }
 
+  /**
+   * OAE doesn't support this so it uses the default implementation.
+   *
+   * {@inheritDoc}
+   *
+   * @see org.apache.jackrabbit.api.security.user.User#disable(java.lang.String)
+   */
+  //@Override // will be needed in 2.2.5
+  public void disable(String reason) throws RepositoryException {
+  }
+
+  /**
+   * OAE doesn't support this so it uses the default implementation.
+   *
+   * {@inheritDoc}
+   *
+   * @see org.apache.jackrabbit.api.security.user.User#isDisabled()
+   */
+  //@Override // will be needed in 2.2.5
+  public boolean isDisabled() throws RepositoryException {
+    return false;
+  }
+
+  /**
+   * OAE doesn't support this so it uses the default implementation.
+   *
+   * {@inheritDoc}
+   *
+   * @see org.apache.jackrabbit.api.security.user.User#getDisabledReason()
+   */
+  //@Override // will be needed in 2.2.5
+  public String getDisabledReason() throws RepositoryException {
+    return null;
+  }
+
 }

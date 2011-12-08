@@ -1,12 +1,10 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/sling'
-require 'sling/test'
-require 'sling/file'
-require 'sling/message'
+require 'nakamura'
+require 'nakamura/test'
+require 'nakamura/file'
+require 'nakamura/message'
 require 'test/unit.rb'
 include SlingInterface
 include SlingUsers
@@ -22,7 +20,7 @@ class TC_MyFileTest_797 < Test::Unit::TestCase
   end
 
   def test_canModify
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     @siteid = "creator#{m}";
     creator = create_user("#{@siteid}")
 

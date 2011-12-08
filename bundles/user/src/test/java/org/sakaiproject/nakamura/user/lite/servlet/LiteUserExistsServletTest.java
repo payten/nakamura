@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,9 +37,13 @@ import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.SessionAdaptable;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.user.UserFinder;
 import org.sakaiproject.nakamura.user.lite.resource.RepositoryHelper;
+import org.sakaiproject.nakamura.util.parameters.ContainerRequestParameter;
 
 import java.io.IOException;
+
+import javax.servlet.http.HttpServletResponse;
 
 
 /**
@@ -56,6 +61,8 @@ public class LiteUserExistsServletTest {
   @Mock
   private SlingHttpServletResponse httpResponse;
 
+  @Mock
+  private UserFinder userFinder;
 
   private Repository repository;
   
@@ -82,7 +89,7 @@ public class LiteUserExistsServletTest {
     
     
     servlet = new LiteUserExistsServlet();
-
+    servlet.userFinder = userFinder;
 
   }  
   @Test
@@ -94,5 +101,22 @@ public class LiteUserExistsServletTest {
     verify(httpResponse).sendError(eq(400), anyString());
 
   }
+  
+  @Test
+  public void testUserExists() throws Exception {
+    RequestParameter reqParam = new ContainerRequestParameter("foo", "utf-8");
+    when(request.getRequestParameter("userid")).thenReturn(reqParam);
+    when(userFinder.userExists("foo")).thenReturn(true);
+    servlet.doGet(request, httpResponse);
+    verify(httpResponse).setStatus(eq(HttpServletResponse.SC_NO_CONTENT));
+  }
 
+  @Test
+  public void testUserDoesNotExist() throws Exception {
+    RequestParameter reqParam = new ContainerRequestParameter("foo", "utf-8");
+    when(request.getRequestParameter("userid")).thenReturn(reqParam);
+    when(userFinder.userExists("foo")).thenReturn(false);
+    servlet.doGet(request, httpResponse);
+    verify(httpResponse).sendError(eq(HttpServletResponse.SC_NOT_FOUND)); 
+  }
 }

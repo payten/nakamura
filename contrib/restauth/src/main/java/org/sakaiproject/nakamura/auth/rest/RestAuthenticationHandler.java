@@ -30,13 +30,11 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.scr.annotations.Services;
 import org.apache.sling.api.auth.Authenticator;
 import org.apache.sling.auth.core.spi.AuthenticationFeedbackHandler;
 import org.apache.sling.auth.core.spi.AuthenticationHandler;
 import org.apache.sling.auth.core.spi.AuthenticationInfo;
 import org.apache.sling.auth.core.spi.DefaultAuthenticationFeedbackHandler;
-import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.servlets.post.ModificationType;
 import org.osgi.framework.Constants;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
@@ -71,11 +69,7 @@ import javax.servlet.http.HttpServletResponse;
  * support in the OSGi / Sling environment.
  */
 @Component(metatype = true)
-@Services({
-    @Service(value = RestAuthenticationHandler.class),
-    @Service(value = AuthenticationHandler.class),
-    @Service(value = AuthenticationFeedbackHandler.class)
-})
+@Service({RestAuthenticationHandler.class, AuthenticationHandler.class, AuthenticationFeedbackHandler.class})
 @Properties(value = {
     @Property(name = Constants.SERVICE_RANKING, intValue = -5),
     @Property(name = AuthenticationHandler.PATH_PROPERTY, value = "/"),
@@ -160,14 +154,14 @@ public class RestAuthenticationHandler implements AuthenticationHandler,
 
   @Modified
   protected void modified(Map<?, ?> props) {
-    loginUrl = OsgiUtil.toString(props.get(LOGIN_URL), DEFAULT_LOGIN_URL);
-    logoutUrl = OsgiUtil.toString(props.get(LOGOUT_URL), DEFAULT_LOGOUT_URL);
-    serverUrl = OsgiUtil.toString(props.get(SERVER_URL), DEFAULT_SERVER_URL);
-    missingLocalUserUrl = OsgiUtil.toString(props.get(MISSING_LOCAL_USER_URL),
+    loginUrl = PropertiesUtil.toString(props.get(LOGIN_URL), DEFAULT_LOGIN_URL);
+    logoutUrl = PropertiesUtil.toString(props.get(LOGOUT_URL), DEFAULT_LOGOUT_URL);
+    serverUrl = PropertiesUtil.toString(props.get(SERVER_URL), DEFAULT_SERVER_URL);
+    missingLocalUserUrl = PropertiesUtil.toString(props.get(MISSING_LOCAL_USER_URL),
         DEFAULT_MISSING_LOCAL_USER_URL);
 
-    attributeName = OsgiUtil.toString(props.get(ATTRIBUTES_NAMES), DEFAULT_ATTRIBUTE_NAME);
-    autoCreateUser = OsgiUtil.toBoolean(props.get(REST_AUTOCREATE_USER), false);
+    attributeName = PropertiesUtil.toString(props.get(ATTRIBUTES_NAMES), DEFAULT_ATTRIBUTE_NAME);
+    autoCreateUser = PropertiesUtil.toBoolean(props.get(REST_AUTOCREATE_USER), false);
   }
 
   //----------- AuthenticationHandler interface ----------------------------

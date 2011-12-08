@@ -22,10 +22,13 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.MultiPartEmail;
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.sling.commons.scheduler.Job;
 import org.apache.sling.commons.scheduler.JobContext;
 import org.apache.sling.commons.scheduler.Scheduler;
@@ -82,8 +85,16 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
 
   @Property(value = "localhost")
   private static final String SMTP_SERVER = "sakai.smtp.server";
-  @Property(intValue = 25, label = "%sakai.smtp.port.name")
+  @Property(intValue = 25)
   private static final String SMTP_PORT = "sakai.smtp.port";
+  @Property(boolValue = false)
+  private static final String SMTP_USE_TLS = "sakai.smtp.tls";
+  @Property(boolValue = false)
+  private static final String SMTP_USE_SSL = "sakai.smtp.ssl";
+  @Property
+  private static final String SMTP_AUTH_USER = "sakai.smtp.auth.user";
+  @Property
+  private static final String SMTP_AUTH_PASS = "sakai.smtp.auth.pass";
   @Property(intValue = 240)
   private static final String MAX_RETRIES = "sakai.email.maxRetries";
   @Property(intValue = 30)
@@ -122,13 +133,17 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
   public static final String RECIPIENTS = "recipients";
 
   private Connection connection = null;
-  private Integer maxRetries;
-  private Integer smtpPort;
   private String smtpServer;
+  private Integer smtpPort;
+  private boolean useTls;
+  private boolean useSsl;
+  private String authUser;
+  private String authPass;
+  private Integer maxRetries;
+  private Integer retryInterval;
   private String replyAsAddress;
   private String replyAsName;
 
-  private Integer retryInterval;
 
   public LiteOutgoingEmailMessageListener() {
   }
@@ -186,8 +201,7 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
                     email = constructMessage(messageContent, recipients, adminSession,
                         sparseSession);
 
-                    email.setSmtpPort(smtpPort);
-                    email.setHostName(smtpServer);
+                    setOptions(email);
 
                     email.send();
                   } catch (EmailException e) {
@@ -270,6 +284,26 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
     }
   }
 
+  /**
+   * Set transfer options on the email based on configuration of this service.
+   *
+   * @param email The email where to set options.
+   */
+  private void setOptions(MultiPartEmail email) {
+    email.setHostName(smtpServer);
+    email.setTLS(useTls);
+    email.setSSL(useSsl);
+    if (useSsl) {
+      email.setSslSmtpPort(Integer.toString(smtpPort));
+    } else {
+      email.setSmtpPort(smtpPort);
+    }
+
+    if (!StringUtils.isBlank(authUser) && !StringUtils.isBlank(authPass)) {
+      email.setAuthentication(authUser, authPass);
+    }
+  }
+
   private MultiPartEmail constructMessage(Content contentNode, List<String> recipients,
       javax.jcr.Session session, org.sakaiproject.nakamura.api.lite.Session sparseSession)
       throws EmailDeliveryException, StorageClientException, AccessDeniedException,
@@ -285,7 +319,6 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
     try {
       // set from: to the reply as address
       email.setFrom(replyAsAddress, replyAsName);
-      email.setAuthentication("user", "pass");
 
       if (toRecipients.size() == 1) {
         // set to: to the rcpt if sending to just one person
@@ -322,8 +355,8 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
     }
 
     if (contentNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)) {
-      String messageBody = (String) contentNode
-          .getProperty(MessageConstants.PROP_SAKAI_BODY);
+      String messageBody = String.valueOf(contentNode
+          .getProperty(MessageConstants.PROP_SAKAI_BODY));
       // if this message has a template, use it
       LOGGER
           .debug("Checking for sakai:templatePath and sakai:templateParams properties on the outgoing message's node.");
@@ -460,7 +493,7 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
             Properties eventProps = new Properties();
             eventProps.put(NODE_PATH_PROPERTY, config.get(NODE_PATH_PROPERTY));
 
-            Event retryEvent = new Event(QUEUE_NAME, eventProps);
+            Event retryEvent = new Event(QUEUE_NAME, (Map) eventProps);
             eventAdmin.postEvent(retryEvent);
 
           }
@@ -485,11 +518,13 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
     }
   }
 
+  @Activate
+  @Modified
   protected void activate(ComponentContext ctx) {
     @SuppressWarnings("rawtypes")
     Dictionary props = ctx.getProperties();
 
-    Integer _maxRetries = OsgiUtil.toInteger(props.get(MAX_RETRIES), -1);
+    Integer _maxRetries = PropertiesUtil.toInteger(props.get(MAX_RETRIES), -1);
     if (_maxRetries > -1 ) {
       if (diff(maxRetries, _maxRetries)) {
         maxRetries = _maxRetries;
@@ -498,7 +533,7 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
       LOGGER.error("Maximum times to retry messages not set.");
     }
 
-    Integer _retryInterval = OsgiUtil.toInteger(props.get(RETRY_INTERVAL), -1);
+    Integer _retryInterval = PropertiesUtil.toInteger(props.get(RETRY_INTERVAL), -1);
     if (_retryInterval > -1 ) {
       if (diff(_retryInterval, retryInterval)) {
         retryInterval = _retryInterval;
@@ -511,7 +546,7 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
       LOGGER.warn("SMTP retry window is very short.");
     }
 
-    Integer _smtpPort = OsgiUtil.toInteger(props.get(SMTP_PORT), -1);
+    Integer _smtpPort = PropertiesUtil.toInteger(props.get(SMTP_PORT), -1);
     boolean validPort = _smtpPort != null && _smtpPort >= 0 && _smtpPort <= 65535;
     if (validPort) {
       if (diff(smtpPort, _smtpPort)) {
@@ -521,7 +556,7 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
       LOGGER.error("Invalid port set for SMTP");
     }
 
-    String _smtpServer = OsgiUtil.toString(props.get(SMTP_SERVER), "");
+    String _smtpServer = PropertiesUtil.toString(props.get(SMTP_SERVER), "");
     if (!StringUtils.isBlank(_smtpServer)) {
       if (diff(smtpServer, _smtpServer)) {
         smtpServer = _smtpServer;
@@ -530,7 +565,7 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
       LOGGER.error("No SMTP server set");
     }
 
-    String _replyAsAddress = OsgiUtil.toString(props.get(REPLY_AS_ADDRESS), "");
+    String _replyAsAddress = PropertiesUtil.toString(props.get(REPLY_AS_ADDRESS), "");
     if (!StringUtils.isBlank(_replyAsAddress)) {
       if (diff(replyAsAddress, _replyAsAddress)) {
         replyAsAddress = _replyAsAddress;
@@ -539,7 +574,7 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
       LOGGER.error("No reply-as email address set");
     }
 
-    String _replyAsName = OsgiUtil.toString(props.get(REPLY_AS_NAME), "");
+    String _replyAsName = PropertiesUtil.toString(props.get(REPLY_AS_NAME), "");
     if (!StringUtils.isBlank(_replyAsName)) {
       if (diff(replyAsName, _replyAsName)) {
         replyAsName = _replyAsName;
@@ -547,6 +582,11 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
     } else {
       LOGGER.error("No reply-as email name set");
     }
+
+    useTls = PropertiesUtil.toBoolean(props.get(SMTP_USE_TLS), false);
+    useSsl = PropertiesUtil.toBoolean(props.get(SMTP_USE_SSL), false);
+    authUser = PropertiesUtil.toString(props.get(SMTP_AUTH_USER), "");
+    authPass = PropertiesUtil.toString(props.get(SMTP_AUTH_PASS), "");
 
     try {
       connection = connFactoryService.getDefaultConnectionFactory().createConnection();
@@ -566,6 +606,7 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
     }
   }
 
+  @Deactivate
   protected void deactivate(ComponentContext ctx) {
     if (connection != null) {
       try {

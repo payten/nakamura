@@ -19,7 +19,6 @@
   </parent>
   <artifactId>org.sakaiproject.nakamura.remotefiles</artifactId>
   <packaging>bundle</packaging>
-  <version>1.0.2</version>
   <name>Sakai Nakamura :: Remote Files Connector</name>
   <description>Provides a connector to remote files.</description>
   <build>

@@ -10,7 +10,6 @@
   <packaging>pom</packaging>
   <name>Sakai Nakamura :: Event Explorer</name>
   <artifactId>eventexplorer</artifactId>
-  <version>1.0.2</version>
   <modules>
     <module>bundles/cassandrathrift</module>
     <module>bundles/storage/jdbc</module>

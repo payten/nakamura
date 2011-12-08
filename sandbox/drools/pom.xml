@@ -9,7 +9,6 @@
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>drools-subsystem</artifactId>
-  <version>1.0.2</version>
   <packaging>pom</packaging>
   <name>Sakai Nakamura :: Drools</name>
   <modules>

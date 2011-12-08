@@ -142,17 +142,17 @@ public class LiteJsonImporterTest {
   @Test
   public void testArray() throws JSONException {
     LiteJsonImporter liteJsonImporter = new LiteJsonImporter();
-    JSONArray arr = new JSONArray(Lists.immutableList("1", "2", "3"));
+    JSONArray arr = new JSONArray(ImmutableList.of("1", "2", "3"));
     String[] s = liteJsonImporter.getArray(arr, String.class);
     Assert.assertArrayEquals(new String[] { "1", "2", "3" }, s);
     Integer[] ia = liteJsonImporter.getArray(arr, Integer.class);
     Assert.assertArrayEquals(new Integer[] { 1, 2, 3 }, ia);
     Long[] la = liteJsonImporter.getArray(arr, Long.class);
     Assert.assertArrayEquals(new Long[] { 1L, 2L, 3L }, la);
-    arr = new JSONArray(Lists.immutableList("1.1", "2.2", "3.3"));
+    arr = new JSONArray(ImmutableList.of("1.1", "2.2", "3.3"));
     Double[] da = liteJsonImporter.getArray(arr, Double.class);
     Assert.assertArrayEquals(new Double[] { 1.1, 2.2, 3.3 }, da);
-    arr = new JSONArray(Lists.immutableList("true", "false", "0"));
+    arr = new JSONArray(ImmutableList.of("true", "false", "0"));
     Boolean[] ba = liteJsonImporter.getArray(arr, Boolean.class);
     Assert.assertArrayEquals(new Boolean[] { true, false, false }, ba);
   }

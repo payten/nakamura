@@ -1,12 +1,18 @@
 {
   "sling:resourceType": "sakai/solr-search",
-  "sakai:query-template": "(resourceType:authorizable) OR (resourceType:authorizable${_categoryAnd}) OR (resourceType:sakai/pooled-content${_taguuids})",
+  "sakai:query-template": "(resourceType:authorizable) OR (resourceType:authorizable${_categoryAnd}) OR (resourceType:sakai/pooled-content${_tags})",
   "sakai:query-template-options": {
-      "sort": "${sortOn} ${sortOrder}"
+      "sort": "${sortOn} ${sortOrder}",
+      "facet" : true,
+      "facet.field" : "tagname",
+      "facet.mincount" : 1
   },
-  "sortOn": "score",
-  "sortOrder": "desc",
-  "_categoryAnd": "",
+  "sakai:query-template-defaults": {
+    "sortOn": "general",
+    "sortOrder": "asc",
+    "_categoryAnd": "",
+    "_tags": ""
+  },
   "sakai:batchresultprocessor": "GeneralFeed",
   "sakai:propertyprovider" : ["CategoryPropertyProvider","TagMatch"],
   "sakai:title": "General - All",

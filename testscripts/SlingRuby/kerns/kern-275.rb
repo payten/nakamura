@@ -1,11 +1,9 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/sling'
+require 'nakamura'
 require 'base64'
-require 'sling/test'
+require 'nakamura/test'
 include SlingInterface
 
 $image="

@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.auth.cas;
 
 import static junit.framework.Assert.assertEquals;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,6 +34,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.auth.trusted.TrustedTokenServiceImpl;
 
 import javax.servlet.http.HttpSession;
@@ -59,14 +62,21 @@ public class CasLoginServletTest {
 
   @Mock
   AuthenticationInfo authnInfo;
+  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+  Repository repository;
+  @Mock
+  User user;
 
   @Before
   public void setUp() throws Exception {
     trustedTokenService = new TrustedTokenServiceImpl();
     trustedTokenService.activateForTesting();
     servlet = new CasLoginServlet(handler, trustedTokenService);
-
+    servlet.repository = repository;
     when(request.getSession()).thenReturn(session);
+    when(request.getAttribute(CasAuthenticationHandler.AUTHN_INFO)).thenReturn(authnInfo);
+    when(authnInfo.getUser()).thenReturn("jane");
+    when(repository.loginAdministrative().getAuthorizableManager().findAuthorizable(anyString())).thenReturn(user);
   }
 
   @Test
@@ -87,7 +97,6 @@ public class CasLoginServletTest {
     ArgumentCaptor<String> redirectCaptor = ArgumentCaptor.forClass(String.class);
 
     when(request.getContextPath()).thenReturn("someContextPath");
-    when(request.getAttribute(CasAuthenticationHandler.AUTHN_INFO)).thenReturn(null);
     servlet.service(request, response);
 
     verify(response).sendRedirect(redirectCaptor.capture());
@@ -102,7 +111,6 @@ public class CasLoginServletTest {
 
     ArgumentCaptor<String> redirectCaptor = ArgumentCaptor.forClass(String.class);
 
-    when(request.getAttribute(CasAuthenticationHandler.AUTHN_INFO)).thenReturn(null);
     when(request.getRequestURI()).thenReturn("someURI");
     when(request.getAttribute(Authenticator.LOGIN_RESOURCE)).thenReturn("greatplace");
     servlet.service(request, response);
@@ -119,7 +127,6 @@ public class CasLoginServletTest {
 
     ArgumentCaptor<String> redirectCaptor = ArgumentCaptor.forClass(String.class);
 
-    when(request.getAttribute(CasAuthenticationHandler.AUTHN_INFO)).thenReturn(null);
     when(request.getRequestURI()).thenReturn("someURI");
     when(request.getParameter(Authenticator.LOGIN_RESOURCE)).thenReturn("greatplace");
     servlet.service(request, response);
@@ -136,7 +143,6 @@ public class CasLoginServletTest {
 
     ArgumentCaptor<String> redirectCaptor = ArgumentCaptor.forClass(String.class);
 
-    when(request.getAttribute(CasAuthenticationHandler.AUTHN_INFO)).thenReturn(authnInfo);
     when(request.getRequestURI()).thenReturn("someURI");
     when(request.getAttribute(Authenticator.LOGIN_RESOURCE)).thenReturn("greatplace");
     servlet.service(request, response);

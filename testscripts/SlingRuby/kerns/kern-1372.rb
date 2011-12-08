@@ -1,10 +1,8 @@
 #!/usr/bin/env ruby
 
-# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require './ruby-lib-dir.rb'
 
-require 'sling/test'
-require 'sling/file'
+require 'nakamura/test'
+require 'nakamura/file'
 include SlingUsers
 include SlingFile
 
@@ -47,7 +45,7 @@ class TC_Kern1372Test < Test::Unit::TestCase
   def test_get_related_content
     @log.level = Logger::INFO
     @fm = FileManager.new(@s)
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     user = create_user("user-#{m}")
 	other = create_user("other-#{m}")
 
@@ -146,7 +144,7 @@ class TC_Kern1372Test < Test::Unit::TestCase
   def test_related_by_directory
     @log.level = Logger::DEBUG
     @fm = FileManager.new(@s)
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     user = create_user("user-#{m}")
 	other = create_user("other-#{m}")
 	directorypath = "CollegeAnnex-#{m}/Psychology-#{m}"
@@ -190,7 +188,7 @@ class TC_Kern1372Test < Test::Unit::TestCase
 
   def test_limit_related_content
     @fm = FileManager.new(@s)
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = Time.now.to_nsec
     user = create_user("user-#{m}")
 	other = create_user("other-#{m}")
 

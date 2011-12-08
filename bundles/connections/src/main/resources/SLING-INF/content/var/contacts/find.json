@@ -3,9 +3,11 @@
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
-  "state": "ACCEPTED",
-  "sortOn": "score",
-  "sortOrder": "desc",
+  "sakai:query-template-defaults": {
+    "state": "ACCEPTED",
+    "sortOn": "score",
+    "sortOrder": "desc"
+  },
   "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "Connection",
   "sakai:resultprocessor": "ConnectionFinder",

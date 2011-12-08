@@ -28,12 +28,10 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.solr.client.solrj.util.ClientUtils;
 import org.osgi.framework.Constants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -45,22 +43,17 @@ import org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
-import org.sakaiproject.nakamura.api.search.SearchResponseDecorator;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.jcr.RepositoryException;
 
 /**
@@ -73,13 +66,11 @@ import javax.jcr.RepositoryException;
     @Property(name = Constants.SERVICE_DESCRIPTION, value = "Processor for message search results."),
     @Property(name = SearchConstants.REG_PROCESSOR_NAMES, value = "Message")
 })
-public class MessageSearchResultProcessor implements SolrSearchResultProcessor, SearchResponseDecorator {
+public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
 
   enum ProfileType {
     TO, FROM
   }
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(MessageSearchResultProcessor.class);
 
   @Reference
   protected LiteMessagingService messagingService;
@@ -94,6 +85,7 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor, 
     writers.put(writer.getType(), writer);
   }
 
+  @SuppressWarnings({"UnusedDeclaration"})
   public void unbindWriters(LiteMessageProfileWriter writer) {
     writers.remove(writer.getType());
   }
@@ -255,34 +247,4 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor, 
     return searchServiceFactory.getSearchResultSet(request, query);
   }
 
-  public void decorateSearchResponse(SlingHttpServletRequest request, JSONWriter writer)
-    throws JSONException {
-    writer.key("unread");
-
-    long count = 0;
-    // We don't do queries for anonymous users. (Possible ddos hole).
-    String userID = request.getRemoteUser();
-    if (UserConstants.ANON_USERID.equals(userID)) {
-      writer.value(count);
-      return;
-    }
-
-    try {
-      final Session session = StorageClientUtils.adaptToSession(request
-          .getResourceResolver().adaptTo(javax.jcr.Session.class));
-      String store = messagingService.getFullPathToStore(userID, session);
-      store = ISO9075.encodePath(store);
-      store = store.substring(0, store.length() - 1);
-      String queryString = "path:" + ClientUtils.escapeQueryChars(store) +
-        " AND resourceType:sakai/message AND type:internal AND messagebox:inbox AND read:false";
-      Query query = new Query(queryString);
-      SolrSearchResultSet resultSet = searchServiceFactory.getSearchResultSet(
-          request, query, false);
-      count = resultSet.getSize();
-    } catch (SolrSearchException e) {
-      LOGGER.error(e.getMessage());
-    } finally {
-      writer.value(count);
-    }
-  }
 }

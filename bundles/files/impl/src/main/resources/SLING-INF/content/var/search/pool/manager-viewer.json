@@ -1,0 +1,23 @@
+{
+  "sakai:query-template": "resourceType:sakai/pooled-content ${_mimetype} AND ((manager:(${au}) OR viewer:(${au})) OR (showalways:true AND (manager:(${all}) OR viewer:(${all}))))${_q}",
+  "sakai:query-template-options": {
+      "sort": "${sortOn} ${sortOrder}",
+      "facet" : true,
+      "facet.field" : "tagname",
+      "facet.mincount" : 1
+  },
+  "sakai:query-template-defaults": {
+    "sortOn": "score",
+    "sortOrder": "desc",
+    "_q": ""
+  },
+  "sling:resourceType": "sakai/solr-search",
+  "sakai:propertyprovider" : ["MeManagerViewer", "MimeMatch"],
+  "sakai:resultprocessor": "AllFiles",
+  "sakai:title": "Pooled Content - All",
+  "sakai:shortDescription": "Search through all the pooled files.",
+  "sakai:parameters" : [
+      "{\"name\" : \"sortOn\", \"description\" : \"The name of the property you wish to sort on. This only has any affect if it is used with the sortOrder parameter. Default is sakai:filename\"}",
+      "{\"name\" : \"sortOrder\", \"description\" : \"The order you wish to sort in. Either 'ascending' or 'descending'.\"}"
+  ],
+}

@@ -53,7 +53,7 @@ public class SamlAuthenticationTokenServiceWrapperTest {
   public void setUp() throws Exception {
     servlet = new SamlLoginServlet();
     delegate = new TrustedTokenServiceImpl();
-    delegate.activateForTesting(SamlAuthenticationTokenServiceWrapper.class.getName());
+    delegate.activateForTesting();
   }
 
   @Test(expected = IllegalArgumentException.class)

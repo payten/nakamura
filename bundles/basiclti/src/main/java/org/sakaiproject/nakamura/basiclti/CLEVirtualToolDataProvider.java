@@ -21,7 +21,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants;
 import org.sakaiproject.nakamura.api.basiclti.VirtualToolDataProvider;
@@ -123,25 +123,25 @@ public class CLEVirtualToolDataProvider implements VirtualToolDataProvider {
   protected void activate(ComponentContext componentContext) throws Exception {
     LOG.debug("activate(ComponentContext componentContext)");
     Dictionary<?, ?> properties = componentContext.getProperties();
-    cleUrl = OsgiUtil.toString(properties.get(CLE_SERVER_URL), "http://localhost");
-    ltiKey = OsgiUtil.toString(properties.get(CLE_BASICLTI_KEY), "12345");
-    ltiSecret = OsgiUtil.toString(properties.get(CLE_BASICLTI_SECRET), "secret");
-    frameHeight = OsgiUtil.toLong(properties.get(CLE_BASICLTI_FRAME_HEIGHT), 100);
-    frameHeightLock = OsgiUtil.toBoolean(properties.get(CLE_BASICLTI_FRAME_HEIGHT_LOCK),
+    cleUrl = PropertiesUtil.toString(properties.get(CLE_SERVER_URL), "http://localhost");
+    ltiKey = PropertiesUtil.toString(properties.get(CLE_BASICLTI_KEY), "12345");
+    ltiSecret = PropertiesUtil.toString(properties.get(CLE_BASICLTI_SECRET), "secret");
+    frameHeight = PropertiesUtil.toLong(properties.get(CLE_BASICLTI_FRAME_HEIGHT), 100);
+    frameHeightLock = PropertiesUtil.toBoolean(properties.get(CLE_BASICLTI_FRAME_HEIGHT_LOCK),
         true);
-    urlLock = OsgiUtil.toBoolean(properties.get(LTI_URL_LOCK), true);
-    keyLock = OsgiUtil.toBoolean(properties.get(LTI_KEY_LOCK), true);
-    secretLock = OsgiUtil.toBoolean(properties.get(LTI_SECRET_LOCK), true);
-    releaseNames = OsgiUtil.toBoolean(properties.get(LTI_RELEASE_NAMES), true);
-    releaseNamesLock = OsgiUtil.toBoolean(properties.get(LTI_RELEASE_NAMES_LOCK), true);
-    releaseEmail = OsgiUtil.toBoolean(properties.get(LTI_RELEASE_EMAIL), true);
-    releaseEmailLock = OsgiUtil.toBoolean(properties.get(LTI_RELEASE_EMAIL_LOCK), true);
-    releasePrincipal = OsgiUtil.toBoolean(properties.get(LTI_RELEASE_PRINCIPAL), true);
-    releasePrincipalLock = OsgiUtil.toBoolean(properties.get(LTI_RELEASE_PRINCIPAL_LOCK),
+    urlLock = PropertiesUtil.toBoolean(properties.get(LTI_URL_LOCK), true);
+    keyLock = PropertiesUtil.toBoolean(properties.get(LTI_KEY_LOCK), true);
+    secretLock = PropertiesUtil.toBoolean(properties.get(LTI_SECRET_LOCK), true);
+    releaseNames = PropertiesUtil.toBoolean(properties.get(LTI_RELEASE_NAMES), true);
+    releaseNamesLock = PropertiesUtil.toBoolean(properties.get(LTI_RELEASE_NAMES_LOCK), true);
+    releaseEmail = PropertiesUtil.toBoolean(properties.get(LTI_RELEASE_EMAIL), true);
+    releaseEmailLock = PropertiesUtil.toBoolean(properties.get(LTI_RELEASE_EMAIL_LOCK), true);
+    releasePrincipal = PropertiesUtil.toBoolean(properties.get(LTI_RELEASE_PRINCIPAL), true);
+    releasePrincipalLock = PropertiesUtil.toBoolean(properties.get(LTI_RELEASE_PRINCIPAL_LOCK),
         true);
-    debug = OsgiUtil.toBoolean(properties.get(LTI_DEBUG), false);
-    debugLock = OsgiUtil.toBoolean(properties.get(LTI_DEBUG_LOCK), true);
-    toolList = new ArrayList<String>(Arrays.asList(OsgiUtil.toStringArray(properties
+    debug = PropertiesUtil.toBoolean(properties.get(LTI_DEBUG), false);
+    debugLock = PropertiesUtil.toBoolean(properties.get(LTI_DEBUG_LOCK), true);
+    toolList = new ArrayList<String>(Arrays.asList(PropertiesUtil.toStringArray(properties
         .get(TOOL_LIST))));
   }
 

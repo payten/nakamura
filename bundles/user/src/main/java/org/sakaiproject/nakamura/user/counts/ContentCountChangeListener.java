@@ -77,10 +77,10 @@ public class ContentCountChangeListener extends AbstractCountHandler implements 
         // this either is or was a content node.
         if ( beforeEvent != null && content != null) {
           Set<String> before = Sets.newHashSet();
-          before.addAll(ImmutableList.of(StorageClientUtils.nonNullStringArray((String[])beforeEvent.get("sakai:pooled-content-viewer"))));
-          before.addAll(ImmutableList.of(StorageClientUtils.nonNullStringArray((String[])beforeEvent.get("sakai:pooled-content-manager"))));
+          before.addAll(ImmutableList.copyOf(StorageClientUtils.nonNullStringArray((String[])beforeEvent.get("sakai:pooled-content-viewer"))));
+          before.addAll(ImmutableList.copyOf(StorageClientUtils.nonNullStringArray((String[])beforeEvent.get("sakai:pooled-content-manager"))));
           Set<String> after = Sets.newHashSet(StorageClientUtils.nonNullStringArray((String[])content.getProperty("sakai:pooled-content-viewer")));
-          after.addAll(ImmutableList.of(StorageClientUtils.nonNullStringArray((String[])content.getProperty("sakai:pooled-content-manager"))));
+          after.addAll(ImmutableList.copyOf(StorageClientUtils.nonNullStringArray((String[])content.getProperty("sakai:pooled-content-manager"))));
           before = Sets.difference(before, CountProvider.IGNORE_AUTHIDS);
           after = Sets.difference(after, CountProvider.IGNORE_AUTHIDS);
           Set<String> removed = Sets.difference(before,after);
@@ -102,7 +102,7 @@ public class ContentCountChangeListener extends AbstractCountHandler implements 
         } // we're in a DELETE topic where content is null because it has been deleted already and removed is just the users in the beforeEvent
         else if ("org/sakaiproject/nakamura/lite/content/DELETE".equals(event.getTopic()) && beforeEvent != null) { 
           Set<String> removed = Sets.newHashSet(StorageClientUtils.nonNullStringArray((String[])beforeEvent.get("sakai:pooled-content-viewer")));
-          removed.addAll(ImmutableList.of(StorageClientUtils.nonNullStringArray((String[])beforeEvent.get("sakai:pooled-content-manager")))); 
+          removed.addAll(ImmutableList.copyOf(StorageClientUtils.nonNullStringArray((String[])beforeEvent.get("sakai:pooled-content-manager")))); 
           for ( String userId : removed ) {
             if ( !CountProvider.IGNORE_AUTHIDS.contains(userId) ) {
               dec(userId, UserConstants.CONTENT_ITEMS_PROP);

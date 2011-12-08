@@ -20,19 +20,15 @@ package org.sakaiproject.nakamura.presence.search;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.osgi.framework.Constants;
-import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.lite.Session;
-import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
@@ -60,16 +56,13 @@ import java.util.Iterator;
 public class ProfileContactsSearchResultProcessor extends ProfileNodeSearchResultProcessor implements SolrSearchBatchResultProcessor {
   private static final Logger LOGGER = LoggerFactory.getLogger(ProfileContactsSearchResultProcessor.class);
 
-  @Reference
-  private ConnectionManager connMgr;
-
   public ProfileContactsSearchResultProcessor() {
     super();
   }
 
   ProfileContactsSearchResultProcessor(SolrSearchServiceFactory searchServiceFactory,
-      ProfileService profileService, PresenceService presenceService) {
-    super(searchServiceFactory, profileService, presenceService);
+      BasicUserInfoService basicUserInfoService, PresenceService presenceService) {
+    super(searchServiceFactory, basicUserInfoService, presenceService);
   }
 
   public void writeResults(SlingHttpServletRequest request, JSONWriter write,
@@ -78,25 +71,14 @@ public class ProfileContactsSearchResultProcessor extends ProfileNodeSearchResul
     Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
         .adaptTo(javax.jcr.Session.class));
 
-    String currUser = request.getRemoteUser();
-    try {
-      // write out the profile information for each result
-      while (results.hasNext()) {
-        Result result = results.next();
-        // start the object here so we can decorate with contact details
-        write.object();
-        super.writeResult(request, write, result, true);
+    // write out the profile information for each result
+    while (results.hasNext()) {
+      Result result = results.next();
+      // start the object here so we can decorate with contact details
+      write.object();
+      super.writeResult(request, write, result, true);
 
-        // add contact information if appropriate
-        String otherUser = String.valueOf(result.getFirstValue("path"));
-        connMgr.writeConnectionInfo(exWriter, session, currUser, otherUser);
-
-        write.endObject();
-      }
-    } catch (StorageClientException e) {
-      LOGGER.error(e.getMessage(), e);
-    } catch (AccessDeniedException e) {
-      LOGGER.error(e.getMessage(), e);
+      write.endObject();
     }
   }
 }

@@ -155,8 +155,8 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
       } else {
         itemCount = MAX_RESULTS_COUNTED;
       }
-      Map<String, String> queryOptions = ImmutableMap.of(
-          PARAMS_ITEMS_PER_PAGE, Long.toString(itemCount),
+      Map<String, Object> queryOptions = ImmutableMap.of(
+          PARAMS_ITEMS_PER_PAGE, (Object) Long.toString(itemCount),
           CommonParams.START, "0",
           CommonParams.SORT, "_created desc"
       );

@@ -17,7 +17,7 @@
  */
 package org.sakaiproject.nakamura.user.counts;
 
-import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_PSEUDO_GROUP_PARENT;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_PARENT_GROUP_ID;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -63,8 +63,8 @@ public class GroupMembersCountChangeListener extends AbstractCountHandler implem
       if ( !CountProvider.IGNORE_AUTHIDS.contains(groupId) ) {
         Authorizable au = authorizableManager.findAuthorizable(groupId);
         if ( au instanceof Group ) {
-          if (au.hasProperty(PROP_PSEUDO_GROUP_PARENT)) {
-            String parent = String.valueOf(au.getProperty(PROP_PSEUDO_GROUP_PARENT));
+          if (au.hasProperty(PROP_PARENT_GROUP_ID)) {
+            String parent = String.valueOf(au.getProperty(PROP_PARENT_GROUP_ID));
             au = authorizableManager.findAuthorizable(parent);
           }
           if (au != null) {

@@ -82,7 +82,9 @@ public class LiteDiscussionManagerImpl implements LiteDiscussionManager {
       props.put("sakai:marker", marker);
 
       path = expandHomeDirectory(path);
-
+      if (path.startsWith("/p/")) {
+        path = path.substring("/p/".length());
+      }
       Iterator<Content> foundContent = cm.find(props).iterator();
 
       while (foundContent.hasNext()) {

@@ -2,11 +2,16 @@
   "sling:resourceType": "sakai/solr-search",
   "sakai:query-template": "resourceType:authorizable",
   "sakai:query-template-options": {
-	  "fq": "type:u AND resourceType:authorizable",
-      "sort": "${sortOn} ${sortOrder}"
+      "fq": ["type:u", "resourceType:authorizable"],
+      "sort": "${sortOn} ${sortOrder}",
+      "facet" : true,
+      "facet.field" : "tagname",
+      "facet.mincount" : 1
   },
-  "sortOn": "score",
-  "sortOrder": "desc",
+  "sakai:query-template-defaults": {
+    "sortOn": "score",
+    "sortOrder": "desc"
+  },
   "sakai:batchresultprocessor": "ProfileContacts",
   "sakai:title": "Users - All",
   "sakai:shortDescription": "Get the profile of each user.",

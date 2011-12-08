@@ -98,7 +98,7 @@ public class MigrateJcr {
   /**
    * Principals that don't manage, Admin has permissions everywhere already. 
    */
-  private static final Set<String> NO_MANAGE = ImmutableSet.of(org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE, User.ANON_USER, User.ADMIN_USER);
+  private static final Set<String> NO_MANAGE = ImmutableSet.copyOf(org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE, User.ANON_USER, User.ADMIN_USER);
 
   private Logger LOGGER = LoggerFactory.getLogger(MigrateJcr.class);
 
@@ -118,7 +118,7 @@ public class MigrateJcr {
   private Map<SlingRepository, SlingRepository> repositories =
       new ConcurrentHashMap<SlingRepository, SlingRepository>();
 
-  private Set<String> ignoreProps = ImmutableSet.of("jcr:content", "jcr:data",
+  private Set<String> ignoreProps = ImmutableSet.copyOf("jcr:content", "jcr:data",
       "jcr:mixinTypes", "rep:policy", "jcr:created", "jcr:primaryType");
   private Object visibilityPreference;
   private boolean shouldAbort = false;
@@ -743,9 +743,9 @@ public class MigrateJcr {
       } else {
         managersArray = (String[]) managers;
       }
-      managerSettings = ImmutableSet.of(managersArray);
+      managerSettings = ImmutableSet.copyOf(managersArray);
     } else {
-      managerSettings = ImmutableSet.of();
+      managerSettings = ImmutableSet.copyOf();
     }
     Set<String> viewerSettings = null;
     if (authorizable.hasProperty("rep:group-viewers")) {
@@ -756,9 +756,9 @@ public class MigrateJcr {
       } else {
         viewersArray = (String[]) viewers;
       }
-      viewerSettings = ImmutableSet.of(viewersArray);
+      viewerSettings = ImmutableSet.copyOf(viewersArray);
     } else {
-      viewerSettings = ImmutableSet.of();
+      viewerSettings = ImmutableSet.copyOf();
     }
 
     for (String key : acl.keySet()) {

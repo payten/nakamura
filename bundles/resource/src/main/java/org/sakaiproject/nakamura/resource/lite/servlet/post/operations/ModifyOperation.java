@@ -36,9 +36,9 @@ import org.sakaiproject.nakamura.api.resource.DateParser;
 import org.sakaiproject.nakamura.api.resource.lite.AbstractSparseCreateOperation;
 import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.sakaiproject.nakamura.api.resource.lite.SparseNonExistingResource;
+import org.sakaiproject.nakamura.api.resource.lite.SparsePropertyValueHandler;
 import org.sakaiproject.nakamura.api.resource.lite.SparseRequestProperty;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.SparseFileUploadHandler;
-import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.SparsePropertyValueHandler;
 
 import java.io.IOException;
 import java.util.List;

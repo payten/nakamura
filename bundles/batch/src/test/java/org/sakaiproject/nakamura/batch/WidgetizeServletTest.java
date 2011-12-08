@@ -31,9 +31,7 @@ import org.mockito.Mockito;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
 
-import java.io.IOException;
 import java.io.ByteArrayInputStream;
-import java.net.URISyntaxException;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletResponse;
@@ -46,7 +44,7 @@ public class WidgetizeServletTest extends AbstractWidgetServletTest {
   private WidgetizeServlet servlet;
 
   @Before
-  public void setUp() throws IOException, URISyntaxException {
+  public void setUp() throws Exception {
     super.setUp();
 
     servlet = new WidgetizeServlet();
@@ -98,11 +96,11 @@ public class WidgetizeServletTest extends AbstractWidgetServletTest {
     assertNotNull(json.getJSONObject("twitter.html"));
 
     // Make sure that the content is there.
-    assertEquals(String.class, json.getJSONObject("css").getJSONObject("twitter.css")
+    assertEquals(Boolean.class, json.getJSONObject("css").getJSONObject("twitter.css")
         .get("content").getClass());
-    assertEquals(String.class, json.getJSONObject("javascript").getJSONObject(
+    assertEquals(Boolean.class, json.getJSONObject("javascript").getJSONObject(
         "twitter.js").get("content").getClass());
-    assertEquals(String.class, json.getJSONObject("twitter.html").get("content")
+    assertEquals(Boolean.class, json.getJSONObject("twitter.html").get("content")
         .getClass());
 
     // Make sure that images don't get loaded.

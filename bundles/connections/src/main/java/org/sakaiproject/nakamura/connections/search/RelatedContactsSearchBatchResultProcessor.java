@@ -112,9 +112,9 @@ public class RelatedContactsSearchBatchResultProcessor implements
   /**
    * Used for random people matching
    */
-  public static final Map<String, String> SOURCE_QUERY_OPTIONS;
+  public static final Map<String, Object> SOURCE_QUERY_OPTIONS;
   static {
-    final Map<String, String> sqo = new HashMap<String, String>(3);
+    final Map<String, Object> sqo = new HashMap<String, Object>(3);
     // sort by highest score
     sqo.put("sort", "score desc");
     sqo.put("items", String.valueOf(VOLUME));

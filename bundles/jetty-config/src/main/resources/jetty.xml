@@ -12,7 +12,13 @@
 
 <Configure id="Server" class="org.mortbay.jetty.Server">
 
-  <!-- =========================================================== -->
+    <!-- accept form fields up to 2 metric gigs (the jetty default is 200000 bytes) -->
+    <Call class="java.lang.System" name="setProperty">
+        <Arg>org.mortbay.jetty.Request.maxFormContentSize</Arg>
+        <Arg>2000000000</Arg>
+    </Call>
+
+    <!-- =========================================================== -->
     <!-- Server Thread Pool                                          -->
     <!-- =========================================================== -->
     <Set name="ThreadPool">

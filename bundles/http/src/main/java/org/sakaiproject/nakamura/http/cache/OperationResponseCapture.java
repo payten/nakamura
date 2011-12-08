@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.http.cache;
 
+import org.sakaiproject.nakamura.api.http.cache.Operation;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;

@@ -118,7 +118,7 @@ public class LiteAbstractSakaiGroupPostServletTest {
 
     servlet.updateOwnership(request, group, new String[] { "joe" }, null, toSave);
 
-    Set<String> values = ImmutableSet.of((String[])group.getProperty(UserConstants.PROP_GROUP_MANAGERS));
+    Set<String> values = ImmutableSet.copyOf((String[])group.getProperty(UserConstants.PROP_GROUP_MANAGERS));
     assertTrue(values.contains("jeff"));
     assertTrue(values.contains("jack"));
     assertTrue(values.contains("john"));
@@ -140,7 +140,7 @@ public class LiteAbstractSakaiGroupPostServletTest {
     Map<String, Object> toSave = Maps.newLinkedHashMap();
     servlet.updateOwnership(request, group, new String[0], null,toSave);
 
-    Set<String> values = ImmutableSet.of((String[])group.getProperty(UserConstants.PROP_GROUP_MANAGERS));
+    Set<String> values = ImmutableSet.copyOf((String[])group.getProperty(UserConstants.PROP_GROUP_MANAGERS));
     assertTrue(values.contains("jack"));
     assertEquals(1, values.size());
   }
