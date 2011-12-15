@@ -1,5 +1,7 @@
 source :rubygems
 gem "nakamura", ">= 0.2"
+gem "curb"
+gem "json"
 
 group :preview_processor do
   gem "docsplit"

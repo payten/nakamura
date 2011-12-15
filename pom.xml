@@ -89,7 +89,7 @@
        <id>withContrib</id>
        <modules>
         <module>contrib/ldap</module>
-        <module>contrib/import</module>
+        <!-- <module>contrib/import</module> -->
         <module>contrib/filters</module>
         <!-- <module>contrib/mailman</module> -->
         <module>contrib/persondirectory</module>
@@ -1162,7 +1162,7 @@
       <dependency>
         <groupId>org.sakaiproject.nakamura</groupId>
         <artifactId>org.sakaiproject.nakamura.solr</artifactId>
-        <version>1.3-20111205</version>
+        <version>1.3-20111212</version>
         <scope>provided</scope>
       </dependency>
 

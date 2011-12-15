@@ -38,7 +38,7 @@ import org.sakaiproject.nakamura.api.resource.SafeServletResourceHandler;
  * Gets a version
  */
 
-@ServiceDocumentation(name = "List Versions Servlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "List Versions Servlet", okForVersion = "1.1",
   description = "Lists versions of a resource in json format",
   shortDescription = "List versions of a resource",
   bindings = {

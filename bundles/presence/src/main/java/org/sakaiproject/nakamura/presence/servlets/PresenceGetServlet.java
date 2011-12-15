@@ -48,7 +48,7 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.description", value = { "Gets the presence for the current user only." }),
     @Property(name = "service.vendor", value = { "The Sakai Foundation" }) })
-@ServiceDocumentation(name = "Presence Servlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "Presence Servlet", okForVersion = "1.1",
     description = "Gets presence for the current user only.",
     shortDescription="Gets the presence for the current user only.",
     bindings = @ServiceBinding(type = BindingType.TYPE,

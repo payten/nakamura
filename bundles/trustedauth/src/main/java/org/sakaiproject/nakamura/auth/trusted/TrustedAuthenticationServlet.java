@@ -69,7 +69,7 @@ import javax.servlet.http.HttpServletResponse;
  * simply store the trusted user in a a trusted token in the form of a cookie.
  * </p>
  */
-@ServiceDocumentation(name = "Trusted Authentication Servlet documentation", okForVersion = "0.11",
+@ServiceDocumentation(name = "Trusted Authentication Servlet documentation", okForVersion = "1.1",
   shortDescription = "Allows authentication by a trusted external source.",
   description = "Allows authentication by a trusted external source. This servlet does not perform the authentication itself but looks for information in\n" +
     " the request from the authentication authority. This information is then stored in the\n" +

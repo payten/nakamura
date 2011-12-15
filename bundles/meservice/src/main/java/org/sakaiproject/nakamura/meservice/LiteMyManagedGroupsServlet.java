@@ -57,7 +57,7 @@ import java.util.Iterator;
 import java.util.TreeMap;
 
 @ServiceDocumentation(
-  name = "My Managed Groups Servlet", okForVersion = "0.11",
+  name = "My Managed Groups Servlet", okForVersion = "1.1",
   shortDescription = "Gets the groups where the current user is a manager",
   description = "Gets the groups where the current user is a manager",
   bindings = {

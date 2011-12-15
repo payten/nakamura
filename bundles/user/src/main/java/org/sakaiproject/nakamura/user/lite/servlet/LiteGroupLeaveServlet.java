@@ -56,7 +56,7 @@ import javax.servlet.http.HttpServletResponse;
  * can not edit the group and therefore can't remove themself. This servlet acts on behalf
  * of the user to leave a group and does not allow removal of any other user.
  */
-@ServiceDocumentation(name = "LiteGroupLeaveServlet documentation", okForVersion = "0.11",
+@ServiceDocumentation(name = "LiteGroupLeaveServlet documentation", okForVersion = "1.1",
   shortDescription = "Servlet to allow a user to leave a group",
   description = "Servlet to allow a user to leave a group, responding to groups using the 'leave' selector. Only works for removing the logged in user.",
   bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sparse/joinrequests",

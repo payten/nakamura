@@ -72,7 +72,7 @@ import javax.servlet.http.HttpServletResponse;
  * Servlet endpoint for comments associated to a piece of pooled content.
  */
 @SlingServlet(methods = { "GET", "POST", "DELETE" }, extensions = "comments", resourceTypes = { "sakai/pooled-content" })
-@ServiceDocumentation(name = "ContentPoolCommentServlet", okForVersion = "0.11", shortDescription = "Read/Write/Delete comments on a content item.",
+@ServiceDocumentation(name = "ContentPoolCommentServlet", okForVersion = "1.1", shortDescription = "Read/Write/Delete comments on a content item.",
     description = "Read, write, and delete comments associated to a piece of pooled content.",
     bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/pooled-content",
                 extensions = @ServiceExtension(name = "comments", description = "Accesses the comments on a piece of content.")),

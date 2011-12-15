@@ -74,7 +74,7 @@ import javax.servlet.http.HttpServletResponse;
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Endpoint to count messages in a messagestore.") })
 @ServiceDocumentation(
-    name = "LiteCountServlet documentation", okForVersion = "0.11",
+    name = "LiteCountServlet documentation", okForVersion = "1.1",
     shortDescription = "Count all the internal messages a user has.",
     description = "Counts all the internal messages a user has.",
     bindings = @ServiceBinding(type = BindingType.TYPE, 

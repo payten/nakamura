@@ -52,7 +52,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @ServiceDocumentation(
   name = "Create External Document Proxy Servlet",
-  okForVersion = "0.11",
+  okForVersion = "1.1",
   description = "Creates a external document resource where there was none",
   shortDescription = "Creates a external document resource where there was none",
   bindings = {

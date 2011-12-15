@@ -57,7 +57,7 @@ import javax.servlet.http.HttpServletResponse;
 @SlingServlet(paths = "/var/image/cropit", methods = { "POST" })
 @Properties(value = { @Property(name = "service.description", value = "Crops an image."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-@ServiceDocumentation(name = "CropItServlet", okForVersion = "0.11", shortDescription = "Crop an image.", description = "Use this servlet to cut out a part of an image and resize it to different sizes.", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/var/image/cropit"), methods = @ServiceMethod(name = "POST", description = "Cut out part of an image and save it in different sizes. <br />"
+@ServiceDocumentation(name = "CropItServlet", okForVersion = "1.1", shortDescription = "Crop an image.", description = "Use this servlet to cut out a part of an image and resize it to different sizes.", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/var/image/cropit"), methods = @ServiceMethod(name = "POST", description = "Cut out part of an image and save it in different sizes. <br />"
     + "Example: curl -d\"img=/dev/_images/gateway.png\" -d\"save=/test\" -d\"x=0\" -d\"y=0\" -d\"width=100\" -d\"height=100\" -d\"dimensions=16x16;32x32\" http://admin:admin@localhost:8080/var/image/cropit", parameters = {
     @ServiceParameter(name = "img", description = "The location where the image that needs cropping is saved."),
     @ServiceParameter(name = "save", description = "The location where you want to save the resized/cropped images."),

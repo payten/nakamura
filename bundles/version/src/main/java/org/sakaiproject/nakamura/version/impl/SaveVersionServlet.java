@@ -38,7 +38,7 @@ import org.sakaiproject.nakamura.api.resource.ServletResourceHandler;
  * new writable version.
  */
 
-@ServiceDocumentation(name = "Save a version Servlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "Save a version Servlet", okForVersion = "1.1",
   description = "Saves a new version of a resource",
   shortDescription = "Saves a new version of a resource",
   bindings = {

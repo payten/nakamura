@@ -143,8 +143,7 @@ class TC_Kern2263 < Test::Unit::TestCase
     @s.switch_user(manager)
     res = @s.execute_post(@s.url_for("/system/userManager/group/#{manager_group.name}.delete.html"), {
       ":status" => "standard",
-      ":applyTo" => "#{manager_group.name}",
-      ":applyTo" => "#{manager_groupB.name}"
+      ":applyTo" => ["#{manager_group.name}","#{manager_groupB.name}"]
     })
     assert_equal("200", res.code, "Should have been allowed to delete this group.")
     

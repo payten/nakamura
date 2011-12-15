@@ -26,10 +26,12 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -85,18 +87,8 @@ public class AllFilesSearchResultProcessor implements SolrSearchResultProcessor 
       Content contentResult = session.getContentManager().get(contentPath);
       if (contentResult != null) {
         write.object();
-        write.key("sakai:canmanage");
-        Authorizable thisUser = session.getAuthorizableManager().findAuthorizable(request.getRemoteUser());
-        Collection<String> principals = new ArrayList<String>();
-        principals.addAll(Arrays.asList(thisUser.getPrincipals()));
-        principals.add(request.getRemoteUser());
-        boolean canManage = false;
-        for (String principal : principals) {
-          if(Arrays.asList(StorageClientUtils.nonNullStringArray((String[])contentResult.getProperty("sakai:pooled-content-manager"))).contains(principal)) {
-            canManage = true;
-          }
-        }
-        write.value(canManage);
+        writeCanManageProperty(request, write, session, contentResult);
+        writeCommentCountProperty(write, session, contentResult);
         int depth = SolrSearchUtil.getTraversalDepth(request);
         ExtendedJSONWriter.writeContentTreeToWriter(write, contentResult, true, depth);
         write.endObject();
@@ -110,5 +102,33 @@ public class AllFilesSearchResultProcessor implements SolrSearchResultProcessor 
     } catch (Exception e) {
       throw new JSONException(e);
     }
+  }
+
+  private void writeCommentCountProperty(JSONWriter write, Session session, Content contentResult) throws StorageClientException, JSONException, AccessDeniedException {
+    ContentManager contentManager = session.getContentManager();
+    Content comments = contentManager.get(contentResult.getPath() + "/" + "comments");
+    long commentCount = 0;
+    if (comments != null) {
+      for (Content comment : comments.listChildren()) {
+        commentCount++;
+      }
+    }
+    write.key("commentCount");
+    write.value(commentCount);
+  }
+
+  private void writeCanManageProperty(SlingHttpServletRequest request, JSONWriter write, Session session, Content contentResult) throws StorageClientException, JSONException, AccessDeniedException {
+    write.key("sakai:canmanage");
+    Authorizable thisUser = session.getAuthorizableManager().findAuthorizable(request.getRemoteUser());
+    Collection<String> principals = new ArrayList<String>();
+    principals.addAll(Arrays.asList(thisUser.getPrincipals()));
+    principals.add(request.getRemoteUser());
+    boolean canManage = false;
+    for (String principal : principals) {
+      if(Arrays.asList(StorageClientUtils.nonNullStringArray((String[]) contentResult.getProperty("sakai:pooled-content-manager"))).contains(principal)) {
+        canManage = true;
+      }
+    }
+    write.value(canManage);
   }
 }

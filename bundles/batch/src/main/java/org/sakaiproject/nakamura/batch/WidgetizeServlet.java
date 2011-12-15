@@ -45,7 +45,7 @@ import java.util.Locale;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "WidgetizeServlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "WidgetizeServlet", okForVersion = "1.1",
     shortDescription = "Fetch all the resources for a widget.",
     description = { "Fetch all the resources of a widget in one request." },
     bindings = {

@@ -164,23 +164,15 @@ public class DocStep extends AbstractWorldCreationStep {
     if (permission.equals("everyone")) {
       // everyone = all logged in users
       membersData.accumulate(":viewer", "everyone").accumulate(":viewer@Delete", "anonymous");
-      setACL(path + ".modifyAce.html", new JSONObject().put("principalId", "everyone").put("privilege@jcr:read", "granted"));
-      setACL(path + ".modifyAce.html", new JSONObject().put("principalId", "anonymous").put("privilege@jcr:read", "denied"));
     } else if (permission.equals("public")) {
       // public = anonymous and logged-in
       membersData.accumulate(":viewer", "everyone").accumulate(":viewer", "anonymous");
-      setACL(path + ".modifyAce.html", new JSONObject().put("principalId", "everyone").put("privilege@jcr:read", "granted"));
-      setACL(path + ".modifyAce.html", new JSONObject().put("principalId", "anonymous").put("privilege@jcr:read", "granted"));
     } else if (permission.equals("private")) {
       // managers and members only
       membersData.accumulate(":viewer@Delete", "everyone").accumulate(":viewer@Delete", "anonymous");
-      setACL(path + ".modifyAce.html", new JSONObject().put("principalId", "everyone").put("privilege@jcr:read", "denied"));
-      setACL(path + ".modifyAce.html", new JSONObject().put("principalId", "anonymous").put("privilege@jcr:read", "denied"));
     } else if (permission.equals("group")) {
       // group members only
-      membersData.accumulate(":viewer", groupID);
-      setACL(path + ".modifyAce.html", new JSONObject().put("principalId", "everyone").put("privilege@jcr:read", "denied"));
-      setACL(path + ".modifyAce.html", new JSONObject().put("principalId", "anonymous").put("privilege@jcr:read", "denied"));
+      membersData.accumulate(":viewer", groupID).accumulate(":viewer@Delete", "everyone").accumulate(":viewer@Delete", "anonymous");
     }
 
     // Always remove the creator as an explicit manager

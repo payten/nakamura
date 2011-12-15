@@ -45,7 +45,7 @@ import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "PageServlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "PageServlet", okForVersion = "1.1",
     shortDescription = "Returns a list of pages below the specified content path",
     description = "Returns a list of pages below the content specified in the 'path' parameter.",
     bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/var/search/page"),

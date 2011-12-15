@@ -72,7 +72,12 @@ public class PageIndexingUtil {
     List<Content> pages = Lists.newArrayList();
     try {
       for (String pagePath : getPagePaths(content)) {
-        pages.add(contentManager.get(pagePath));
+        Content page = contentManager.get(pagePath);
+        if (page != null) {
+          pages.add(page);
+        } else {
+          LOGGER.warn("Unable to find page {} under {}", pagePath, content.getPath());
+        }
       }
     } catch (StorageClientException e) {
       throw new PageIndexException("Unable to get the child page paths for " + content.getPath(), e);

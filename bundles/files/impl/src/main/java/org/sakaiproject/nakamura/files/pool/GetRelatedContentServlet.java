@@ -68,7 +68,7 @@ import javax.servlet.http.HttpServletResponse;
  * "sakai:permissions" property of "everyone"), and one which contains only publicly
  * accessible items (with a "sakai:permissions" property of "public").
  */
-@ServiceDocumentation(name = "GetRelatedContentServlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "GetRelatedContentServlet", okForVersion = "1.1",
   shortDescription = "Get up to ten related nodes",
   description = {
     "This servlet returns an array of content related to the targeted node.",

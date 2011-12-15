@@ -48,7 +48,7 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.description", value = { "Controls the presence for the current user." }),
     @Property(name = "service.vendor", value = { "The Sakai Foundation" }) })
-@ServiceDocumentation(name = "Presence Control Servlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "Presence Control Servlet", okForVersion = "1.1",
     description = "Controls the presence, and location for the current user using standard HTTP verbs to perform the control",
     shortDescription="Controls the presence for the current user",
     bindings = @ServiceBinding(type = BindingType.TYPE,

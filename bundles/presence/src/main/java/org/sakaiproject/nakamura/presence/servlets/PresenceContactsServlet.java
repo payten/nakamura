@@ -59,7 +59,7 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.description", value = { "Outputs the accepted contacts listing presence related to the current user." }),
     @Property(name = "service.vendor", value = { "The Sakai Foundation" }) })
-@ServiceDocumentation(name = "Presence Contacts Servlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "Presence Contacts Servlet", okForVersion = "1.1",
     description = "Gets presence for the current users contact including the public profile of each accepted contact.",
     shortDescription="Gets the presence for the current user.",
     bindings = @ServiceBinding(type = BindingType.TYPE,

@@ -40,7 +40,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 @SlingServlet(paths = { "/system/doc/proxy" }, methods = { "GET" })
-@ServiceDocumentation(name = "Proxy documentation", okForVersion = "0.11",
+@ServiceDocumentation(name = "Proxy documentation", okForVersion = "1.1",
   description = "Provides auto documentation of proxy nodes currently in the repository. Documentation will use the "
     + "node properties."
     + " Requests to this servlet take the form /system/doc/proxy?p=&lt;proxynodepath&gt where <em>proxynodepath</em>"

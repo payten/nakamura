@@ -94,7 +94,7 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Allows for uploading files to the pool.") })
-@ServiceDocumentation(name="Create Content Pool Servlet", okForVersion = "0.11",
+@ServiceDocumentation(name="Create Content Pool Servlet", okForVersion = "1.1",
     description="Creates and Updates files in the pool",
     shortDescription="Creates and Updates files in the pool",
     bindings=@ServiceBinding(type=BindingType.PATH,bindings={"/system/pool/createfile"},

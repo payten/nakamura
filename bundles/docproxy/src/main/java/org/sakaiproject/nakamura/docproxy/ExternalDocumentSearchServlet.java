@@ -61,7 +61,7 @@ import javax.servlet.http.HttpServletResponse;
 
 @ServiceDocumentation(
   name = "External Document Search Servlet",
-  okForVersion = "0.11",
+  okForVersion = "1.1",
   description = "Performs a search by delegating the search request to an external search processor.",
   shortDescription = "Searches external documents",
   bindings = {

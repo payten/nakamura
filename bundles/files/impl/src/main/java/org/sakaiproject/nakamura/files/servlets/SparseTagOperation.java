@@ -31,7 +31,6 @@ import java.util.Set;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -80,7 +79,7 @@ import javax.servlet.http.HttpServletResponse;
   @Property(name = "sling.post.operation", value = "tag"),
   @Property(name = "service.description", value = "Associates one or more tags with a piece of content."),
   @Property(name = "service.vendor", value = "The Sakai Foundation") })
-@ServiceDocumentation(name = "SparseTagOperation", okForVersion = "0.11",
+@ServiceDocumentation(name = "SparseTagOperation", okForVersion = "1.1",
   shortDescription = "Tag a node",
   description = "Add a tag to a node.",
   bindings = {
@@ -92,7 +91,7 @@ import javax.servlet.http.HttpServletResponse;
       },
       parameters = {
         @ServiceParameter(name = ":operation", description = "(required) The value HAS TO BE <i>tag</i>."),
-        @ServiceParameter(name = "key", description = "(required) Can be either 1) A fully qualified path, 2) UUID, or 3) a content poolId.")
+        @ServiceParameter(name = "key", description = "(required, multiple) Can be either 1) A fully qualified path, 2) UUID, or 3) a content poolId. Accepts single or multiple values on this key.")
       },
       response = {
         @ServiceResponse(code = 201, description = "The tag was added to the content node."),
@@ -104,13 +103,13 @@ import javax.servlet.http.HttpServletResponse;
   })
 public class SparseTagOperation extends AbstractSparsePostOperation {
 
-
   @Reference
   protected transient EventAdmin eventAdmin;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SparseTagOperation.class);
 
   private static final long serialVersionUID = -7724827744698056843L;
+  private static final String TAGS_BASE = "/tags/";
 
   /**
    * We assume that a tag should be created the first time it is used. So if the tag does not exist this method
@@ -124,6 +123,13 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
    */
   protected Content getOrCreateTag(ResourceResolver resolver, String tagContentPath)
       throws AccessDeniedException, StorageClientException {
+    // all tags live under /tags. Make sure the requestor is trying to use a tag from
+    // there, does not provide an empty path and the path has more than the base path
+    if (tagContentPath == null || tagContentPath.length() <= TAGS_BASE.length()
+        || !tagContentPath.startsWith(TAGS_BASE)) {
+      return null;
+    }
+
     Resource tagResource = resolver.getResource(tagContentPath);
     Content tagContent = null;
 
@@ -226,76 +232,78 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
     boolean isProfile = "sakai/user-profile".equals(resourceType) || "sakai/group-profile".equals(resourceType);
 
     // Check if the uuid is in the request.
-    String key = request.getParameter("key");
-    if (StringUtils.isBlank(key)) {
+    String[] keys = request.getParameterValues("key");
+    if (keys == null || keys.length == 0) {
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
           "Missing parameter: key");
       return;
     }
-    
-    String tagName = "";
-    try {
 
-      Content
-          tagResource = getOrCreateTag(resourceResolver, key);
-
-      if (tagResource == null) {
-          response.setStatus(HttpServletResponse.SC_NOT_FOUND, "No tag exists at path " + key);
-          return;
-      }
-
-      tagName = tagContentWithContentTag(contentManager, content, tagResource);
-
-    } catch (Exception e) {
-      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
-      return;
-    }
-    
-    // If we're tagging an authorizable, add the property here
-    if (isProfile) {
-      final String azId = PathUtils.getAuthorizableId(content.getPath());
-      Authorizable authorizable = authManager.findAuthorizable(azId);
-      if (authorizable != null) {
-        // add tag names
-        Set<String> tagNameSet = Sets.newHashSet(StorageClientUtils
-            .nonNullStringArray((String[]) authorizable.getProperty(SAKAI_TAGS)));
-        tagNameSet.add(tagName);
-        authorizable.setProperty(SAKAI_TAGS,
-            tagNameSet.toArray(new String[tagNameSet.size()]));
-        authManager.updateAuthorizable(authorizable);
-      }
-    } else {
-      Session adminSession = null;
+    for (String key : keys) {
+      String tagName = "";
       try {
-        adminSession = session.getRepository().loginAdministrative();
-        ContentManager cm = adminSession.getContentManager();
-        Content adminTag = cm.get(key);
-        String[] tagNames = StorageClientUtils.nonNullStringArray((String[]) content
-            .getProperty(SAKAI_TAGS));
-        TagUtils.bumpTagCounts(adminTag, tagNames, true, false, cm);
-      } finally {
-        if (adminSession != null) {
-          try {
-            adminSession.logout();
-          } catch (ClientPoolException e) {
-            // noop; nothing to do
+
+        Content
+            tagResource = getOrCreateTag(resourceResolver, key);
+
+        if (tagResource == null) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND, "No tag exists at path " + key);
+            return;
+        }
+
+        tagName = tagContentWithContentTag(contentManager, content, tagResource);
+
+      } catch (Exception e) {
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        return;
+      }
+    
+      // If we're tagging an authorizable, add the property here
+      if (isProfile) {
+        final String azId = PathUtils.getAuthorizableId(content.getPath());
+        Authorizable authorizable = authManager.findAuthorizable(azId);
+        if (authorizable != null) {
+          // add tag names
+          Set<String> tagNameSet = Sets.newHashSet(StorageClientUtils
+              .nonNullStringArray((String[]) authorizable.getProperty(SAKAI_TAGS)));
+          tagNameSet.add(tagName);
+          authorizable.setProperty(SAKAI_TAGS,
+              tagNameSet.toArray(new String[tagNameSet.size()]));
+        
+          authManager.updateAuthorizable(authorizable);
+        }
+      } else {
+        Session adminSession = null;
+        try {
+          adminSession = session.getRepository().loginAdministrative();
+          ContentManager cm = adminSession.getContentManager();
+          Content adminTag = cm.get(key);
+          String[] tagNames = StorageClientUtils.nonNullStringArray((String[]) content
+              .getProperty(SAKAI_TAGS));
+          TagUtils.bumpTagCounts(adminTag, tagNames, true, false, cm);
+        } finally {
+          if (adminSession != null) {
+            try {
+              adminSession.logout();
+            } catch (ClientPoolException e) {
+              // noop; nothing to do
+            }
           }
         }
       }
+      // Send an OSGi event.
+      try {
+        Dictionary<String, String> properties = new Hashtable<String, String>();
+        properties.put(UserConstants.EVENT_PROP_USERID, user);
+        properties.put("tag-name", tagName);
+        EventUtils.sendOsgiEvent(request.getResource(), properties, TOPIC_FILES_TAG,
+            eventAdmin);
+      } catch (Exception e) {
+        // We do NOT interrupt the normal workflow if sending an event fails.
+        // We just log it to the error log.
+        LOGGER.error("Could not send an OSGi event for tagging a file", e);
+      }
     }
-    // Send an OSGi event.
-    try {
-      Dictionary<String, String> properties = new Hashtable<String, String>();
-      properties.put(UserConstants.EVENT_PROP_USERID, user);
-      properties.put("tag-name", tagName);
-      EventUtils.sendOsgiEvent(request.getResource(), properties, TOPIC_FILES_TAG,
-          eventAdmin);
-    } catch (Exception e) {
-      // We do NOT interrupt the normal workflow if sending an event fails.
-      // We just log it to the error log.
-      LOGGER.error("Could not send an OSGi event for tagging a file", e);
-    }
-
   }
 
   private String tagContentWithContentTag(ContentManager contentManager, Content content, Content contentTag) throws Exception {

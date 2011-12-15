@@ -37,7 +37,7 @@ import java.util.List;
 import javax.jcr.RepositoryException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "AddPropertyOperation documentation", okForVersion = "0.11",
+@ServiceDocumentation(name = "AddPropertyOperation documentation", okForVersion = "1.1",
   shortDescription = "Allows adding a property or properties to one or more resources.",
   description = "Allows adding a property or properties to one or more resources.",
   methods = {

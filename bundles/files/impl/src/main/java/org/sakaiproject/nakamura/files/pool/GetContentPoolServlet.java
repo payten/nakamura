@@ -43,7 +43,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 @SlingServlet(methods = { "GET" }, extensions = { "json" }, resourceTypes = { "sakai/pooled-content" })
-@ServiceDocumentation(name = "GetContentPoolServlet documentation", okForVersion = "0.11",
+@ServiceDocumentation(name = "GetContentPoolServlet documentation", okForVersion = "1.1",
   shortDescription = "Gets a JSON representation of a content pool item.",
   description = { "Gets a JSON representation of a content pool item.",
     "<pre>curl http://localhost:8080/p/hESoXumAT.json</pre>",

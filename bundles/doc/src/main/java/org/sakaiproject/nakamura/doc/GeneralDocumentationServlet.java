@@ -45,7 +45,7 @@ import javax.servlet.ServletException;
 
 @ServiceDocumentation(
   name = "General Documentation Servlet",
-  okForVersion = "0.11",
+  okForVersion = "1.1",
   description = "Gets the documentation for servlets, proxies and search templates.",
   shortDescription = "Gets the documentation for servlets, proxies and search templates.",
   bindings = {

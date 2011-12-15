@@ -72,7 +72,7 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Allows for uploading resource files into a pool content item.") })
-@ServiceDocumentation(name = "Create Content Pool Resource Child Servlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "Create Content Pool Resource Child Servlet", okForVersion = "1.1",
     description = "Creates and Updates resource children (e.g. metadata, supporting files, or alternate versions) attached to an existing Content Pool Item",
     shortDescription = "Creates and Updates resource children in the pool",
     bindings = @ServiceBinding(type=BindingType.TYPE, bindings={"sakai/pooled-content"},

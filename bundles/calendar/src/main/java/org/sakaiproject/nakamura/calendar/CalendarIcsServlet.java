@@ -74,7 +74,7 @@ import javax.servlet.ServletException;
     name = "CalendarServlet",
     description = "Serializes an underlying JCR structure into valid iCalendar data",
     shortDescription = "Serializes an underlying JCR structure into valid iCalendar data",
-    okForVersion = "0.11"
+    okForVersion = "1.1"
 )
 @SlingServlet(methods = { "GET" }, resourceTypes = { "sakai/calendar" }, extensions = { "ics" }, selectors = {}, generateComponent = true, generateService = true)
 @Properties(value = {

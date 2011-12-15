@@ -70,7 +70,7 @@ import javax.servlet.http.HttpServletResponse;
         @ServiceResponse(code = 500, description = "Responds with a 500 on any other error")
       })
   },
-  name = "Profile Servlet", okForVersion = "0.11",
+  name = "Profile Servlet", okForVersion = "1.1",
   shortDescription = "Displays the JSON rendering of a user or group profile.",
   description = {
     "This servlet provides a fully rendered profile in json form, when the resource the URL points to is a profile node. If there are any external"

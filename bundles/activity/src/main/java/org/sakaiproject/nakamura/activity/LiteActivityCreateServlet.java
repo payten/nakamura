@@ -69,7 +69,7 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.description", value = "Records the activity related to a particular content"),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-@ServiceDocumentation(name = "ActivityCreateServlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "ActivityCreateServlet", okForVersion = "1.1",
     shortDescription = "Record activity related to a specific node.",
     description = "Record activity related to a specific node.",
     bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sparse/Content", selectors = @ServiceSelector(name = "activity")),

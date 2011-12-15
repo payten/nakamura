@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.util;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -31,6 +32,8 @@ public class StringUtils {
   
   public static final char[] URL_SAFE_ENCODING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
     .toCharArray();
+
+  private static final String ALLOWED_URL_CHARS = "$-_.+!*'(),/?&:;=@% ~^";
 
   /**
    * @param st
@@ -293,6 +296,17 @@ public class StringUtils {
     }
 
     return sb.toString();
+  }
+
+  public static boolean containsOnlySafeChars(String string) {
+    for( char c : string.toCharArray()) {
+      if ( !Character.isLetterOrDigit(c)) {
+        if ( ALLOWED_URL_CHARS.indexOf(c) < 0 ) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
 }

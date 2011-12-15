@@ -1,9 +1,11 @@
 GEM
   remote: http://rubygems.org/
   specs:
+    curb (0.7.16)
     daemons (1.1.4)
     docsplit (0.6.0)
     getopt (1.4.1)
+    json (1.6.3)
     nakamura (0.2)
     rmagick (2.13.1)
 
@@ -11,8 +13,10 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  curb
   daemons
   docsplit
   getopt
+  json
   nakamura (>= 0.2)
   rmagick

@@ -47,7 +47,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @SlingServlet(methods = "GET", paths = "/system/doc/servlet")
 @ServiceDocumentation(name = "Servlet documentation",
-    okForVersion = "0.11",
+    okForVersion = "1.1",
     description = "Provides auto documentation of servlets registered with OSGi. Documentation will use the "
     + "service registration properties, or annotations if present. Filters out non-Sakai classes and classes marked Deprecated."
     + " Requests to this servlet take the form /system/doc?p=&lt;classname&gt where <em>classname</em>"

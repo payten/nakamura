@@ -40,7 +40,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 @SlingServlet(paths = { "/system/doc/search" }, methods = { "GET" })
-@ServiceDocumentation(name = "Search documentation", okForVersion = "0.11",
+@ServiceDocumentation(name = "Search documentation", okForVersion = "1.1",
   description = {
     "Provides auto documentation of search nodes currently in the repository. Documentation will use the ",
     "node properties.",

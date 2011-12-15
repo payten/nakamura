@@ -52,7 +52,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 @SlingServlet(methods = { "GET" }, selectors = { "canModify" }, extensions = { "json" }, resourceTypes = { "sakai/pooled-content" })
-@ServiceDocumentation(name = "CanModifyContentPoolServlet documentation", okForVersion = "0.11",
+@ServiceDocumentation(name = "CanModifyContentPoolServlet documentation", okForVersion = "1.1",
   shortDescription = "Check to see if user has privileges to modify a pooled content item.",
   description = "Check to see if user has privileges to modify a pooled content item.",
   bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/pooled-content",

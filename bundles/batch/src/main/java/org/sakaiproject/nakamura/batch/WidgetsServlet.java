@@ -46,7 +46,7 @@ import java.util.Map.Entry;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "WidgetsServlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "WidgetsServlet", okForVersion = "1.1",
     shortDescription = "List all the widgets",
     description = "Gives a list of all the known widgets in the system.",
     bindings = { @ServiceBinding(type = BindingType.PATH, bindings = "/var/widgets") },

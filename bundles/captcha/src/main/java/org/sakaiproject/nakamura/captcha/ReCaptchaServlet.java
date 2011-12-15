@@ -41,7 +41,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 @ServiceDocumentation(name = "ReCaptcha Servlet",
-  okForVersion = "0.11",
+  okForVersion = "1.1",
   shortDescription = "All the necessary properties the UI needs to communicate with the reCAPTCHA.net service.",
   description = "All the necessary properties the UI needs to communicate with the reCAPTCHA.net service.",
   bindings = {

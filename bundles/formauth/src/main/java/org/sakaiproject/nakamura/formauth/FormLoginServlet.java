@@ -51,7 +51,7 @@ import javax.servlet.ServletException;
  *
  */
 
-@ServiceDocumentation(name = "Form Login Servlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "Form Login Servlet", okForVersion = "1.1",
     shortDescription = "Provides an endpoint to login against.",
     description = {
       " In combination with the FormAuthenticationHandler that is bound to the Sling/OSGi handleSecurity Mechanism a POST to "

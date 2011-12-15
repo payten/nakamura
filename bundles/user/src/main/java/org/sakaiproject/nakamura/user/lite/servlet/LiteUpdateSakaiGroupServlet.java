@@ -121,7 +121,7 @@ import javax.servlet.http.HttpServletResponse;
                     "dd.MM.yyyy HH:mm:ss",
                    "dd.MM.yyyy"}
  )})
-@ServiceDocumentation(name = "Update Group Servlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "Update Group Servlet", okForVersion = "1.1",
     description = "Updates a group's properties. Maps on to nodes of resourceType sparse/group "
       + "like a:math101 mapped to a resource "
       + "url /system/userManager/group/math101. This servlet responds at "

@@ -112,7 +112,7 @@ import javax.servlet.http.HttpServletResponse;
         "EEE MMM dd yyyy HH:mm:ss 'GMT'Z", "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
         "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd", "dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy" })})
 
-@ServiceDocumentation(name="Delete Authorizable (Group and User) Servlet", okForVersion = "0.11",
+@ServiceDocumentation(name="Delete Authorizable (Group and User) Servlet", okForVersion = "1.1",
     description="Deletes a user or group. Maps on to nodes of resourceType sparse/userManager like " +
     		"/system/userManager. This servlet responds at " +
     		"/system/userManager.delete.html. The servlet also responds to single delete " +

@@ -47,7 +47,7 @@ import javax.servlet.ServletException;
  */
 @SlingServlet(selectors = { "chatupdate" }, resourceTypes = { "sakai/messagestore" }, generateComponent = true, methods = { "GET" })
 @Reference(referenceInterface = ChatManagerService.class, name = "ChatManagerService")
-@ServiceDocumentation(name = "ChatServlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "ChatServlet", okForVersion = "1.1",
     shortDescription = "Check for new chat messages.",
     description = "Provides a mechanism to check if the currently logged in user has new chat messages awaiting.",
     bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/messagestore", selectors = @ServiceSelector(name = "chatupdate")),

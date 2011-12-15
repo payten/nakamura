@@ -53,9 +53,6 @@ public class ParameterUtils {
 
     }
 
-    // apply any form encoding (from '_charset_') in the parameter map
-    Util.fixEncoding(parameters);
-
     return parameters;
   }
 }

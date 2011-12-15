@@ -75,7 +75,7 @@ import java.util.Set;
 
 import javax.servlet.ServletException;
 
-@ServiceDocumentation(name = "Basic LTI Post Operation", okForVersion = "0.11",
+@ServiceDocumentation(name = "Basic LTI Post Operation", okForVersion = "1.1",
   shortDescription = "Adds properties to a node for use with Basic LTI.",
   description = "Sets up a node to be used as configuration for integration with Basic LTI",
   methods = {

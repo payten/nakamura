@@ -55,7 +55,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  */
 @SlingServlet(resourceTypes={"sparse/group"},methods={"GET"},extensions={"json"})
-@ServiceDocumentation(name="Get Group Servlet", okForVersion = "0.11",
+@ServiceDocumentation(name="Get Group Servlet", okForVersion = "1.1",
     description="Returns a group in json format, using all the standard Sling semantics, but includes group profile." +
     		" Binds to any resource of type sparse/group although these are" +
     		"store under a: in the repo eg " +

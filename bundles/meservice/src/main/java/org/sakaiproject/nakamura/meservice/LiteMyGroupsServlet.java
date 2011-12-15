@@ -37,7 +37,7 @@ import org.sakaiproject.nakamura.api.user.UserConstants;
 import java.util.TreeMap;
 
 @ServiceDocumentation(
-  name = "My Groups Servlet", okForVersion = "0.11",
+  name = "My Groups Servlet", okForVersion = "1.1",
   shortDescription = "Gets the groups where the current user is a member",
   description = "Gets the groups where the current user is a member",
   bindings = {

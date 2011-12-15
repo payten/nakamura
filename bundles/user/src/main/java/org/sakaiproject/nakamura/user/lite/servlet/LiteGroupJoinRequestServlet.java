@@ -64,7 +64,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  *
  */
-@ServiceDocumentation(name = "LiteGroupJoinRequestServlet documentation", okForVersion = "0.11",
+@ServiceDocumentation(name = "LiteGroupJoinRequestServlet documentation", okForVersion = "1.1",
   shortDescription = "Servlet to make a request to join a group",
   description = "Servlet to make a request to join a group, responding to nodes of type sparse/joinrequests",
   bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sparse/joinrequests",
@@ -170,9 +170,9 @@ public class LiteGroupJoinRequestServlet extends SlingAllMethodsServlet {
         break;
       case withauth:
         // check to see if this user is already there
-        if (contentManager.exists(group.getPath() + "/joinrequests/"+userId)) {
+    	 Content joinRequestUpdate = contentManager.get(group.getPath() + "/joinrequests/"+userId);
+        if (joinRequestUpdate != null) {
           // just update the date
-          Content joinRequestUpdate = contentManager.get(group.getPath() + "/joinrequests/"+userId);
           joinRequestUpdate.setProperty("requested", Calendar.getInstance());
           contentManager.update(joinRequestUpdate);
         } else {

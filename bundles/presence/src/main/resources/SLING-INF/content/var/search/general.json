@@ -1,6 +1,6 @@
 {
   "sling:resourceType": "sakai/solr-search",
-  "sakai:query-template": "name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) OR title:(${q}) OR description:(${q}) OR content:(${q}) OR widgetdata:(${q}) OR ngram:(${q}) OR edgengram:(${q}) OR filename:(${q}) OR tag:(${q})",
+  "sakai:query-template": "general:(${q}) OR ngram:(${q}) OR edgengram:(${q})",
   "sakai:query-template-options": {
       "fq": "resourceType:(authorizable OR sakai/pooled-content)",
       "sort": "${sortOn} ${sortOrder}",

@@ -56,7 +56,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @ServiceDocumentation(
   name = "External Document Proxy Servlet",
-  okForVersion = "0.11",
+  okForVersion = "1.1",
   description = "Generic access to external document resources",
   shortDescription = "Generic access to external document resources",
   bindings = {

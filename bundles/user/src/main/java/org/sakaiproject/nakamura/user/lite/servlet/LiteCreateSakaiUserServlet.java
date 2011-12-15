@@ -123,7 +123,7 @@ import javax.servlet.http.HttpServletResponse;
         "EEE MMM dd yyyy HH:mm:ss 'GMT'Z", "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
         "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd", "dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy" }),
     @Property(name = "self.registration.enabled", boolValue = true) })
-@ServiceDocumentation(name = "Create User Servlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "Create User Servlet", okForVersion = "1.1",
   description = "Creates a new user. Maps on to nodes of resourceType sparse/users like "
     + "/system/userManager/user. "
     + "This servlet responds at /system/userManager/user.create.html",

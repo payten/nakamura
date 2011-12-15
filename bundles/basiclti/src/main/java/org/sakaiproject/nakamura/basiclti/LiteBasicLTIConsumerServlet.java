@@ -124,7 +124,7 @@ import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "BasicLTIConsumerServlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "BasicLTIConsumerServlet", okForVersion = "1.1",
     shortDescription = "Performs all activities related to BasicLTI functionality.",
     description = "Performs all activities related to BasicLTI functionality.",
     bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/basiclti",

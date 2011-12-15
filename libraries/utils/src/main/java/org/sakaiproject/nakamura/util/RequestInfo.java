@@ -36,7 +36,6 @@ import java.net.URLDecoder;
  */
 public class RequestInfo {
 
-  private static final String ALLOWED_URL_CHARS = "$-_.+!*'(),/?&:;=@% ~^";
   private String url;
   private String method;
   private Hashtable<String, String[]> parameters;
@@ -130,18 +129,10 @@ public class RequestInfo {
    * @throws MalformedURLException
    */
   public void setUrl(String url) throws MalformedURLException {
-    checkValidUrl(url);
+    if (!StringUtils.containsOnlySafeChars(url)) {
+      throw new MalformedURLException("Invalid Character in URL request "+url);
+    };
     this.url = url;
-  }
-
-  private void checkValidUrl(String url) throws MalformedURLException {
-    for( char c : url.toCharArray()) {
-      if ( !Character.isLetterOrDigit(c)) {
-        if ( ALLOWED_URL_CHARS.indexOf(c) < 0 ) {
-          throw new MalformedURLException("Invalid Character in URL request "+url+" character was 0x"+Integer.toHexString(c));
-        }
-      }
-    }
   }
 
   /**

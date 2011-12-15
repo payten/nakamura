@@ -37,7 +37,7 @@ import org.sakaiproject.nakamura.api.resource.SafeServletResourceHandler;
  * Outputs a version
  */
 @SlingServlet(resourceTypes = "sling/servlet/default", methods = "GET", selectors = "version")
-@ServiceDocumentation(name = "Get Version Servlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "Get Version Servlet", okForVersion = "1.1",
   description = "Gets a previous version of a resource",
   shortDescription = "Get a version of a resource",
   bindings = {

@@ -89,7 +89,7 @@ import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SEAR
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.TIDY;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.TOTAL;
 
-@ServiceDocumentation(name = "Solr Search Servlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "Solr Search Servlet", okForVersion = "1.1",
   shortDescription = "The Search servlet provides search results from a search template.",
   description = {
     "The Solr Search Servlet responds with search results in json form in response to GETs on search urls. Those URLs are resolved "

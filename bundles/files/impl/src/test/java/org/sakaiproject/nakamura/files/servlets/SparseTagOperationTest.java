@@ -127,7 +127,7 @@ public class SparseTagOperationTest {
       when(resource.adaptTo(Content.class)).thenReturn(content);
       when(request.getResource()).thenReturn(resource);
       when(request.getResourceResolver()).thenReturn(resolver);
-      when(request.getParameter("key")).thenReturn("/tags/foo");
+      when(request.getParameterValues("key")).thenReturn(new String[] { "/tags/foo" });
       when(request.getParameter(":operation")).thenReturn("tag");
       when(request.getRemoteUser()).thenReturn("john");
 
@@ -170,7 +170,7 @@ public class SparseTagOperationTest {
         when(resource.adaptTo(Content.class)).thenReturn(content);
         when(request.getResource()).thenReturn(resource);
         when(request.getResourceResolver()).thenReturn(resolver);
-        when(request.getParameter("key")).thenReturn("/tags/oldtag");
+        when(request.getParameterValues("key")).thenReturn(new String[] { "/tags/oldtag" });
         when(request.getParameter(":operation")).thenReturn("tag");
         when(request.getRemoteUser()).thenReturn("john");
 

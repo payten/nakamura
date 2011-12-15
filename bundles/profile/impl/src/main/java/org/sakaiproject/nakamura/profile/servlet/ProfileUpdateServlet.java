@@ -96,7 +96,7 @@ import javax.servlet.http.HttpServletResponse;
         @ServiceResponse(code = 500, description = "Responds with a 500 on any other error")
       })
   },
-  name = "Profile Update Servlet", okForVersion = "0.11",
+  name = "Profile Update Servlet", okForVersion = "1.1",
   shortDescription = "Endpoint for POSTing changes to a user or group profile.",
   description = {
     "Servlet for writing changes to a user or group profile, via JSON content which is passed as a parameter."

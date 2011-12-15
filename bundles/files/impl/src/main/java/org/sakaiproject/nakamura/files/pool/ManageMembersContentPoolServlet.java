@@ -78,7 +78,7 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
   @Property(name = "service.vendor", value = "The Sakai Foundation"),
   @Property(name = "service.description", value = "Manages the Managers, Editors, and Viewers for pooled content.") })
-@ServiceDocumentation(name = "Manage Members Content Pool Servlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "Manage Members Content Pool Servlet", okForVersion = "1.1",
   shortDescription = "List and manage the managers, editors, and viewers for a file in the content pool.",
   description = "List and manage the managers, editors, and viewers for a file in the content pool.",
   bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = { "sakai/pooled-content" },

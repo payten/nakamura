@@ -53,7 +53,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @ServiceDocumentation(
   name = "External Document Metadata Servlet",
-  okForVersion = "0.11",
+  okForVersion = "1.1",
   description = "Provides access to the node metadata of an existing node.",
   shortDescription = "Provides access to the node metadata of an existing node.",
   bindings = {

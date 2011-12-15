@@ -67,7 +67,7 @@ import javax.servlet.http.HttpServletResponse;
 @Service(value = Servlet.class)
 @SlingServlet(resourceTypes = { "sakai/proxy" }, methods = { "GET", "POST", "PUT",
     "HEAD", "OPTIONS" },generateComponent=true, generateService=true)
-@ServiceDocumentation(name = "ResourceProxyServlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "ResourceProxyServlet", okForVersion = "1.1",
   shortDescription = "This servlet binds to a resource that defines an end point.",
   description = "This servlet binds to a resource that defines an end point.",
   bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/proxy") },

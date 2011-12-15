@@ -30,9 +30,10 @@ class terms:
       if len(list[i][0]) == 1 or list[i][2] > 2 or (list[i][0].find("http") >= 0) or not re.search('[a-z]', list[i][0]) or re.search('[0-9]', list[i][0]):
         list.remove(list[i])
       else:
-	    list[i] = list[i][0]
+        # prepend /tags/ to match expected input on server
+        list[i] = list[i][0].strip()
     callback = input.callback
-    pattern = r'[^a-zA-Z0-9]'
+    pattern = r'[^a-zA-Z0-9 ]'
     for i in range(len(list)-1, -1, -1):
       if re.search(pattern, list[i]):
         list.remove(list[i])

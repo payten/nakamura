@@ -124,7 +124,7 @@ import javax.servlet.http.HttpServletResponse;
                 "yyyy-MM-dd", 
                 "dd.MM.yyyy HH:mm:ss",
                 "dd.MM.yyyy"})})
-@ServiceDocumentation(name="Create Group Servlet", okForVersion = "0.11",
+@ServiceDocumentation(name="Create Group Servlet", okForVersion = "1.1",
     description="Creates a new group. Maps on to nodes of resourceType sparse/groups like " +
     		"/system/userManager/group. This servlet responds at /system/userManager/group.create.html",
     shortDescription="Creates a new group",

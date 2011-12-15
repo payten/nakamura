@@ -51,7 +51,7 @@ import java.util.Iterator;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "MessageBoxServlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "MessageBoxServlet", okForVersion = "1.1",
     shortDescription = "Lists the messages of the current user's mailboxes.",
     description = "Presents mailbox messages of current user in JSON format.",
     bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/messages"),

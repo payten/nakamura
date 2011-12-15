@@ -48,7 +48,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 @SlingServlet(methods = { "GET" }, selectors = { "canModify" }, extensions = { "json" }, resourceTypes = { "sling/servlet/default" })
-@ServiceDocumentation(name = "CanModifyServlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "CanModifyServlet", okForVersion = "1.1",
   shortDescription = "Check to see if user has privileges to modify a resource.",
   description = "Check to see if user has privileges to modify a resource.",
   bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sling/servlet/default",

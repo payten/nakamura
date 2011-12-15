@@ -36,6 +36,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.util.JSONUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
+import org.sakaiproject.nakamura.util.StringUtils;
 import org.sakaiproject.nakamura.world.steps.AbstractWorldCreationStep;
 import org.sakaiproject.nakamura.world.steps.DocStep;
 import org.sakaiproject.nakamura.world.steps.MainGroupStep;
@@ -107,21 +108,20 @@ public class WorldCreationServlet extends SlingAllMethodsServlet {
       write.key("results");
       write.array();
 
-      String groupID = data.getString(PARAMS.id.toString());
-
-      // check for dupes before creating
-      if (groupExists(groupID)) {
-        // group already exists
+      // validate world data before creating
+      String errorMessage = getValidationMessage(data);
+      if (errorMessage != null) {
+        // world create data not valid
         write.object();
         write.key("error");
-        write.value("Group already exists");
+        write.value(errorMessage);
         write.endObject();
         write.object();
         write.key("created");
         write.value(false);
         write.endObject();
       } else {
-        // no dupe, go ahead and run thru all the steps
+        // validated successfully, go ahead and run thru all the steps
         List<AbstractWorldCreationStep> steps = getSteps(request, response, data, write);
         for (AbstractWorldCreationStep step : steps) {
           step.handle();
@@ -159,6 +159,23 @@ public class WorldCreationServlet extends SlingAllMethodsServlet {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
 
+  }
+  
+  private String getValidationMessage(JSONObject data) throws JSONException, StorageClientException, AccessDeniedException {
+    String groupId = data.getString(PARAMS.id.toString());
+    if (groupExists(groupId)) {
+      return "Group already exists";
+    }
+
+    if (invalidGroupId(groupId)) {
+      return "Invalid group id";
+    }
+
+    return null;
+  }
+
+  private boolean invalidGroupId(String groupId) {
+    return !StringUtils.containsOnlySafeChars(groupId);
   }
 
   private boolean groupExists(String groupID) throws StorageClientException, AccessDeniedException {

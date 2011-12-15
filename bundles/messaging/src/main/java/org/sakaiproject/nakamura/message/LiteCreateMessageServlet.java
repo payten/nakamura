@@ -82,7 +82,7 @@ import org.slf4j.LoggerFactory;
     @Property(name = "service.description", value = "Endpoint to create a message") })
 @Reference(name = "createMessagePreProcessor", referenceInterface = LiteCreateMessagePreProcessor.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
 @ServiceDocumentation(
-    name = "CreateMessageServlet", okForVersion = "0.11",
+    name = "CreateMessageServlet", okForVersion = "1.1",
     shortDescription = "Create a message.",
     description = "Create a message by doing a POST to messagestore.create.html . By default there are stores at /~user/message and /~group/message",
     bindings = @ServiceBinding(type = BindingType.TYPE,

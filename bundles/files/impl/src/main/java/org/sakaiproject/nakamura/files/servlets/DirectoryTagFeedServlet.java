@@ -72,7 +72,7 @@ import javax.servlet.http.HttpServletResponse;
   @Property(name = "service.description", value = "Provides support for file tagging."),
   @Property(name = "service.vendor", value = "The Sakai Foundation")
 })
-@ServiceDocumentation(name = "DirectoryTagFeedServlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "DirectoryTagFeedServlet", okForVersion = "1.1",
   shortDescription = "Get sample content items for all directory tags.",
   description = {
   "This servlet responds to requests on content of type 'sakai/directory', using the 'tagged' selector.",

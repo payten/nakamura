@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ServiceDocumentation {
-  String VERSION = "0.11"; // Please update this when the version changes.
+  String VERSION = "1.1"; // Please update this when the version changes.
 
   /**
    * @return the name of the service being documented.

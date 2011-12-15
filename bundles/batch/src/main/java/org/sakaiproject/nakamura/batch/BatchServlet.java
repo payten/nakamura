@@ -34,7 +34,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 @SlingServlet(methods = { "POST" }, generateService = true, paths = { "/system/batch" })
-@ServiceDocumentation(name = "BatchServlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "BatchServlet", okForVersion = "1.1",
     shortDescription = "Bundles multiple requests into a single response.",
     description = "Allows multiple requests to be executed in a single request.",
     bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/batch"),

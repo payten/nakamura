@@ -39,7 +39,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 @SlingServlet(methods = { "GET" }, resourceTypes={"sakai/batch-template"},  selectors={"batch"}, extensions={"json"})
-@ServiceDocumentation(name = "BatchTemplateServlet", okForVersion = "0.11",
+@ServiceDocumentation(name = "BatchTemplateServlet", okForVersion = "1.1",
     shortDescription = "Bundles multiple requests into a single response, using a template",
     description = "Allows multiple requests to be executed in a single request.",
     bindings = @ServiceBinding(

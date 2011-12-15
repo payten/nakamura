@@ -90,7 +90,7 @@ import java.util.List;
         "EEE MMM dd yyyy HH:mm:ss 'GMT'Z", "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
         "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd", "dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy" })})
 
-@ServiceDocumentation(name="Change Password Servlet", okForVersion = "0.11",
+@ServiceDocumentation(name="Change Password Servlet", okForVersion = "1.1",
     description="Changes user password. Maps on to nodes of resourceType sparse/user " +
         "like /~username mapped to a resource " +
         "url /system/userManager/user/username . This servlet responds at " +
