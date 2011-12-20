@@ -39,6 +39,7 @@
             <Private-Package>org.sakaiproject.nakamura.auth.saml</Private-Package>
             <Import-Package>
               !sun.io.*,
+              !net.jcip.annotations,
               !org.apache.commons.ssl,
               !org.apache.xml.dtm,
               !org.apache.xml.resolver.*,
