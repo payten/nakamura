@@ -10,14 +10,13 @@
         either express or implied. See the License for the specific language governing permissions
         and limitations under the License.
     -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     <parent>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>base</artifactId>
-      <version>1.1-SNAPSHOT</version>
+      <version>1.1</version>
     </parent>
 
     <artifactId>org.sakaiproject.nakamura.app</artifactId>
@@ -27,7 +26,7 @@
     <description> Standalone Launchpad Java Application. Everything needed to run the Launchpad is
     included in a single JAR file. </description>
     <properties>
-      <ux>1.1-SNAPSHOT</ux>
+      <ux>1.1</ux>
     </properties>
 
     <build>
@@ -48,7 +47,7 @@
                             <jarWebSupport>
                                  <groupId>org.sakaiproject.nakamura</groupId>
                                  <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
-                                 <version>1.1-SNAPSHOT</version>
+                                 <version>1.1</version>
                                  <startLevel>5</startLevel>
                            </jarWebSupport>
                            <additionalBundles>
@@ -158,7 +157,7 @@
                         </goals>
                       </pluginExecutionFilter>
                       <action>
-                        <ignore></ignore>
+                        <ignore />
                       </action>
                     </pluginExecution>
                   </pluginExecutions>

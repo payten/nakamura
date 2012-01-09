@@ -14,7 +14,7 @@
   <parent>
     <artifactId>org.sakaiproject.nakamura.samples.fileinstall</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.1</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.nakamura</groupId>
@@ -24,7 +24,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.app</artifactId>
-      <version>1.1-SNAPSHOT</version>
+      <version>1.1</version>
     </dependency>
   </dependencies>
   <build>

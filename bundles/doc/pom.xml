@@ -13,13 +13,12 @@
     express or implied. See the License for the * specific language
     governing permissions and limitations under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.1</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.doc</artifactId>
@@ -65,13 +64,13 @@
             <phase>generate-resources</phase>
             <configuration>
               <tasks>
-                <exec outputproperty="git.version" executable="git" failifexecutionfails="false" searchpath="true" >
+                <exec outputproperty="git.version" executable="git" failifexecutionfails="false" searchpath="true">
                   <arg line="describe" />
                 </exec>
-                <condition property="git.version.value" value="${git.version}" else="UnknownVersion" >
+                <condition property="git.version.value" value="${git.version}" else="UnknownVersion">
                   <isset property="git.version" />
                 </condition>
-                  <echo file="${basedir}/target/scm-version.properties" >
+                  <echo file="${basedir}/target/scm-version.properties">
                     scm.version=${git.version.value}
                   </echo>
                 
@@ -108,7 +107,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore></ignore>
+                    <ignore />
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -125,7 +124,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore></ignore>
+                    <ignore />
                   </action>
                 </pluginExecution>
               </pluginExecutions>
@@ -140,7 +139,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>1.1-SNAPSHOT</version>
+      <version>1.1</version>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
@@ -209,7 +208,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.resource</artifactId>
-      <version>1.1-SNAPSHOT</version>
+      <version>1.1</version>
     </dependency>
   </dependencies>
 </project>

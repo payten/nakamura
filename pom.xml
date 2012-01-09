@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>base</artifactId>
-  <version>1.1-SNAPSHOT</version>
+  <version>1.1</version>
   <packaging>pom</packaging>
   <name>Sakai Nakamura Project</name>
   <description> Sakai Nakamura is an OSGi server built ontop of Apache Sling, supporting Sakai 3. </description>
@@ -14,7 +14,7 @@
   </prerequisites>
   <scm>
     <connection>scm:git:git://github.com/sakaiproject/nakamura.git</connection>
-    <developerConnection>scm:git:git://git@github.com/sakaiproject/nakamura.git</developerConnection>
+    <developerConnection>scm:git:git@github.com:sakaiproject/nakamura.git</developerConnection>
     <url>http://github.com/sakaiproject/nakamura/</url>
   </scm>
   <issueManagement>

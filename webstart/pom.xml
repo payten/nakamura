@@ -17,7 +17,7 @@
     <parent>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>base</artifactId>
-      <version>1.1-SNAPSHOT</version>
+      <version>1.1</version>
     </parent>
 
     <artifactId>org.sakaiproject.nakamura.webstart</artifactId>
@@ -111,7 +111,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.app</artifactId>
-      <version>1.1-SNAPSHOT</version>
+      <version>1.1</version>
       <scope>runtime</scope>
     </dependency>
   </dependencies>

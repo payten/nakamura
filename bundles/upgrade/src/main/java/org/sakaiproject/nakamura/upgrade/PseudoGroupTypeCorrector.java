@@ -53,6 +53,6 @@ public class PseudoGroupTypeCorrector implements PropertyMigrator {
   }
 
   public Map<String, String> getOptions() {
-    return ImmutableMap.of(PropertyMigrator.OPTION_RUNONCE, "true");
+    return ImmutableMap.of(PropertyMigrator.OPTION_RUNONCE, "false");
   }
 }
