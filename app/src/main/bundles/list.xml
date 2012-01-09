@@ -698,24 +698,24 @@ KERN-1187
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.auth.saml</artifactId>
-      <version>1.1-SNAPSHOT</version>
+      <version>1.1</version>
     </bundle>
 
     <!-- Can remove the LDAP contribs; these were put in to have have dual auths for NYU's production (saml) and various test (ldap) servers -->
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.ldap</artifactId>
-      <version>1.1-SNAPSHOT</version>
+      <version>1.1</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.auth.ldap</artifactId>
-      <version>1.1-SNAPSHOT</version>
+      <version>1.1</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.ojdbc</artifactId>
-      <version>1.1-SNAPSHOT</version>
+      <version>1.1</version>
     </bundle>
     
     <bundle>
@@ -726,7 +726,7 @@ KERN-1187
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.grouper.sync</artifactId>
-      <version>1.1-SNAPSHOT</version>
+      <version>1.1</version>
     </bundle>
     
     <bundle>
