@@ -1,6 +1,7 @@
 {
   "sakai:query-template": "resourceType:sakai/pooled-content${_tags} ${_mimetype}",
   "sakai:query-template-options": {
+      "fq": ["-readers:g-portfolio-search"],
       "sort": "${sortOn} ${sortOrder}",
       "facet" : true,
       "facet.field" : "tagname",
