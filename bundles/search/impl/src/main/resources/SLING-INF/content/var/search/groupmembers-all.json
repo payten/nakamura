@@ -2,7 +2,10 @@
   "sakai:query-template": "group:(${group})",
   "sakai:query-template-options": {
       "fq": "resourceType:authorizable",
-      "sort": "${sortOn} ${sortOrder}"
+      "sort": "${sortOn} ${sortOrder}",
+      "facet" : true,
+      "facet.field" : "tagname",
+      "facet.mincount" : 1
   },
   "sakai:query-template-defaults": {
     "sortOn": "score",
