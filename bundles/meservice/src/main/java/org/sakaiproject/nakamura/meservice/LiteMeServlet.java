@@ -52,6 +52,8 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.messagebucket.MessageBucketException;
@@ -236,6 +238,17 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
       // Dump this user his info
       writer.key("profile");
       ValueMap profile = new ValueMapDecorator(basicUserInfoService.getProperties(au));
+
+      // NYU customisation for the "terms" widget.
+      ContentManager cm = session.getContentManager();
+      Content authprofile = cm.get(LitePersonalUtils.getProfilePath(userId));
+
+      if (authprofile != null && authprofile.hasProperty("acceptedTerms")) {
+        profile.put("acceptedTerms", authprofile.getProperty("acceptedTerms"));
+      } else {
+        profile.put("acceptedTerms", false);
+      }
+
       writer.valueMap(profile);
 
       // Dump this user his number of unread messages.
