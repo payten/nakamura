@@ -23,21 +23,15 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.Modification;
-import org.sakaiproject.nakamura.api.doc.BindingType;
-import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
-import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
-import org.sakaiproject.nakamura.api.doc.ServiceResponse;
-import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 
 import java.util.List;
 
 import javax.jcr.RepositoryException;
-import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "AddPropertyOperation documentation", okForVersion = "1.1",
+@ServiceDocumentation(name = "AddPropertyOperation documentation", okForVersion = "1.2",
   shortDescription = "Allows adding a property or properties to one or more resources.",
   description = "Allows adding a property or properties to one or more resources.",
   methods = {

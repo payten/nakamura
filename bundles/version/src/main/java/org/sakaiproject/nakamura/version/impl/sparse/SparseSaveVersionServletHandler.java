@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.version.impl.sparse;
 
+import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
@@ -36,6 +37,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.StringWriter;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -50,11 +53,6 @@ import javax.servlet.http.HttpServletResponse;
 @Property(name="handling.servlet",value="SaveVersionServlet")
 public class SparseSaveVersionServletHandler extends AbstractAllMethodsServletResourceHandler {
 
-
-  /**
-   *
-   */
-  private static final long serialVersionUID = -7513481862698805983L;
   private static final Logger LOGGER = LoggerFactory.getLogger(SparseSaveVersionServletHandler.class);
 
   /**
@@ -72,9 +70,16 @@ public class SparseSaveVersionServletHandler extends AbstractAllMethodsServletRe
         return;
       }
       
-      String versionId  = contentManager.saveVersion(content.getPath());
+      Map<String, Object> versionMetadata = Maps.newHashMap();
+      if ("true".equals(request.getParameter("includeSubtree"))) {
+        StringWriter subTreeStringWriter = new StringWriter();
+        ExtendedJSONWriter subTreeJsonWriter = new ExtendedJSONWriter(subTreeStringWriter);
+        ExtendedJSONWriter.writeContentTreeToWriter(subTreeJsonWriter, content, -1);
+        versionMetadata.put("subtree", (Object)subTreeStringWriter.toString());
+      }
+
+      String versionId  = contentManager.saveVersion(content.getPath(), versionMetadata);
       Content savedVersion = contentManager.getVersion(content.getPath(), versionId);
-      LOGGER.info("Saved Version as {} got as {} ", versionId, savedVersion);
 
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
@@ -87,22 +92,22 @@ public class SparseSaveVersionServletHandler extends AbstractAllMethodsServletRe
       ExtendedJSONWriter.writeNodeContentsToWriter(write, savedVersion);
       write.endObject();
     } catch (JSONException e) {
-      LOGGER.info("Failed to save version ",e);
+      LOGGER.error("Failed to save version ", e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     } catch (StorageClientException e) {
-      LOGGER.info("Failed to save version ",e);
+      LOGGER.error("Failed to save version ", e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     } catch (AccessDeniedException e) {
-      LOGGER.info("Failed to save version ",e);
+      LOGGER.error("Failed to save version ", e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     }
   }
 
   public boolean accepts(SlingHttpServletRequest request) {
-    LOGGER.info("Checing accepts ");
+    LOGGER.debug("Checking accepts ");
     return (request.getResource() instanceof SparseContentResource);
   }
 

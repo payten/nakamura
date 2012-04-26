@@ -50,7 +50,6 @@ import javax.servlet.http.HttpServletResponse;
 
 public class BatchHelper {
 
-  private static final long serialVersionUID = 419598445499567027L;
   private static final Logger LOGGER = LoggerFactory
       .getLogger(BatchHelper.class);
 

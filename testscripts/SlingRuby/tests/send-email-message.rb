@@ -2,6 +2,8 @@
 
 
 require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'daemons'
 require 'mailtrap'
 
@@ -29,7 +31,7 @@ class TC_OutgoingMessage < Test::Unit::TestCase
   end
 
   def test_send_message
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     user = "auser#{m}"
     a = @um.create_user(user)
 

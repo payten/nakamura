@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'test/unit.rb'
 include SlingUsers
@@ -9,7 +11,7 @@ class TC_Kern2183Test < Test::Unit::TestCase
   include SlingTest
 
   def test_demote_manager_to_member
-    m = Time.now.to_nsec
+    m = uniqueness()
     g1 = create_group("g-testgroup1-#{m}")
     g1_manager = create_group("g-testgroup1-#{m}-manager")
     g1_member = create_group("g-testgroup1-#{m}-member")
@@ -62,7 +64,7 @@ class TC_Kern2183Test < Test::Unit::TestCase
   
   def test_remove_member_will_not_change_parent_group_acl
     # create a group and the standard pseudo-groups
-    m = Time.now.to_nsec
+    m = uniqueness()
     g1 = create_group("g-testgroup1-#{m}")
     g1_manager = create_group("g-testgroup1-#{m}-manager")
     g1_member = create_group("g-testgroup1-#{m}-member")
@@ -84,7 +86,7 @@ class TC_Kern2183Test < Test::Unit::TestCase
   end
   
   def test_self_demote_manager_to_member
-    m = Time.now.to_nsec
+    m = uniqueness()
     g1 = create_group("g-testgroup1-#{m}")
     g1_manager = create_group("g-testgroup1-#{m}-manager")
     g1_member = create_group("g-testgroup1-#{m}-member")

@@ -121,7 +121,7 @@ else
   
   
   echo "Starting server, log in last-release/run.log"
-  java  $d32 -XX:MaxPermSize=128m -Xmx512m -server -Dcom.sun.management.jmxremote -jar app/target/org.sakaiproject.nakamura.app-$cversion.jar -f - 1> last-release/run.log 2>&1 & 
+  java $d32 -Dfile.encoding=UTF8 -XX:MaxPermSize=128m -Xmx512m -server -Dcom.sun.management.jmxremote -jar app/target/org.sakaiproject.nakamura.app-$cversion.jar -f - 1> last-release/run.log 2>&1 & 
   pid=`ps auxwww | grep java | grep  app/target/org.sakaiproject.nakamura.app | cut -c7-15`
   tsleep=30
   retries=0

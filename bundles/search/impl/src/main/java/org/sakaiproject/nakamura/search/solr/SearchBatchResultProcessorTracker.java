@@ -31,7 +31,6 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
 
 import java.util.Map;
 
-@SuppressWarnings({"UnusedDeclaration"})
 @Component(immediate = true, metatype = true)
 @Properties(value = {@Property(name = "service.vendor", value = "The Sakai Foundation")})
 @Service(value = SearchBatchResultProcessorTracker.class)

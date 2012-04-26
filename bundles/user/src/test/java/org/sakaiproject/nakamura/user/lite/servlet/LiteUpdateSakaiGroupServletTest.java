@@ -44,6 +44,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification.Operatio
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.user.AuthorizableCountChanger;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResource;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProvider;
 import org.sakaiproject.nakamura.user.lite.resource.RepositoryHelper;
@@ -62,6 +63,8 @@ public class LiteUpdateSakaiGroupServletTest  {
   @Mock
   private ResourceResolver resourceResolver;
 
+  @Mock
+  private AuthorizableCountChanger authorizableCountChanger;
 
   @SuppressWarnings("unused")
   @Mock
@@ -98,14 +101,14 @@ public class LiteUpdateSakaiGroupServletTest  {
     servlet = new LiteUpdateSakaiGroupServlet();
     
     LiteAuthorizablePostProcessServiceImpl authorizablePostProcessService = new LiteAuthorizablePostProcessServiceImpl();
-    authorizablePostProcessService.repository = repository;
     ComponentContext componentContext = Mockito.mock(ComponentContext.class);
     when(componentContext.getProperties()).thenReturn(new Hashtable<String, Object>());
     authorizablePostProcessService.defaultPostProcessor = new DefaultPostProcessor();
  
     servlet.eventAdmin = Mockito.mock(EventAdmin.class);
     servlet.postProcessorService = authorizablePostProcessService;
-
+    servlet.authorizableCountChanger = authorizableCountChanger;
+    servlet.repository = repository;
   }
 
   @Test

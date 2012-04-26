@@ -42,6 +42,7 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.nakamura.api.activity.ActivityUtils;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -68,8 +69,8 @@ import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.lite.jackrabbit.JackrabbitSparseUtils;
+import org.sakaiproject.nakamura.api.user.AuthorizableCountChanger;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.util.ActivityUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
@@ -94,7 +95,7 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Allows for uploading files to the pool.") })
-@ServiceDocumentation(name="Create Content Pool Servlet", okForVersion = "1.1",
+@ServiceDocumentation(name="Create Content Pool Servlet", okForVersion = "1.2",
     description="Creates and Updates files in the pool",
     shortDescription="Creates and Updates files in the pool",
     bindings=@ServiceBinding(type=BindingType.PATH,bindings={"/system/pool/createfile"},
@@ -136,6 +137,9 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
 
   @Reference
   protected EventAdmin eventAdmin;
+
+  @Reference
+  protected transient AuthorizableCountChanger authorizableCountChanger;
 
   private static final long serialVersionUID = -5099697955361286370L;
 
@@ -255,6 +259,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
         }
       }
 
+      this.authorizableCountChanger.notify(UserConstants.CONTENT_ITEMS_PROP, userId);
 
       // Make sure we're outputting proper json.
       if ( statusCode == HttpServletResponse.SC_BAD_REQUEST ) {

@@ -41,7 +41,6 @@ import java.util.List;
 
 public class CreateTreeOperation extends AbstractSparsePostOperation {
 
-  private static final long serialVersionUID = 9207596135556346980L;
   public static final String TREE_PARAM = "tree";
   public static final String DELETE_PARAM = "delete";
 

@@ -113,7 +113,9 @@ public class DocStep extends AbstractWorldCreationStep {
       if (docContent.has("excludeSearch")) {
         createFileData.put("sakai:excludeSearch", docContent.getBoolean("excludeSearch"));
       }
-
+      if (this.data.has(WorldCreationServlet.PARAMS.schemaVersion.toString())) {
+        createFileData.put("sakai:schemaversion", this.data.getString(WorldCreationServlet.PARAMS.schemaVersion.toString()));
+      }
       LOGGER.debug("Creating pooled content, data = " + createFileData.toString(2));
       SubRequest pooledContentRequest = new SubRequest("/system/pool/createfile", "POST", createFileData, request, response, write);
       pooledContentRequest.doForward();

@@ -23,7 +23,6 @@ import org.osgi.service.component.ComponentContext;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@SuppressWarnings({"UnusedParameters", "UnusedDeclaration"})
 public abstract class DelayedSolrSearchServletHelperTracker<T> extends AbstractSolrSearchServletHelperTracker<T> {
 
   private final Map<T, Map<?, ?>> delayedHelpers = new ConcurrentHashMap<T, Map<?, ?>>();

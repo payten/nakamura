@@ -18,22 +18,17 @@
  */
 package org.sakaiproject.nakamura.api.files;
 
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.RT_SAKAI_TAG;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_COUNT;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.jcr.RepositoryException;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
@@ -41,7 +36,14 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.util.PathUtils;
 
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import javax.jcr.RepositoryException;
 
 public class TagUtils {
   /**
@@ -53,61 +55,60 @@ public class TagUtils {
    * @throws RepositoryException
    */
   public static boolean isTag(Content node) {
-    if (node != null && node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-        && FilesConstants.RT_SAKAI_TAG.equals(node.getProperty(
-            JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))) {
-      return true;
-    }
-    return false;
+    return (node != null && node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)
+        && node.hasProperty(SAKAI_TAG_NAME)
+ && RT_SAKAI_TAG.equals(node
+        .getProperty(SLING_RESOURCE_TYPE_PROPERTY)));
   }
 
-  public static boolean addTag(ContentManager contentManager, Content contentNode,
-      Content tagNode)
-      throws org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
-      StorageClientException, RepositoryException {
-    if (contentNode == null) {
-      throw new RuntimeException(
-          "Cant tag non existant nodes, sorry, both must exist prior to tagging. File:"
-              + contentNode);
+  /**
+   * @param contentNode
+   * @param tagNode
+   * @return A list of all tags that were applied. Check for dropped tags with
+   *         tagNode.length != addTag(contentNode, tagNode).size()
+   */
+  public static List<Content> addTags(ContentManager cm, Content contentNode,
+      List<Content> tagNodes) throws StorageClientException, AccessDeniedException {
+    // input validation
+    if (contentNode == null || cm == null) {
+      throw new IllegalArgumentException("Missing a required argument:: contentNode:" + contentNode
+          + ", contentManager:" + cm);
     }
-    String tagName = String.valueOf(tagNode.getProperty(SAKAI_TAG_NAME));
-    return addTag(contentManager, contentNode, StringUtils.defaultIfBlank(tagName, null));
-  }
 
-  private static boolean addTag(ContentManager contentManager, Content content, String tag)
-      throws org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
-      StorageClientException {
-    boolean sendEvent = false;
-    if (tag != null) {
-      Map<String, Object> properties = content.getProperties();
-      Set<String> nameSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray((String[]) properties
-          .get(SAKAI_TAGS)));
-      if (!nameSet.contains(tag)) {
-        nameSet.add(tag);
-        content.setProperty(SAKAI_TAGS,
-            nameSet.toArray(new String[nameSet.size()]));
-        sendEvent = true;
+    List<Content> addedTags = Lists.newArrayList();
+    if (tagNodes != null) {
+      String[] tagNames = PropertiesUtil.toStringArray(contentNode.getProperty(SAKAI_TAGS), new String[0]);
+      Set<String> nameSet = Sets.newHashSet(tagNames);
+      for (Content tagNode : tagNodes) {
+        String tagName = String.valueOf(tagNode.getProperty(SAKAI_TAG_NAME));
+        if (!nameSet.contains(tagName)) {
+          nameSet.add(tagName);
+          addedTags.add(tagNode);
+        }
       }
-
-      if (sendEvent) {
-        contentManager.update(content);
+      if (addedTags.size() > 0) {
+        contentNode.setProperty(SAKAI_TAGS, nameSet.toArray(new String[nameSet.size()]));
+        cm.update(contentNode);
       }
     }
-    return sendEvent;
+    return addedTags;
   }
 
   public static boolean deleteTag(ContentManager contentManager, Content content,
-      String tag)
-      throws org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
-      StorageClientException {
+      String tag) throws AccessDeniedException, StorageClientException {
+    // input validation
+    if (content == null || contentManager == null) {
+      throw new IllegalArgumentException("Missing a required argument:: content:" + content
+          + ", contentManager:" + contentManager);
+    }
 
-      if (StringUtils.isBlank(tag))
-        return false;
+    if (StringUtils.isBlank(tag)) {
+      return false;
+    }
 
     boolean updated = false;
-    Map<String, Object> properties = content.getProperties();
-    Set<String> nameSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray((String[]) properties
-        .get(SAKAI_TAGS)));
+    String[] tagNames = PropertiesUtil.toStringArray(content.getProperty(SAKAI_TAGS), new String[0]);
+    Set<String> nameSet = Sets.newHashSet(tagNames);
     if (nameSet.contains(tag)) {
       nameSet.remove(tag);
       content.setProperty(SAKAI_TAGS,
@@ -123,43 +124,77 @@ public class TagUtils {
 
   public static Collection<String> ancestorTags(Content tagNode, ContentManager cm)
       throws AccessDeniedException, StorageClientException {
+    // input validation
+    if (tagNode == null || cm == null) {
+      throw new IllegalArgumentException("Missing a required argument:: tagNode:" + tagNode
+          + ", contentManager:" + cm);
+    }
+
     Collection<String> rv = new ArrayList<String>();
     if (!isChildOfRoot(tagNode)) {
       String parentPath = PathUtils.getParentReference(tagNode.getPath());
       Content parentNode = cm.get(parentPath);
-      if (TagUtils.isTag(parentNode)) {
-        rv.add(String.valueOf(parentNode.getProperty(SAKAI_TAG_NAME)));
+      if (parentNode != null) {
+        if (TagUtils.isTag(parentNode)) {
+          rv.add(String.valueOf(parentNode.getProperty(SAKAI_TAG_NAME)));
+        }
+        rv.addAll(ancestorTags(parentNode, cm));
       }
-      rv.addAll(ancestorTags(parentNode, cm));
     }
     return rv;
   }
 
   public static boolean isChildOfRoot(Content node) {
+    if (node == null) {
+      throw new IllegalArgumentException("Missing a required argument:: node");
+    }
+
     String parentPath = PathUtils.getParentReference(node.getPath());
     return "".equals(parentPath) || "/".equals(parentPath);
   }
 
-  public static boolean alreadyTaggedBelowThisLevel(Content tagNode, String[] tagNames, ContentManager cm) throws StorageClientException {
-    List<String> tagNamesList = Arrays.asList(tagNames);
-    Iterator<Content> childNodes = cm.listChildren(tagNode.getPath());
-    while(childNodes.hasNext()){
-      Content child = childNodes.next();
-      if (alreadyTaggedBelowThisLevel(child, tagNames, cm)) {
-        return true;
-      }
-      if (TagUtils.isTag(child)
-          && tagNamesList.contains(String.valueOf(child.getProperty(SAKAI_TAG_NAME)))) {
-        return true;
+  /**
+   * Test if any of <code>tagNames</code> exist below <code>tagNode</code>.
+   *
+   * @param tagNode Starting point of hierarchy search.
+   * @param tagNames Names to look for.
+   * @param cm
+   * @return
+   * @throws StorageClientException
+   */
+  public static boolean alreadyTaggedBelowThisLevel(Content tagNode, String[] tagNames,
+      ContentManager cm) throws StorageClientException {
+    // input validation
+    if (cm == null || tagNode == null) {
+      throw new IllegalArgumentException("Missing a required argument:: tagNode:" + tagNode
+          + ", contentManager:" + cm);
+    }
+
+    if (tagNames != null && tagNames.length > 0) {
+      List<String> tagNamesList = Arrays.asList(tagNames);
+      Iterator<Content> childNodes = cm.listChildren(tagNode.getPath());
+      while(childNodes.hasNext()){
+        Content child = childNodes.next();
+        // check the current node first so we don't recurse unnecessarily
+        if (TagUtils.isTag(child)
+            && tagNamesList.contains(String.valueOf(child.getProperty(SAKAI_TAG_NAME)))) {
+          return true;
+        }
+        // recurse to see if we're tagged somewhere down the tree
+        if (alreadyTaggedBelowThisLevel(child, tagNames, cm)) {
+          return true;
+        }
       }
     }
     return false;
   }
   
   public static boolean alreadyTaggedAtOrAboveThisLevel(String[] tagNames, List<String> peerTags) {
-    for (String tagName : tagNames) {
-      if (peerTags.contains(tagName)) {
-        return true;
+    if (tagNames != null && peerTags != null && peerTags.size() > 0) {
+      for (String tagName : tagNames) {
+        if (peerTags.contains(tagName)) {
+          return true;
+        }
       }
     }
     return false;
@@ -168,6 +203,12 @@ public class TagUtils {
   public static void bumpTagCounts(Content nodeTag, String[] tagNames, boolean increase,
       boolean calledByAChild, ContentManager cm) throws StorageClientException,
       AccessDeniedException {
+    // input validation
+    if (nodeTag == null || cm == null) {
+      throw new IllegalArgumentException("Missing a required argument:: nodeTag:" + nodeTag
+          + ", contentManager:" + cm);
+    }
+
     if (calledByAChild || !TagUtils.alreadyTaggedBelowThisLevel(nodeTag, tagNames, cm)) {
       Long tagCount = increase ? 1L : 0L;
       if (nodeTag.hasProperty(SAKAI_TAG_COUNT)) {

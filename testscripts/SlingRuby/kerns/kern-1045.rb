@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'nakamura/file'
 require 'nakamura/users'
@@ -20,7 +22,7 @@ class TC_Kern1045 < Test::Unit::TestCase
 
 
   def test_search_me
-    m = Time.now.to_i.to_s
+    m = uniqueness()
 
     # Create some users
     owner = create_user("creator2-#{m}")
@@ -28,13 +30,14 @@ class TC_Kern1045 < Test::Unit::TestCase
     groupuser = create_user("groupuser2-#{m}")
 
     @s.switch_user(owner)
-    content = Time.now.to_f
+    content = uniqueness()
     name = "random-#{content}.txt"
     fileBody = "Add the time to make it sort of random #{Time.now.to_f}."
     res = @fm.upload_pooled_file(name, fileBody, 'text/plain')
     json = JSON.parse(res.body)
     id = json[name]['poolId']
 
+    sleep(5)
 
     # Search the files that I manage .. should be 1
     res = @s.execute_get(@s.url_for("/var/search/pool/me/manager-all.tidy.json"))

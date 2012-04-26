@@ -25,15 +25,12 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.osgi.framework.Constants;
-import org.sakaiproject.nakamura.api.lite.Session;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
-import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,10 +64,8 @@ public class ProfileContactsSearchResultProcessor extends ProfileNodeSearchResul
 
   public void writeResults(SlingHttpServletRequest request, JSONWriter write,
       Iterator<Result> results) throws JSONException {
-    ExtendedJSONWriter exWriter = (ExtendedJSONWriter) write;
-    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
-        .adaptTo(javax.jcr.Session.class));
 
+    LOGGER.trace("writeResults called");
     // write out the profile information for each result
     while (results.hasNext()) {
       Result result = results.next();

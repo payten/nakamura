@@ -1,7 +1,9 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura'
 require 'nakamura/test'
 require 'nakamura/authz'
@@ -16,11 +18,16 @@ class TC_KernMeTest < Test::Unit::TestCase
   
   def set_first_name(name, user)
     public = user.public_path_for(@s)
-    path = "#{public}/authprofile.profile.json"
-    props = {"firstName" => name, "_charset_" => "UTF-8"}
-    res = @s.execute_post(@s.url_for(path), props)
-    @log.info(res.body)
-    res = @s.execute_get(@s.url_for("#{path}.profile.json"))
+    path = "#{public}/authprofile/basic.profile.json"
+    res = @s.execute_post(@s.url_for(path), {
+          ":content" => "{\"elements\":{\"firstName\":{\"value\":\"#{name}\"},\"lastName\":{\"value\":\"Sixpack\"},\"email\":{\"value\":\"somebody@example.com\"}}}",
+          ":contentType" => "json",
+          ":operation" => "import",
+          ":removeTree" => "true",
+          ":replace" => "true",
+          ":replaceProperties" => "true",
+          "_charset_" => "UTF-8"
+        })
     @log.info(res.body)
   end
   
@@ -32,7 +39,7 @@ class TC_KernMeTest < Test::Unit::TestCase
   
   
   def test_me_service
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     userid = "testuser-#{m}"
     user = create_user(userid)
     
@@ -45,7 +52,7 @@ class TC_KernMeTest < Test::Unit::TestCase
   
     
     # Check if name is correct.
-    assert_equal(json["profile"]["firstName"], characters, "Safe characters didn't match")
+    assert_equal(characters, json["profile"]["basic"]["elements"]["firstName"]["value"], "Safe characters didn't match")
     
     # Non-safe
     characters = "ççççç"
@@ -53,7 +60,7 @@ class TC_KernMeTest < Test::Unit::TestCase
     json = get_system_me()
     
     # Check if name is correct.
-    assert_equal(json["profile"]["firstName"], characters, "Unsafe characts didn't match")
+    assert_equal(characters, json["profile"]["basic"]["elements"]["firstName"]["value"], "Unsafe characts didn't match")
   end
   
 end

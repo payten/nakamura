@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura'
 require 'nakamura/test'
 require 'nakamura/contacts'
@@ -19,7 +21,7 @@ class TC_Kern280Test < Test::Unit::TestCase
 
 
   def test_connect_non_existant_user
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     u = create_user("testuser"+m)
     @s.switch_user(u)
     res = @cm.invite_contact("nonexisant_user"+m, [ "coworker", "friend" ])

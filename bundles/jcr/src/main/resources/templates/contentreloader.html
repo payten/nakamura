@@ -1,0 +1,38 @@
+<script type="text/javascript">
+var bundles = ${__bundles__};
+</script>
+
+<!-- status line for index information -->
+<p class="statline">${status}&nbsp;</p>
+
+<form method="post" action="${appRoot}/contentreloader" class="filterForm">
+	<div class="ui-widget-header ui-corner-top buttonGroup">
+		<button class="reloadButton" type="submit">${label_reload_bundle_content}</button>
+	</div>
+
+<table id="plugin_table" class="tablesorter nicetable noauto">
+	<thead>
+		<tr>
+		  <th class="col_checkAll"><input type="checkbox" /></th>
+			<th class="col_Name">${label_bundle_name}</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<!-- template -->
+			<td><input type="checkbox" /></td><!-- checkbox -->
+			<td>&nbsp;</td> <!-- here goest bundle name -->
+		</tr>
+	</tbody>
+</table>
+
+  <!-- bottom header -->
+	<div class="ui-widget-header ui-corner-bottom buttonGroup">
+		<button class="reloadButton" type="submit">${label_reload_bundle_content}</button>
+	</div>
+</form>
+
+<!-- status line -->
+<p class="statline">&nbsp;</p>
+
+<script type="text/javascript" src="${appRoot}/contentreloader/res/ui/contentloader.js"></script>

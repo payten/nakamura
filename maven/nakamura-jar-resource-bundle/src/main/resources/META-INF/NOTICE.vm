@@ -1,0 +1,14 @@
+${project.name}
+Copyright ${projectTimespan} The Sakai Foundation
+
+This product includes software developed by
+The Sakai Foundation (http://www.sakaiproject.org/).
+
+-----------------------------------------------------------
+
+This product includes software developed by
+The Apache Software Foundation (http://www.apache.org/).
+
+Binary distributions of this product contain jars developed and
+licensed by other third parties, identified by the LICENSE and NOTICE
+files included within each jar under the META-INF directory.

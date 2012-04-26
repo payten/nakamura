@@ -45,7 +45,7 @@ import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "PageServlet", okForVersion = "1.1",
+@ServiceDocumentation(name = "PageServlet", okForVersion = "1.2",
     shortDescription = "Returns a list of pages below the specified content path",
     description = "Returns a list of pages below the content specified in the 'path' parameter.",
     bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/var/search/page"),
@@ -151,13 +151,12 @@ public class PageServlet extends SlingSafeMethodsServlet {
   private List<Content> getPageTree(Content pageContent) {
     List<Content> contentList = new ArrayList<Content>();
 
-    // Add to list only if content is a page
-    String resourceType = (String) pageContent.getProperty("sling:resourceType");
-    if (resourceType != null && resourceType.equals("sakai/page")) {
-      contentList.add(pageContent);
-    }
-
     if (pageContent != null) {
+      // Add to list only if content is a page
+      String resourceType = String.valueOf(pageContent.getProperty("sling:resourceType"));
+      if ("sakai/page".equals(resourceType))  {
+        contentList.add(pageContent);
+      }
       for (Content page : pageContent.listChildren()) {
         contentList.addAll(getPageTree(page));
       }

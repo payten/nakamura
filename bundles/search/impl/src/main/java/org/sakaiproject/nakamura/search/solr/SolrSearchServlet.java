@@ -17,8 +17,25 @@
  */
 package org.sakaiproject.nakamura.search.solr;
 
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.DEFAULT_PAGED_ITEMS;
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.FACET_FIELDS;
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.JSON_RESULTS;
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.PARAMS_ITEMS_PER_PAGE;
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.PARAMS_PAGE;
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKAI_BATCHRESULTPROCESSOR;
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKAI_PROPERTY_PROVIDER;
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKAI_QUERY_TEMPLATE;
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKAI_QUERY_TEMPLATE_DEFAULTS;
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKAI_QUERY_TEMPLATE_OPTIONS;
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKAI_RESULTPROCESSOR;
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKAI_SEARCHRESPONSEDECORATOR;
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SEARCH_PATH_PREFIX;
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.TIDY;
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.TOTAL;
+
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -31,10 +48,8 @@ import org.apache.sling.api.request.RequestParameterMap;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.util.ClientUtils;
-import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
@@ -55,15 +70,10 @@ import org.sakaiproject.nakamura.api.templates.TemplateService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
+import org.sakaiproject.nakamura.util.telemetry.TelemetryCounter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.jcr.Node;
-import javax.jcr.PropertyIterator;
-import javax.jcr.RepositoryException;
-import javax.jcr.Value;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -73,23 +83,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.DEFAULT_PAGED_ITEMS;
-import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.FACET_FIELDS;
-import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.JSON_RESULTS;
-import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.PARAMS_ITEMS_PER_PAGE;
-import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.PARAMS_PAGE;
-import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKAI_BATCHRESULTPROCESSOR;
-import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKAI_PROPERTY_PROVIDER;
-import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKAI_QUERY_TEMPLATE;
-import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKAI_QUERY_TEMPLATE_DEFAULTS;
-import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKAI_QUERY_TEMPLATE_OPTIONS;
-import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKAI_RESULTPROCESSOR;
-import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKAI_SEARCHRESPONSEDECORATOR;
-import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SEARCH_PATH_PREFIX;
-import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.TIDY;
-import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.TOTAL;
+import javax.jcr.Node;
+import javax.jcr.PropertyIterator;
+import javax.jcr.RepositoryException;
+import javax.jcr.Value;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "Solr Search Servlet", okForVersion = "1.1",
+@ServiceDocumentation(name = "Solr Search Servlet", okForVersion = "1.2",
   shortDescription = "The Search servlet provides search results from a search template.",
   description = {
     "The Solr Search Servlet responds with search results in json form in response to GETs on search urls. Those URLs are resolved "
@@ -135,8 +136,8 @@ import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.TOTA
 @SlingServlet(extensions = { "json" }, methods = { "GET" }, resourceTypes = { "sakai/solr-search", "sakai/sparse-search" })
 @Properties(value = {
     @Property(name = "service.description", value = { "Performs searches based on the associated node." }),
-    @Property(name = "service.vendor", value = { "The Sakai Foundation" }),
-    @Property(name = "maximumResults", longValue = 2500L) })
+    @Property(name = "service.vendor", value = { "The Sakai Foundation" })
+})
 public class SolrSearchServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = 4130126304725079596L;
@@ -154,7 +155,6 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
   @Reference
   private SearchResponseDecoratorTracker searchResponseDecoratorTracker;
 
-  protected long maximumResults = 100;
 
   // Default processors
   /**
@@ -189,7 +189,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
                 + SEARCH_PATH_PREFIX);
         return;
       }
-
+      TelemetryCounter.incrementValue("search", "SolrSearchServlet", resource.getPath());
       Node node = resource.adaptTo(Node.class);
       if (node != null && node.hasProperty(SAKAI_QUERY_TEMPLATE)) {
         // KERN-1147 Respond better when all parameters haven't been provided for a query
@@ -520,11 +520,6 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     }
 
     return propertiesMap;
-  }
-
-  @SuppressWarnings({"UnusedDeclaration"})
-  protected void activate(ComponentContext componentContext) {
-    maximumResults = PropertiesUtil.toLong(componentContext.getProperties().get("maximumResults"), 100);
   }
 
   /**

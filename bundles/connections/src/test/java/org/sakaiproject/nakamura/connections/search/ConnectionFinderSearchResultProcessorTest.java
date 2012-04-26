@@ -34,6 +34,7 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
+import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.SessionAdaptable;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
@@ -74,6 +75,7 @@ public class ConnectionFinderSearchResultProcessorTest {
     processor.basicUserInfoService = new BasicUserInfoServiceImpl() {
         public BasicUserInfoServiceImpl setup() {
           countProvider = Mockito.mock(CountProvider.class);
+          repository = Mockito.mock(Repository.class);
           return this;
         }
     }.setup();

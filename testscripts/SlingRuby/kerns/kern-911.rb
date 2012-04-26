@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'test/unit.rb'
 include SlingSearch
@@ -13,7 +15,7 @@ class TC_Kern911Test < Test::Unit::TestCase
   #
 
   def test_batch_fetch_html
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     htmlBody = "<html><body>#{m}</body></html>"
     fileName = "testpage-#{m}.html"
     @s.create_file_node("test-#{m}", fileName, fileName, htmlBody, "text/html")

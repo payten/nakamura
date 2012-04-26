@@ -56,8 +56,9 @@ public class HasItem extends HasMetadata{
       addItem(new Item(itemJSON));
     }
     title = JSONUtil.getStringValue(json, titleName);
-    if (title == null)
+    if (title == null) {
       title = "";
+    }
   }
   
   public List<Item> getItems() {
@@ -79,8 +80,9 @@ public class HasItem extends HasMetadata{
   }
   
   public Item searchSubItem(String id) {
-    if (items == null || id == null || "".equals(id))
+    if (items == null || id == null || "".equals(id)) {
       return null;
+    }
     for (int i = 0; i < items.size(); i++) {
       if (id.equalsIgnoreCase(items.get(i).getIdentifier())){
         return items.get(i);
@@ -108,8 +110,9 @@ public class HasItem extends HasMetadata{
   }
   
   public boolean hasSubItems() {
-    if (items == null)
+    if (items == null) {
       return false;
+    }
     return true;
   }
 
@@ -119,14 +122,17 @@ public class HasItem extends HasMetadata{
   @Override
   public String generateXML() {
     StringBuilder sb = new StringBuilder(super.generateXML());
-    if (this.getTitle() != null)
+    if (this.getTitle() != null) {
       sb.append("<title>" + this.getTitle() + "</title>");
-    if (this.hasSubItems()) {
-      for (int i = 0; i < this.getItems().size(); i++)
-        sb.append(this.getItems().get(i).generateXML());
     }
-    if (sb.toString().equals(""))
+    if (this.hasSubItems()) {
+      for (int i = 0; i < this.getItems().size(); i++) {
+        sb.append(this.getItems().get(i).generateXML());
+      }
+    }
+    if (sb.toString().equals("")) {
       return sb.toString();
+    }
     return new String("" + sb.toString() + "");
   }
 }

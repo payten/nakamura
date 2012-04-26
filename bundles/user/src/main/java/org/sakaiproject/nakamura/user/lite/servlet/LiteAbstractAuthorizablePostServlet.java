@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.user.lite.servlet;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.jackrabbit.api.security.user.AuthorizableExistsException;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -45,6 +46,7 @@ import org.sakaiproject.nakamura.api.resource.JSONResponse;
 import org.sakaiproject.nakamura.api.resource.RequestProperty;
 import org.sakaiproject.nakamura.api.resource.lite.SparsePropertyValueHandler;
 import org.sakaiproject.nakamura.api.resource.lite.SparseType;
+import org.sakaiproject.nakamura.api.user.AuthorizableCountChanger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,6 +84,9 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
     private static final Logger LOGGER = LoggerFactory.getLogger(LiteAbstractAuthorizablePostServlet.class);
 
     private DateParser dateParser;
+
+    @Reference
+    protected transient AuthorizableCountChanger authorizableCountChanger;
 
     // ---------- SCR Integration ----------------------------------------------
 
@@ -160,20 +165,27 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
                         break;
                 }
             }
-        } catch ( AccessDeniedException e ) {
-          log.info("Exception while handling POST "
+        } catch (AccessDeniedException e) {
+          log.debug("AccessDeniedException while handling POST "
               + request.getResource().getPath() + " with "
-              + getClass().getName());
-          log.debug("Exception was "+e.getMessage(),e);
-          htmlResponse.setStatus(403, e.getMessage());
-        } catch (ResourceNotFoundException rnfe) {
-            htmlResponse.setStatus(HttpServletResponse.SC_NOT_FOUND,
-                rnfe.getMessage());
+              + getClass().getName(), e);
+          htmlResponse.setStatus(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+        } catch (ResourceNotFoundException e) {
+          log.debug("ResourceNotFoundException while handling POST "
+              + request.getResource().getPath() + " with "
+              + getClass().getName(), e);
+          htmlResponse.setStatus(HttpServletResponse.SC_NOT_FOUND,
+              e.getMessage());
+        } catch (IllegalArgumentException e) {
+          log.debug("IllegalArgumentException while handling POST "
+              + request.getResource().getPath() + " with "
+              + getClass().getName(), e);
+          htmlResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         } catch (Throwable throwable) {
-            log.info("Exception while handling POST "
-                + request.getResource().getPath() + " with "
-                + getClass().getName(), throwable);
-            htmlResponse.setError(throwable);
+          log.error("Unhandled Exception while handling POST "
+              + request.getResource().getPath() + " with "
+              + getClass().getName(), throwable);
+          htmlResponse.setError(throwable);
         }
 
         // check for redirect URL if processing succeeded
@@ -205,21 +217,21 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
             return new HtmlResponse();
       }
     }
-    
+
     /**
      * Extending Servlet should implement this operation to do the work
-     * 
+     *
      * @param request the sling http request to process
      * @param htmlResponse the response
      * @param changes
-     * @throws AuthorizableExistsException 
+     * @throws AuthorizableExistsException
      */
     abstract protected void handleOperation(SlingHttpServletRequest request,
             HtmlResponse htmlResponse, List<Modification> changes) throws StorageClientException, AccessDeniedException, AuthorizableExistsException;
 
     /**
      * compute redirect URL (SLING-126)
-     * 
+     *
      * @param ctx the post processor
      * @return the redirect location or <code>null</code>
      */
@@ -298,7 +310,7 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
      * Collects the properties that form the content to be written back to the
      * repository. NOTE: In the returned map, the key is the property name not a
      * path.
-     * 
+     *
      * @throws RepositoryException if a repository error occurs
      * @throws ServletException if an internal error occurs
      */
@@ -338,7 +350,7 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
                 // be used.
                 continue; // skip it.
             }
-            
+
             propPath = authorizablePath + "/" + propPath;
 
             // @TypeHint example
@@ -438,7 +450,7 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
      * Returns the request property for the given property path. If such a
      * request property does not exist yet it is created and stored in the
      * <code>props</code>.
-     * 
+     *
      * @param props The map of already seen request properties.
      * @param paramPath The absolute path of the property including the
      *            <code>suffix</code> to be looked up.
@@ -465,13 +477,13 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
     /**
      * Removes all properties listed as {@link RequestProperty#isDelete()} from
      * the authorizable.
-     * 
+     *
      * @param authorizable The
      *            <code>org.apache.jackrabbit.api.security.user.Authorizable</code>
      *            that should have properties deleted.
      * @param reqProperties The map of request properties to check for
      *            properties to be removed.
-     * @param toSave 
+     * @param toSave
      * @param response The <code>HtmlResponse</code> to be updated with
      *            information on deleted properties.
      * @throws RepositoryException Is thrown if an error occurrs checking or
@@ -494,8 +506,8 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
 
     /**
      * Writes back the content
-     * @param toSave 
-     * 
+     * @param toSave
+     *
      * @throws RepositoryException if a repository error occurs
      * @throws ServletException if an internal error occurs
      */
@@ -536,10 +548,10 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
 
     /**
      * set property without processing, except for type hints
-     * 
+     *
      * @param parent the parent node
      * @param prop the request property
-     * @param toSave 
+     * @param toSave
      * @throws RepositoryException if a repository error occurs.
      */
     private void setPropertyAsIs(Session session, Authorizable parent,
@@ -601,7 +613,7 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
     /**
      * Removes the property with the given name from the parent resource if it
      * exists.
-     * 
+     *
      * @param parent the parent resource
      * @param name the name of the property to remove
      * @return path of the property that was removed or <code>null</code> if it
@@ -666,7 +678,7 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
 
         return requirePrefix;
     }
-    
+
     protected void dumpToSave(Map<String, Object> toSave, String message) throws AccessDeniedException, StorageClientException {
       if ( LOGGER.isDebugEnabled() ) {
         LOGGER.debug("At [{}], Save List Contains {} objects ",message, toSave.size());

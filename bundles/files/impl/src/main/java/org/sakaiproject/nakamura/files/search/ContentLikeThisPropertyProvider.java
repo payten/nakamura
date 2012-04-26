@@ -19,19 +19,18 @@ package org.sakaiproject.nakamura.files.search;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
-import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.apache.sling.api.request.RequestParameter;
+import org.apache.solr.client.solrj.util.ClientUtils;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchUtil;
-import org.apache.solr.client.solrj.util.ClientUtils;
-import org.apache.sling.api.request.RequestParameter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -71,8 +70,6 @@ public class ContentLikeThisPropertyProvider  implements SolrSearchPropertyProvi
                                  final Map<String, String> propertiesMap) {
 
     try {
-      String user = request.getRemoteUser();
-
       RequestParameter contentPathParam = request.getRequestParameter("contentPath");
 
       String suggestedIds = null;

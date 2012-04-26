@@ -1,0 +1,103 @@
+{
+    "_lastModifiedBy": "qakent",
+    "sakai:permissions": "public",
+    "_mimeType": "x-sakai/document",
+    "_createdBy": "admin",
+    "_path": "kiZIYvxKs",
+    "sakai:description": "",
+    "sling:resourceType": "sakai/pooled-content",
+    "sakai:pooled-content-viewer": ["anonymous", "everyone", "groupmigrationtest-member"],
+    "sakai:pooled-content-manager": ["groupmigrationtest-manager"],
+    "_created": 1331837538818,
+    "sakai:pool-content-created-for": "qakent",
+    "_id": "_YCuIG7PEeGECtsajdVxzA+",
+    "structure0": "{\"Discussion\":{\"_title\":\"Discussion\",\"_order\":0,\"_ref\":\"id9536423\",\"_nonEditable\":false,\"main\":{\"_title\":\"Discussion\",\"_order\":0,\"_ref\":\"id9536423\",\"_nonEditable\":false}}}",
+    "sakai:pooled-content-file-name": "Discussion",
+    "_lastModified": 1331837539021,
+    "sakai:pooled-content-editor": [],
+    "sakai:copyright": "creativecommons",
+    "id9536423": {
+        "_created": 1331837538832,
+        "_id": "_YRXoW7PEeGECtsajdVxzA+",
+        "page": "<img id='widget_discussion_id1944042' class='widget_inline' style='display: block; padding: 10px; margin: 4px;' src='/devwidgets/discussion/images/discussion.png' data-mce-src='/devwidgets/discussion/images/discussion.png' data-mce-style='display: block; padding: 10px; margin: 4px;' border='1'><\/p>",
+        "_lastModifiedBy": "qakent",
+        "_lastModified": 1331837538832,
+        "_previousVersion": "_YLRAG7PEeGECtsajdVxzA+",
+        "_createdBy": "qakent",
+        "_path": "kiZIYvxKs/id9536423",
+        "_versionHistoryId": "_YRXoG7PEeGECtsajdVxzA+"
+    },
+    "activity": {
+        "sling:resourceType": "sakai/activityStore",
+        "_created": 1331837538838,
+        "_id": "_YO7YG7PEeGECtsajdVxzA+",
+        "_lastModifiedBy": "admin",
+        "_lastModified": 1331837538838,
+        "_createdBy": "admin",
+        "_path": "kiZIYvxKs/activity",
+        "2012-03-15-14-7a062a5c7b9e850d30eb947da44c52ca0f2bc746": {
+            "sling:resourceType": "sakai/activity-post",
+            "_created": 1331837538896,
+            "sakai:activity-source": "kiZIYvxKs",
+            "_id": "_YyVAG7PEeGECtsajdVxzA+",
+            "sakai:activity-appid": "default",
+            "sakai:activity-type": "pooled content",
+            "_lastModifiedBy": "admin",
+            "_lastModified": 1331837538927,
+            "sakai:activity-actor": "qakent",
+            "sakai:activityMessage": "UPDATED_CONTENT",
+            "_createdBy": "admin",
+            "_path": "kiZIYvxKs/activity/2012-03-15-14-7a062a5c7b9e850d30eb947da44c52ca0f2bc746"
+        }
+    },
+    "activityFeed": {
+        "_created": 1331837538845,
+        "_id": "_YTM0G7PEeGECtsajdVxzA+",
+        "_lastModifiedBy": "admin",
+        "_lastModified": 1331837538845,
+        "_createdBy": "admin",
+        "_path": "kiZIYvxKs/activityFeed",
+        "2012-03-15-14-7a062a5c7b9e850d30eb947da44c52ca0f2bc746": {
+            "sling:resourceType": "sakai/activity",
+            "_created": 1331837538969,
+            "sakai:activity-source": "kiZIYvxKs",
+            "_id": "_Ze4kG7PEeGECtsajdVxzA+",
+            "_lastModifiedBy": "admin",
+            "sakai:activity-type": "pooled content",
+            "sakai:activity-appid": "default",
+            "_lastModified": 1331837538969,
+            "sakai:activity-actor": "qakent",
+            "sakai:activityMessage": "UPDATED_CONTENT",
+            "_createdBy": "admin",
+            "_path": "kiZIYvxKs/activityFeed/2012-03-15-14-7a062a5c7b9e850d30eb947da44c52ca0f2bc746"
+        }
+    },
+    "id1944042": {
+        "_created": 1331837539490,
+        "_id": "_ec4IG7PEeGECtsajdVxzA+",
+        "_lastModifiedBy": "qakent",
+        "_lastModified": 1331837539490,
+        "_createdBy": "qakent",
+        "_path": "kiZIYvxKs/id1944042",
+        "discussion": {
+            "whocanaddtopic": "anyone",
+            "_created": 1331837539495,
+            "whocanreply": "anyone",
+            "_id": "_ef7cG7PEeGECtsajdVxzA+",
+            "_lastModifiedBy": "qakent",
+            "marker": "id1944042",
+            "_lastModified": 1331837539513,
+            "_createdBy": "qakent",
+            "_path": "kiZIYvxKs/id1944042/discussion",
+            "message": {
+                "sling:resourceType": "sakai/messagestore",
+                "_created": 1331837539502,
+                "_id": "_ekM4G7PEeGECtsajdVxzA+",
+                "_lastModifiedBy": "qakent",
+                "_lastModified": 1331837539502,
+                "_createdBy": "qakent",
+                "_path": "kiZIYvxKs/id1944042/discussion/message"
+            }
+        }
+    }
+}

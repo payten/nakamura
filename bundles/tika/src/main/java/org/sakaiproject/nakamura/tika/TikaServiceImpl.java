@@ -22,11 +22,15 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.tika.Tika;
+import org.apache.tika.detect.Detector;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.parser.Parser;
 import org.sakaiproject.nakamura.api.tika.TikaService;
 
 import java.io.File;
@@ -63,10 +67,16 @@ public class TikaServiceImpl implements TikaService {
   private static final String MAX_STRING_LENGTH = "sakai.tika.max_string_length";
   private int maxStringLength;
 
-  // ---------- SCR integration ----------
+  @Reference
+  private Detector detector;
+
+  @Reference
+  private Parser parser;
+
+  // ---------- SCR integration ------------------------------------------------
   @Activate @Modified
   protected void activate(Map<?, ?> props) throws Exception {
-    tika = new Tika();
+    tika = new Tika(detector, new AutoDetectParser(parser));
     maxStringLength = PropertiesUtil.toInteger(props.get(MAX_STRING_LENGTH), DEFAULT_MAX_STRING_LENGTH);
     tika.setMaxStringLength(maxStringLength);
   }
@@ -76,7 +86,7 @@ public class TikaServiceImpl implements TikaService {
     tika = null;
   }
 
-  // ---------- Tika methods ----------
+  // ---------- Tika methods ---------------------------------------------------
   public String detect(byte[] prefix) {
     return tika.detect(prefix);
   }
@@ -144,5 +154,13 @@ public class TikaServiceImpl implements TikaService {
 
   public int getMaxStringLength() {
     return tika.getMaxStringLength();
+  }
+
+  public Detector getDetector() {
+    return tika.getDetector();
+  }
+
+  public Parser getParser() {
+    return tika.getParser();
   }
 }

@@ -17,12 +17,12 @@
  */
 package org.sakaiproject.nakamura.http.usercontent;
 
-import org.apache.felix.http.api.ExtHttpService;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.http.usercontent.ServerProtectionService;
 
@@ -35,11 +35,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+@RunWith(MockitoJUnitRunner.class)
 public class SafeHostFilterTest {
 
   private SafeHostFilter safeHostFilter;
-  @Mock
-  private ExtHttpService extHttpService;
   @Mock
   private ServerProtectionService serverPotectionService;
   @Mock
@@ -51,18 +50,12 @@ public class SafeHostFilterTest {
   @Mock
   private FilterChain chain;
   
-  public SafeHostFilterTest() {
-   MockitoAnnotations.initMocks(this);
-  }
-
   @Before
   public void setup() throws ServletException {
     safeHostFilter = new SafeHostFilter();
-    safeHostFilter.extHttpService = extHttpService;
     safeHostFilter.serverProtectionService = serverPotectionService;
     Dictionary<String, Object> properties = new Hashtable<String, Object>();
     Mockito.when(componentContext.getProperties()).thenReturn(properties);
-    safeHostFilter.activate(componentContext);    
   }
 
   @Test

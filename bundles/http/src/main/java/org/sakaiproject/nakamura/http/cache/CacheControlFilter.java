@@ -31,6 +31,7 @@ import org.sakaiproject.nakamura.api.http.cache.CachedResponse;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
+import org.sakaiproject.nakamura.util.telemetry.TelemetryCounter;
 
 import java.io.IOException;
 import java.util.Dictionary;
@@ -163,6 +164,7 @@ public class CacheControlFilter implements Filter {
       if ( cacheAge > 0 ) {
         cachedResponseManager = new CachedResponseManager(srequest, cacheAge, getCache());
         if ( cachedResponseManager.isValid() ) {
+          TelemetryCounter.incrementValue("http", "CacheControlFilter-hit", path);
           cachedResponseManager.send(sresponse);
           return;
         }
@@ -173,9 +175,13 @@ public class CacheControlFilter implements Filter {
       if ( fresponse != null ) {
         chain.doFilter(request, fresponse);
         if ( cachedResponseManager != null ) {
+          TelemetryCounter.incrementValue("http", "CacheControlFilter-save", path);
           cachedResponseManager.save(fresponse.getResponseOperation());
+        } else {
+          TelemetryCounter.incrementValue("http", "CacheControlFilter-nosave", path);
         }
       } else {
+        TelemetryCounter.incrementValue("http", "CacheControlFilter-noop", path);
         chain.doFilter(request, response);
       }
     }

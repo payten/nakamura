@@ -76,26 +76,22 @@ public class ChatMessageSearchPropertyProvider implements SolrSearchPropertyProv
 
         solr.append("from:(");
         for (final String u : users) {
-          if("*".equals(u)) continue;
+          if ("*".equals(u)) {
+            continue;
+          }
           solr.append(ClientUtils.escapeQueryChars(u)).append(" OR ");
-          // sql.append("@sakai:from=\"").append(escapeString(u, Query.XPATH))
-          // .append("\" or ");
         }
         solr.append(ClientUtils.escapeQueryChars(user));
-        // sql.append("@sakai:from=\"").append(escapeString(user, Query.XPATH))
-        // .append("\") or (");
         solr.append(")"); // close from:
 
         solr.append(" AND to:(");
         for (final String u : users) {
-          if("*".equals(u)) continue;
+          if ("*".equals(u)) {
+            continue;
+          }
           solr.append(ClientUtils.escapeQueryChars(u)).append(" OR ");
-          // sql.append("@sakai:to=\"").append(escapeString(u, Query.XPATH))
-          // .append("\" or ");
         }
         solr.append(ClientUtils.escapeQueryChars(user));
-        // sql.append("@sakai:to=\"").append(escapeString(user,
-        // Query.XPATH)).append("\"))");
         solr.append(")"); // close to:
 
         solr.append(")"); // close AND

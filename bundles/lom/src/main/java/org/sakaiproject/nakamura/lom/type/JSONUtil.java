@@ -29,15 +29,17 @@ import java.util.Iterator;
 public class JSONUtil {
   
   public static JSONObject getJSONObject(JSONObject json, String elementName) {
-    if (json.optJSONObject(elementName) != null)
+    if (json.optJSONObject(elementName) != null) {
       return json.optJSONObject(elementName);
+    }
     Iterator<String> names = json.keys();
     elementName = elementName.toLowerCase();
     if (names != null) {
       while(names.hasNext()) {
         String s = names.next();
-        if (s.length() < elementName.length())
+        if (s.length() < elementName.length()) {
           continue;
+        }
         if (elementName.equalsIgnoreCase(s) || s.toLowerCase().endsWith(":" + elementName.toLowerCase())) {
           return json.optJSONObject(s);
         }
@@ -47,14 +49,16 @@ public class JSONUtil {
   }
   
   public static JSONArray getJSONArray(JSONObject json, String elementName) {
-    if (json.optJSONArray(elementName) != null)
+    if (json.optJSONArray(elementName) != null) {
       return json.optJSONArray(elementName);
+    }
     Iterator<String> names = json.keys();
     if (names != null) {
       while(names.hasNext()) {
         String s = names.next();
-        if (s.length() < elementName.length())
+        if (s.length() < elementName.length()) {
           continue;
+        }
         if (elementName.equalsIgnoreCase(s) || s.toLowerCase().endsWith(":" + elementName.toLowerCase())) {
           return json.optJSONArray(s);
         }
@@ -64,16 +68,20 @@ public class JSONUtil {
   }
   
   public static String getStringValue(JSONObject json, String elementName) {
-    if (getJSONObject(json, elementName) != null || getJSONArray(json, elementName) != null)
+    if (getJSONObject(json, elementName) != null
+        || getJSONArray(json, elementName) != null) {
       return null;
-    if (json.optString(elementName) != null && !("".equals(json.optString(elementName))))
+    }
+    if (json.optString(elementName) != null && !("".equals(json.optString(elementName)))) {
       return json.optString(elementName);
+    }
     Iterator<String> names = json.keys();
     if (names != null) {
       while(names.hasNext()) {
         String s = names.next();
-        if (s.length() < elementName.length())
+        if (s.length() < elementName.length()) {
           continue;
+        }
         if (elementName.equalsIgnoreCase(s) || s.toLowerCase().endsWith(":" + elementName.toLowerCase())) {
           return json.optString(s);
         }

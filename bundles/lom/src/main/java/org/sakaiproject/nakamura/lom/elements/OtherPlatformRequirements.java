@@ -33,8 +33,9 @@ public class OtherPlatformRequirements extends LangStringType {
   
   @Override
   public String generateXML() {
-    if (this.getLangString().generateXML().equals(""))
+    if (this.getLangString().generateXML().equals("")) {
       return "";
+    }
     return new String("<otherPlatformRequirements>" + this.getLangString().generateXML() + "</otherPlatformRequirements>");
   }
 }

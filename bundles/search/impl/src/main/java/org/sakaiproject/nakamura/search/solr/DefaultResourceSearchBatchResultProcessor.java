@@ -87,15 +87,10 @@ public class DefaultResourceSearchBatchResultProcessor implements
   public void writeResults(SlingHttpServletRequest request, JSONWriter write,
       Iterator<Result> iterator) throws JSONException {
     ResourceResolver resolver = request.getResourceResolver();
-    int maxTraversalDepth = SolrSearchUtil.getTraversalDepth(request);
-
 
     long nitems = SolrSearchUtil.longRequestParameter(request,
         PARAMS_ITEMS_PER_PAGE, DEFAULT_PAGED_ITEMS);
 
-
-
-    int maxDepth = SolrSearchUtil.getTraversalDepth(request);
     for (long i = 0; i < nitems && iterator.hasNext(); i++) {
       Result result = iterator.next();
       write.object();

@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'test/unit.rb'
 include SlingUsers
@@ -10,7 +13,7 @@ class TC_Kern2196 < Test::Unit::TestCase
 
   def setup
     super
-    @m = Time.now.to_f.to_s.gsub('.', '')
+    @m = uniqueness()
     @config_url = "/system/console/configMgr/org.sakaiproject.nakamura.lite.storage.jdbc.JDBCStorageClientPool"
     @config = get_config()
 

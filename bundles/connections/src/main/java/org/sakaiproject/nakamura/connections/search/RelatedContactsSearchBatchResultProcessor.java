@@ -167,13 +167,15 @@ public class RelatedContactsSearchBatchResultProcessor implements
         }
         counter++;
       }
-      if (LOG.isDebugEnabled())
+      if (LOG.isDebugEnabled()) {
         LOG.debug("writeResults() primary search result count: " + counter);
+      }
       long firstIterationTicks = System.currentTimeMillis();
       long secondIterationTicks = 0L;
-      if (LOG.isDebugEnabled())
+      if (LOG.isDebugEnabled()) {
         LOG.debug("writeResults() first iteration took {} seconds",
             new Object[] { (float) (firstIterationTicks - startTicks) / 1000 });
+      }
       if (processedUsers.size() < nitems) {
         // TODO migrate to part of the primary solr query - this was a quick solution
         /* Add people that are a member of groups I'm a member of */
@@ -200,10 +202,11 @@ public class RelatedContactsSearchBatchResultProcessor implements
           }
         }
         secondIterationTicks = System.currentTimeMillis();
-        if (LOG.isDebugEnabled())
+        if (LOG.isDebugEnabled()) {
           LOG.debug(
               "writeResults() second iteration took {} seconds",
               new Object[] { (float) (secondIterationTicks - firstIterationTicks) / 1000 });
+        }
       }
       if (processedUsers.size() < nitems) {
         /* Add some random people to feed */
@@ -244,10 +247,11 @@ public class RelatedContactsSearchBatchResultProcessor implements
           }
         }
         long thirdIterationTicks = System.currentTimeMillis();
-        if (LOG.isDebugEnabled())
+        if (LOG.isDebugEnabled()) {
           LOG.debug(
               "writeResults() third iteration took {} seconds",
               new Object[] { (float) (thirdIterationTicks - secondIterationTicks) / 1000 });
+        }
       }
 
       if (processedUsers.size() < VOLUME) {
@@ -262,16 +266,18 @@ public class RelatedContactsSearchBatchResultProcessor implements
       throw new IllegalStateException(e);
     }
     long endTicks = System.currentTimeMillis();
-    if (LOG.isDebugEnabled())
+    if (LOG.isDebugEnabled()) {
       LOG.debug("writeResults() took {} seconds",
           new Object[] { (float) (endTicks - startTicks) / 1000 });
+    }
   }
 
   // make a random list for rendering that is no longer than the number requested
   private List<String> makeRandomList(Set<String> relatedUsers, long nitems) {
-    if (LOG.isDebugEnabled())
+    if (LOG.isDebugEnabled()) {
       LOG.debug("makeRandomList() relatedUsers source list length: "
           + relatedUsers.size());
+    }
     List<String> randomRelatedUsers = new ArrayList<String>();
     Object[] relatedUsersArr = relatedUsers.toArray();
     Random random = new Random();
@@ -279,8 +285,9 @@ public class RelatedContactsSearchBatchResultProcessor implements
     for (int i = 0; i < count; i++) {
       randomRelatedUsers.add((String) relatedUsersArr[random.nextInt(count)]);
     }
-    if (LOG.isDebugEnabled())
+    if (LOG.isDebugEnabled()) {
       LOG.debug("makeRandomList() randomRelatedUsers target list length: " + randomRelatedUsers.size());
+    }
     return randomRelatedUsers;
   }
 

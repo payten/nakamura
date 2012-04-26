@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.0.0" localization="OSGI-INF/metatype/metatype">
+    <OCD id="org.sakaiproject.nakamura.jetty.OSGiGZipFilter" name="%org.sakaiproject.nakamura.jetty.OSGiGZipFilter.name" description="%org.sakaiproject.nakamura.jetty.OSGiGZipFilter.description">
+        <AD id="bufferSize" type="Integer" default="8192" name="%bufferSize.name" description="%bufferSize.description"/>
+        <AD id="minGzipSize" type="Integer" default="8192" name="%minGzipSize.name" description="%minGzipSize.description"/>
+        <AD id="userAgent" type="String" default="(?:Mozilla[^\\(]*\\(compatible;\\s*+([^;]*);.*)|(?:.*?([^\\s]+/[^\\s]+).*)" name="%userAgent.name" description="%userAgent.description"/>
+        <AD id="mimeTypes" type="String" default="text/html,text/plain,text/css,text/javascript,text/xml,application/xml,application/xhtml+xml,application/rss+xml,application/javascript,application/x-javascript,application/json" name="%mimeTypes.name" description="%mimeTypes.description"/>
+        <AD id="excludedAgents" type="String" default="" name="%excludedAgents.name" description="%excludedAgents.description"/>
+        <AD id="enabled" type="Boolean" default="false" name="%enabled.name" description="%enabled.description"/>
+    </OCD>
+    <Designate pid="org.sakaiproject.nakamura.jetty.OSGiGZipFilter">
+        <Object ocdref="org.sakaiproject.nakamura.jetty.OSGiGZipFilter"/>
+    </Designate>
+</metatype:MetaData>

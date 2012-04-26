@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.proxy;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -76,7 +77,7 @@ public class ProxyResponseImplTest {
 
     // then
     assertEquals(result, proxyResponse.getResultCode());
-    assertEquals(method.getResponseBody(), proxyResponse.getResponseBody());
+    assertArrayEquals(method.getResponseBody(), proxyResponse.getResponseBody());
     assertEquals(method.getResponseBodyAsStream(), proxyResponse
         .getResponseBodyAsInputStream());
     assertEquals(method.getResponseBodyAsString(), proxyResponse

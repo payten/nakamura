@@ -88,8 +88,9 @@ public class Item extends HasItem {
     if (this.getParameters() != null) {
       head.append(" parameters=\"" + this.getParameters() + "\"");
     }
-    if (sb.toString().equals("") && head.toString().equals("<item"))
+    if (sb.toString().equals("") && head.toString().equals("<item")) {
       return sb.toString();
+    }
     return new String(head + ">" + sb.toString() + "</item>");
   }
 }

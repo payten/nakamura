@@ -265,8 +265,8 @@ public class CropItProcessor {
 
     ByteArrayInputStream bais = null;
     try {
-      if (contentManager.exists(path)) {
-        Content node = contentManager.get(path);
+      Content node = contentManager.get(path);
+      if (node != null) {
         node.setProperty("mimeType", mimetype);
         contentManager.update(node);
       } else {

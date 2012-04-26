@@ -1,0 +1,141 @@
+{
+    "_lastModifiedBy": "admin",
+    "sakai:permissions": "public",
+    "_mimeType": "x-sakai/document",
+    "_createdBy": "admin",
+    "_path": "keVVJUM9aa",
+    "sakai:description": "how do i add interactive content?",
+    "sakai:allowcomments": "true",
+    "sakai:showcomments": "true",
+    "sling:resourceType": "sakai/pooled-content",
+    "sakai:pooled-content-viewer": [
+        "anonymous",
+        "322279",
+        "everyone",
+        "ben-s-test-course"
+    ],
+    "sakai:pooled-content-manager": [
+        "981294"
+    ],
+    "_created": 1332964297911,
+    "_id": "bkHscHkPEeGvx9ByqeXzCg+",
+    "sakai:pool-content-created-for": "981294",
+    "sakai:pooled-content-file-name": "page 2 with widgets",
+    "structure0": "{\"page1\":{\"_ref\":\"id9244742\",\"_order\":0,\"_title\":\"page 2 with widgets\",\"main\":{\"_ref\":\"id9244742\",\"_order\":0,\"_title\":\"page 2 with widgets\"}}}",
+    "_lastModified": 1334190215492,
+    "sakai:copyright": "creativecommons",
+    "sakai:pooled-content-editor": [
+    ],
+    "id1905931": {
+        "_created": 1332964641664,
+        "_id": "OyZ4AHkQEeGvx9ByqeXzCg+",
+        "_lastModifiedBy": "981294",
+        "_lastModified": 1332964641664,
+        "_createdBy": "981294",
+        "_path": "keVVJUM9aa/id1905931",
+        "remotecontent": {
+            "width_unit": "%",
+            "_created": 1332964641688,
+            "height": 200,
+            "_id": "OyohgHkQEeGvx9ByqeXzCg+",
+            "_lastModifiedBy": "981294",
+            "_lastModified": 1332964641688,
+            "width": "50",
+            "_createdBy": "981294",
+            "border_color": "cccccc",
+            "_path": "keVVJUM9aa/id1905931/remotecontent",
+            "url": "http://profesorbaker.files.wordpress.com/2012/01/edutopia.jpg",
+            "border_size": 0
+        }
+    },
+    "activityFeed": {
+        "_created": 1332964298095,
+        "_id": "bl3_8HkPEeGvx9ByqeXzCg+",
+        "_lastModifiedBy": "admin",
+        "_lastModified": 1332964298095,
+        "_createdBy": "admin",
+        "_path": "keVVJUM9aa/activityFeed",
+        "2012-03-28-12-0b6bc3c40a360de98e7309970720e50e312074de": {
+            "sling:resourceType": "sakai/activity",
+            "_created": 1332964298296,
+            "sakai:activity-source": "keVVJUM9aa",
+            "_id": "bnyrgHkPEeGvx9ByqeXzCg+",
+            "_lastModifiedBy": "admin",
+            "sakai:activity-type": "pooled content",
+            "sakai:activity-appid": "default",
+            "_lastModified": 1332964298296,
+            "sakai:activity-actor": "981294",
+            "sakai:activityMessage": "UPDATED_CONTENT",
+            "_createdBy": "admin",
+            "_path": "keVVJUM9aa/activityFeed/2012-03-28-12-0b6bc3c40a360de98e7309970720e50e312074de"
+        }
+    },
+    "page 2 with widgets": {
+        "_length": 889,
+        "_lastModifiedBy": "admin",
+        "_mimeType": "application/zip",
+        "_createdBy": "admin",
+        "_bodyLastModifiedBy": "admin",
+        "_path": "keVVJUM9aa/page 2 with widgets.zip",
+        "_blockId": "YUp8YIFKEeGeNj1BqeXzCg+",
+        "_created": 1333869225188,
+        "_id": "YPJKQIFKEeGeNj1BqeXzCg+",
+        "_bodyCreatedBy": "admin",
+        "_bodyLastModified": 1333869225767,
+        "_lastModified": 1333869225592,
+        "_bodyCreated": 1333869225577,
+        "_bodyLocation": "2012/3/l5/8N/bo/l58NboRirYmZ6G8kF_9otw7fj10"
+    },
+    "activity": {
+        "sling:resourceType": "sakai/activityStore",
+        "_created": 1332964298035,
+        "_id": "blTYMHkPEeGvx9ByqeXzCg+",
+        "_lastModifiedBy": "admin",
+        "_lastModified": 1332964298035,
+        "_createdBy": "admin",
+        "_path": "keVVJUM9aa/activity",
+        "2012-03-28-12-0b6bc3c40a360de98e7309970720e50e312074de": {
+            "sling:resourceType": "sakai/activity-post",
+            "_created": 1332964298213,
+            "sakai:activity-source": "keVVJUM9aa",
+            "_id": "bnABUHkPEeGvx9ByqeXzCg+",
+            "sakai:activity-appid": "default",
+            "sakai:activity-type": "pooled content",
+            "_lastModifiedBy": "admin",
+            "_lastModified": 1332964298231,
+            "sakai:activity-actor": "981294",
+            "sakai:activityMessage": "UPDATED_CONTENT",
+            "_createdBy": "admin",
+            "_path": "keVVJUM9aa/activity/2012-03-28-12-0b6bc3c40a360de98e7309970720e50e312074de"
+        }
+    },
+    "id9244742": {
+        "_created": 1332964297967,
+        "_id": "PlndoHkQEeGvx9ByqeXzCg+",
+        "page": "<p>xfghxthxz<\/p><p><br><\/p><p>2nd time's the charm<img id=\"widget_remotecontent_id1905931\" class=\"widget_inline\" style=\"display:block; padding: 10px; margin: 4px\" border=\"1\" src=\"/devwidgets/remotecontent/images/remotecontent.png\" data-mce-src=\"devwidgets/remotecontent/images/remotecontent.png\" data-mce-style=\"display: block; padding: 10px; margin: 4px;\"><\/p>",
+        "_lastModifiedBy": "981294",
+        "_lastModified": 1332964647001,
+        "_previousVersion": "bllsEXkPEeGvx9ByqeXzCg+",
+        "_createdBy": "981294",
+        "_path": "keVVJUM9aa/id9244742",
+        "_versionHistoryId": "bllsEHkPEeGvx9ByqeXzCg+",
+        "autosave": {
+            "_created": 1332964338106,
+            "_id": "hjcxoHkPEeGvx9ByqeXzCg+",
+            "_lastModifiedBy": "981294",
+            "page": "<p>xfghxthxz<\/p><p><br><\/p><p>2nd time's the charm<\/p>",
+            "_lastModified": 1332964338106,
+            "_createdBy": "981294",
+            "_path": "keVVJUM9aa/id9244742/autosave"
+        },
+        "editing": {
+            "_created": 1332964323093,
+            "time": 1332989843157,
+            "_id": "fURkUHkPEeGvx9ByqeXzCg+",
+            "_lastModifiedBy": "981294",
+            "_lastModified": 1332964643169,
+            "_createdBy": "981294",
+            "_path": "keVVJUM9aa/id9244742/editing"
+        }
+    }
+}

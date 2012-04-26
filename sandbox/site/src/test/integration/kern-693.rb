@@ -6,7 +6,7 @@ require 'nakamura/test'
 class TC_Kern693Test < Test::Unit::TestCase
   include SlingTest
   def test_site_too_many_methods
-    m = Time.now.to_f.to_s.gsub('.', '_')
+    m = uniqueness()
     originalsiteid = "testsite_orig_#{m}"
     sitecreator = create_user("testuser#{m}")
     @s.switch_user(sitecreator)
@@ -28,7 +28,7 @@ class TC_Kern693Test < Test::Unit::TestCase
   end
 
   def test_site_bad_source_site
-    m = Time.now.to_f.to_s.gsub('.', '_')
+    m = uniqueness()
     sitecreator = create_user("testuser#{m}")
     @s.switch_user(sitecreator)
     newsite = "testsite_#{m}"
@@ -46,7 +46,7 @@ class TC_Kern693Test < Test::Unit::TestCase
   end
 
   def test_site_move_under_sites
-    m = Time.now.to_f.to_s.gsub('.', '_')
+    m = uniqueness()
     originalsiteid = "testsite_orig_#{m}"
     originalsitename = "Original Test Site #{m}"
     sitecreator = create_user("testuser#{m}")
@@ -74,7 +74,7 @@ class TC_Kern693Test < Test::Unit::TestCase
   end
 
   def test_site_copy_under_sites
-    m = Time.now.to_f.to_s.gsub('.', '_')
+    m = uniqueness()
     originalsiteid = "testsite_orig_#{m}"
     originalsitename = "Original Test Site #{m}"
     sitecreator = create_user("testuser#{m}")
@@ -104,7 +104,7 @@ class TC_Kern693Test < Test::Unit::TestCase
   end
 
   def test_site_move_outside_sites
-    m = Time.now.to_f.to_s.gsub('.', '_')
+    m = uniqueness()
     originalsiteid = "testsite_orig_#{m}"
     sitecreator = create_user("testuser#{m}")
     # As admin, set up an accessable space for the site creator.

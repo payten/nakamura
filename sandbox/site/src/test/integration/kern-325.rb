@@ -11,7 +11,7 @@ class TC_Kern325Test < Test::Unit::TestCase
 
 
   def test_site_template_versioning
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     template_path = "/dummy_template#{m}"
     template_site = @sm.create_site("templates", "A Template", "#{template_path}")
     @s.execute_post(@s.url_for(template_path), "sakai:is-site-template" => "true")

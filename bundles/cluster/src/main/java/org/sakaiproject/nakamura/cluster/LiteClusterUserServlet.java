@@ -117,7 +117,7 @@ import javax.servlet.http.HttpServletResponse;
  * </pre>
  */
 @SlingServlet(generateComponent = true, generateService = true, selectors = { "cookie" }, extensions = { "json" }, resourceTypes = { "sakai/cluster-users" })
-@ServiceDocumentation(name = "ClusterUserServlet", okForVersion = "1.1",
+@ServiceDocumentation(name = "ClusterUserServlet", okForVersion = "1.2",
   shortDescription = "Translates the value of cookie SAKAI-TRACKING into a User object.",
   description = "Translates the value of cookie SAKAI-TRACKING into a User object. This REST end point is restricted to users that can read the resource "
   + "and optionally to requests that have embedded a shared trusted token in their request. It is presented with a user cookie, and responds with the "
@@ -182,7 +182,7 @@ public class LiteClusterUserServlet extends SlingSafeMethodsServlet {
 
   private transient AuthorizableManager testingUserManager;
   private Set<String> blacklist = new HashSet<String>();
-  private HttpClient httpClient;
+  private transient HttpClient httpClient;
   protected boolean testing = false;
 
   public LiteClusterUserServlet() {
@@ -242,8 +242,8 @@ public class LiteClusterUserServlet extends SlingSafeMethodsServlet {
           // work out the remote server and try there.
           ClusterServer clusterServer = clusterTrackingService.getServer(trackingCookie);
           if (clusterServer == null
-              || clusterServer.getServerId() == clusterTrackingService
-                  .getCurrentServerId()) {
+              || clusterServer.getServerId().equals(
+                  clusterTrackingService.getCurrentServerId())) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND,
                 "Cookie could not be found");
             return;
@@ -292,7 +292,13 @@ public class LiteClusterUserServlet extends SlingSafeMethodsServlet {
       }
       User user = null;
       try {
-        user = (User) userManager.findAuthorizable(clusterUser.getUser());
+        if (userManager == null) {
+          LOGGER.error("userManager was null");
+          response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+              "Could not findAuthorizable");
+        } else {
+          user = (User) userManager.findAuthorizable(clusterUser.getUser());
+        }
       } catch (AccessDeniedException e) {
         LOGGER.error(e.getLocalizedMessage(), e);
         response.sendError(HttpServletResponse.SC_FORBIDDEN, "AccessDeniedException for "
@@ -302,70 +308,76 @@ public class LiteClusterUserServlet extends SlingSafeMethodsServlet {
         response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
             "Could not findAuthorizable");
       }
-      JSONWriter jsonWriter = new JSONWriter(response.getWriter());
-      jsonWriter.setTidy(true);
-      jsonWriter.object();
-      jsonWriter.key("server").value(serverId); // server
+      if (user == null) {
+        LOGGER.error("userManager returned null");
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+            "Could not findAuthorizable");
+      } else {
+        JSONWriter jsonWriter = new JSONWriter(response.getWriter());
+        jsonWriter.setTidy(true);
+        jsonWriter.object();
+        jsonWriter.key("server").value(serverId); // server
 
-      jsonWriter.key("user").object();
-      jsonWriter.key("lastUpdate").value(clusterUser.getLastModified());
-      jsonWriter.key("homeServer").value(clusterUser.getServerId());
-      String userId = user.getId();
-      jsonWriter.key("id").value(userId);
-      jsonWriter.key("principal").value(user.getId());
-      jsonWriter.key("properties").object();
-      boolean noName = true;
-      for (Entry<String, Object> entry : user.getSafeProperties().entrySet()) {
-        if (!blacklist.contains(entry.getKey())) { // remove blacklisted keys
-          if (entry.getValue() != null) { // only output non-null values
-            jsonWriter.key(entry.getKey());
-            if ("name".equals(entry.getKey())) {
-              noName = false;
-            }
-            if (entry.getValue() instanceof Object[]) { // special array handling
-              jsonWriter.array();
-              Object[] values = (Object[]) entry.getValue();
-              for (Object object : values) {
-                jsonWriter.value(object);
+        jsonWriter.key("user").object();
+        jsonWriter.key("lastUpdate").value(clusterUser.getLastModified());
+        jsonWriter.key("homeServer").value(clusterUser.getServerId());
+        String userId = user.getId();
+        jsonWriter.key("id").value(userId);
+        jsonWriter.key("principal").value(user.getId());
+        jsonWriter.key("properties").object();
+        boolean noName = true;
+        for (Entry<String, Object> entry : user.getSafeProperties().entrySet()) {
+          if (!blacklist.contains(entry.getKey())) { // remove blacklisted keys
+            if (entry.getValue() != null) { // only output non-null values
+              jsonWriter.key(entry.getKey());
+              if ("name".equals(entry.getKey())) {
+                noName = false;
               }
-              jsonWriter.endArray();
-            } else { // just a plain old object (i.e. not an array)
-              jsonWriter.value(entry.getValue());
+              if (entry.getValue() instanceof Object[]) { // special array handling
+                jsonWriter.array();
+                Object[] values = (Object[]) entry.getValue();
+                for (Object object : values) {
+                  jsonWriter.value(object);
+                }
+                jsonWriter.endArray();
+              } else { // just a plain old object (i.e. not an array)
+                jsonWriter.value(entry.getValue());
+              }
             }
           }
         }
-      }
-      if (noName) {
-        jsonWriter.key("name");
-        jsonWriter.value(userId);
-      }
-      jsonWriter.endObject(); // properties
-
-      final String[] principals = user.getPrincipals();
-      if (principals != null) {
-        jsonWriter.key("declaredMembership").array();
-        for (final String principal : principals) {
-          if (Group.EVERYONE.equals(principal)) { // skip everyone group
-            continue;
-          }
-          Authorizable group = null;
-          try {
-            group = userManager.findAuthorizable(principal);
-          } catch (AccessDeniedException e) {
-            LOGGER.error(e.getLocalizedMessage(), e);
-          } catch (StorageClientException e) {
-            LOGGER.error(e.getLocalizedMessage(), e);
-          }
-          if (group == null || !(group instanceof Group)) { // only groups
-            continue;
-          }
-          jsonWriter.value(group.getId());
+        if (noName) {
+          jsonWriter.key("name");
+          jsonWriter.value(userId);
         }
-        jsonWriter.endArray();
-      }
+        jsonWriter.endObject(); // properties
 
-      jsonWriter.endObject(); // user
-      jsonWriter.endObject();
+        final String[] principals = user.getPrincipals();
+        if (principals != null) {
+          jsonWriter.key("declaredMembership").array();
+          for (final String principal : principals) {
+            if (Group.EVERYONE.equals(principal)) { // skip everyone group
+              continue;
+            }
+            Authorizable group = null;
+            try {
+              group = userManager.findAuthorizable(principal);
+            } catch (AccessDeniedException e) {
+              LOGGER.error(e.getLocalizedMessage(), e);
+            } catch (StorageClientException e) {
+              LOGGER.error(e.getLocalizedMessage(), e);
+            }
+            if (group == null || !(group instanceof Group)) { // only groups
+              continue;
+            }
+            jsonWriter.value(group.getId());
+          }
+          jsonWriter.endArray();
+        }
+
+        jsonWriter.endObject(); // user
+        jsonWriter.endObject();
+      }
 
     } catch (JSONException e) {
       LOGGER.error("Failed to get users " + e.getMessage(), e);

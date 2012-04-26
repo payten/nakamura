@@ -49,21 +49,30 @@ public class OldWorldMigrator implements PropertyMigrator {
 
   @Override
   public boolean migrate(String rowID, Map<String, Object> properties) {
+
+    boolean handled = false;
     Object title = properties.get("sakai:group-title");
     if (title != null) {
       if (extractRolesArray(properties) != null) {
         handleMainGroup(properties);
-        return true;
+        handled = true;
       }
+    }
+
+    Object category = properties.get("sakai:category");
+    if (category != null && category instanceof String && "courses".equals((String)category))
+    {
+      properties.put("sakai:category", "course");
+      handled = true;
     }
 
     Object pseudoGroup = properties.get("sakai:pseudoGroup");
     if (pseudoGroup != null && pseudoGroup instanceof Boolean && (Boolean) pseudoGroup) {
       handlePseudoGroup(properties);
-      return true;
+      handled = true;
     }
 
-    return false;
+    return handled;
   }
 
   @Override

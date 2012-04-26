@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'nakamura/file'
 require 'nakamura/users'
@@ -18,7 +20,7 @@ class TC_Kern1003Test < Test::Unit::TestCase
   end
 
   def test_manager_can_delete_pooled_content
-    m = Time.now.to_nsec
+    m = uniqueness()
 
     # Create some users
     creator = create_user("creator-#{m}")
@@ -47,7 +49,7 @@ class TC_Kern1003Test < Test::Unit::TestCase
 
 
   def test_manager_can_version_pooled_content
-    m = Time.now.to_nsec
+    m = uniqueness()
 
     # Create some users
     creator = create_user("creator-#{m}")

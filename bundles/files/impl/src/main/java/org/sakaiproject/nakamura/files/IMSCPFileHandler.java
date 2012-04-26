@@ -65,6 +65,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -111,8 +112,28 @@ public class IMSCPFileHandler implements FileUploadHandler {
         LOGGER.debug("PoolID {} has wrong mimetype, {} ignoring ",poolId, type);
         return;
       }
+      
+      // Check for Manifest file
+      ZipInputStream zin = new ZipInputStream(fileInputStream);
+      ZipEntry zipEntry;
+      String manifestFilename = "imsmanifest.xml";
+      boolean manifestFlag = false;
+      while ((zipEntry = zin.getNextEntry()) != null) {
+        if (manifestFilename.equalsIgnoreCase(zipEntry.getName())){
+          manifestFlag = true;
+          break;
+        }
+      }
+      if (!manifestFlag) {
+        LOGGER.debug("PoolID {} is not an IMSCP file, hence ignoring",poolId);
+        zin.closeEntry();
+        zin.close();
+        return;
+      }
+      
+      InputStream inputStream = contentManager.getInputStream(poolId);
       String name = (String)contentManager.get(poolId).getProperty(POOLED_CONTENT_FILENAME);
-      Content content = createCourse(poolId, adminSession, fileInputStream, name, userId);
+      Content content = createCourse(poolId, adminSession, inputStream, name, userId);
       if (content == null) {
         LOGGER.debug("PoolID {} is not IMS_CP format, ignore", poolId);
         return;
@@ -138,31 +159,11 @@ public class IMSCPFileHandler implements FileUploadHandler {
     ZipEntry entry;
     String baseDir = poolId;
     String filename = "imsmanifest.xml";
-    //To record whether there is manifest.xml.
-    boolean manifestFlag = false; 
     HashMap<String, String> fileContent = new HashMap<String, String>();
     List<String> filePaths = new ArrayList<String>();
     Manifest manifest = new Manifest();
     while ((entry = zin.getNextEntry()) != null) {
       filePaths.add(entry.getName());
-      if (filename.equalsIgnoreCase(entry.getName())) {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(getInputStream(zin)));
-        StringBuilder builder = new StringBuilder();
-        char[] chars = new char[4096];
-        int length = 0;
-        while (0 < (length = reader.read(chars))) {
-          builder.append(chars, 0, length);
-        }
-        String xmlContent = builder.toString();
-        // Abandon the last character, otherwise there will be parse error in toJSONObject method
-        xmlContent = xmlContent.substring(0, xmlContent.lastIndexOf('>') + 1);
-        manifest = new Manifest(xmlContent);
-        manifestFlag = true;
-        LOGGER.debug(" Saving Manifest file {} ",baseDir+"/"+filename);
-        contentManager.writeBody(baseDir + "/" + filename, new ByteArrayInputStream(builder.toString().getBytes()));
-        continue;
-      }
-      
       String entryType = mimeTypesMap.getContentType(entry.getName());
       if (entryType != null && entryType.contains("text")) {
         BufferedReader reader = new BufferedReader(new InputStreamReader(getInputStream(zin)));
@@ -175,27 +176,48 @@ public class IMSCPFileHandler implements FileUploadHandler {
         fileContent.put(entry.getName(), builder.toString());
         LOGGER.debug(" Saving Text file {} ",baseDir+"/"+entry.getName());
         contentManager.writeBody(baseDir + "/" + entry.getName(), new ByteArrayInputStream(builder.toString().getBytes()));
+        reader.close();
         continue;
       }
+      
+      if (filename.equalsIgnoreCase(entry.getName())) {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(getInputStream(zin)));
+        StringBuilder builder = new StringBuilder();
+        char[] chars = new char[4096];
+        int length = 0;
+        while (0 < (length = reader.read(chars))) {
+          builder.append(chars, 0, length);
+        }
+        String xmlContent = builder.toString();
+        // Abandon the last character, otherwise there will be parse error in toJSONObject method
+        xmlContent = xmlContent.substring(0, xmlContent.lastIndexOf('>') + 1);
+        manifest = new Manifest(xmlContent);
+        LOGGER.debug(" Saving Manifest file {} ",baseDir+"/"+filename);
+        contentManager.writeBody(baseDir + "/" + filename, new ByteArrayInputStream(builder.toString().getBytes()));
+        reader.close();
+        continue;
+      }
+      
       LOGGER.debug(" Saving file {} ",baseDir+"/"+entry.getName());
       contentManager.writeBody(baseDir + "/" + entry.getName(), getInputStream(zin));
     }
     zin.closeEntry();
     zin.close();
-    if (!manifestFlag) {
-      return null;
-    }
+
     contentManager.writeBody(poolId + "/" + name, contentManager.getInputStream(poolId));
     //Replace relative file path to JCR path
-    for (String key : fileContent.keySet()) {
-      String htmlContent = fileContent.get(key);
+    for (Entry<String, String> fileContentEntry : fileContent.entrySet()) {
+      String htmlContent = fileContentEntry.getValue();
+      String key = fileContentEntry.getKey();
       String prefix = "";
-      if (key.lastIndexOf('/') > 0)
+      if (key.lastIndexOf('/') > 0) {
         prefix = key.substring(0, key.lastIndexOf('/') + 1);
+      }
       if (filePaths != null && filePaths.size() > 0) {
         for (String s : filePaths) {
-          if (s.length() <= prefix.length() || s.indexOf(prefix) < 0)
+          if (s.length() <= prefix.length() || s.indexOf(prefix) < 0) {
             continue;
+          }
           s = s.substring(prefix.length());
           htmlContent = htmlContent.replaceAll("\"" + s + "\"", "\"" + "p/" + poolId + "/" + prefix + s + "\"");
         }
@@ -213,10 +235,11 @@ public class IMSCPFileHandler implements FileUploadHandler {
     JSONObject pageSetJSON;
     if (isHier != null && (isHier.equals("1") || isHier.equals("true"))) {
       pageSetJSON = manifestToPageSet(manifest, poolId, fileContent, true);
-    } else if (isHier != null)
+    } else if (isHier != null) {
       pageSetJSON = manifestToPageSet(manifest, poolId, fileContent, false);
-    else
+    } else {
       pageSetJSON = manifestToPageSet(manifest, poolId, fileContent, isHierarchical);
+    }
     
     Iterator<String> keys = pageSetJSON.keys();
     while (keys.hasNext()) {
@@ -260,7 +283,7 @@ public class IMSCPFileHandler implements FileUploadHandler {
     List<Organization> orgs = manifest.getOrganizations().getOrganizations();
     String description = "";
     
-    String keywords = "";
+    StringBuffer keywords = new StringBuffer();
     String courseName = "";
     if (manifest.getMetadata() != null) {
       if (manifest.getMetadata().getLom() != null) {
@@ -271,11 +294,10 @@ public class IMSCPFileHandler implements FileUploadHandler {
           }
           if (general.getKeyword() != null && general.getKeyword().size() != 0) {
             List<Keyword> keys = manifest.getMetadata().getLom().getGeneral().getKeyword();
-              for (int i = 0; i < keys.size(); i++) {
-                if ( i > 0)
-                  keywords += ",";
-                keywords += keys.get(i).getLangString().getString();
-              }
+            for (int i = 0; i < keys.size(); i++) {
+              if (i > 0) keywords.append(",");
+              keywords.append(keys.get(i).getLangString().getString());
+            }
           }
           if (general.getTitle() != null) {
             courseName = general.getTitle().getLangString().getString();
@@ -284,10 +306,12 @@ public class IMSCPFileHandler implements FileUploadHandler {
       }
     }
     pages.put(SAKAI_DESCRIPTION, description);
-    if (!"".equals(courseName))
+    if (!"".equals(courseName)) {
       pages.put(POOLED_CONTENT_FILENAME, courseName);
-    if (keywords.length() != 0)
-      pages.put(SAKAI_TAGS, keywords);
+    }
+    if (keywords.length() != 0) {
+      pages.put(SAKAI_TAGS, keywords.toString());
+    }
     
     JSONArray allResources = new JSONArray();
     HashMap<String, JSONObject> resourceJSON = new HashMap<String, JSONObject> ();
@@ -295,12 +319,13 @@ public class IMSCPFileHandler implements FileUploadHandler {
       Set<String> keys = fileContent.keySet();
       int i = 0;
       for (String key : keys) {
-        for (Resource res : manifest.getResources().getResources())
+        for (Resource res : manifest.getResources().getResources()) {
           if (res.getHref().equals(key)) {
             JSONObject resJSON = resourceToJson(res, poolId, i++, fileContent);
             resourceJSON.put(res.getIdentifier(), resJSON);
             allResources.put(resJSON);
           }
+        }
       }
     }
     pages.put("resources", allResources);
@@ -309,12 +334,13 @@ public class IMSCPFileHandler implements FileUploadHandler {
     if (orgs != null && orgs.size() != 0) {
       int orgIndex = 0;
       for (int i = 0; i < orgs.size(); i++) {
-        if (!orgs.get(i).hasSubItems())
+        if (!orgs.get(i).hasSubItems()) {
           continue;
+        }
         List<HasItem> items = new ArrayList<HasItem>();
-        if (isHierarchical)
+        if (isHierarchical) {
           items.add(orgs.get(i));
-        else {
+        } else {
           List<Item> li = getLeafItems(orgs.get(i));
           items.addAll(li);
         }
@@ -330,7 +356,7 @@ public class IMSCPFileHandler implements FileUploadHandler {
       }
     }
     pages.put("structure0", structureJSON);
-    return pages; 
+    return pages;
   }
   
   private JSONObject itemToJson (HasItem item, String poolId, int index, Manifest manifest, 
@@ -392,8 +418,9 @@ public class IMSCPFileHandler implements FileUploadHandler {
     resourceJSON.put("_id", resID);
     resourceJSON.put("_path", poolId + "/" + res.getHref());       
     String contentType = mimeTypesMap.getContentType(res.getHref());
-    if (contentType == null)
+    if (contentType == null) {
       contentType = "application/octet-stream";
+    }
     resourceJSON.put("_mimeType", contentType);
     JSONArray fileArray = new JSONArray();
     if (res.getFiles() != null) {
@@ -411,8 +438,9 @@ public class IMSCPFileHandler implements FileUploadHandler {
     List<Item> result = new ArrayList<Item>();
     if (org.getType() == ITEMTYPE.ITEM ) {
       Item item = (Item)org;
-      if (item.getIdentifierRef() != null && item.getIdentifierRef().trim().length() > 0)
+      if (item.getIdentifierRef() != null && item.getIdentifierRef().trim().length() > 0) {
         result.add(item);
+      }
     }
     if (org.hasSubItems()) {
       for (int i = 0; i < org.getItems().size(); i++) {

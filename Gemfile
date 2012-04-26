@@ -1,6 +1,5 @@
 source :rubygems
-gem "nakamura", ">= 0.2"
-gem "curb"
+gem "nakamura", ">= 0.6"
 gem "json"
 
 group :preview_processor do
@@ -8,4 +7,5 @@ group :preview_processor do
   gem "rmagick"
   gem "getopt"
   gem "daemons"
+  gem "term-extract"
 end

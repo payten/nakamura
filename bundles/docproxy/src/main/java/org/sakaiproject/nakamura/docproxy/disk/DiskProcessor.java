@@ -358,11 +358,11 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
 
       // Create all the files in the list
       Collections.reverse(parts);
-      String start = pathFile.getAbsolutePath();
+      StringBuffer start = new StringBuffer(pathFile.getAbsolutePath());
       for (int i = 0; i < parts.size(); i++) {
         String part = parts.get(i);
-        start += "/" + part;
-        File pathToFile = new File(start);
+        start.append("/" + part);
+        File pathToFile = new File(start.toString());
         if (i < (parts.size() - 1)) {
           pathToFile.mkdir();
         } else {

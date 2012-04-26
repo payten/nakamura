@@ -141,12 +141,10 @@ public class ConnectionIndexingHandler implements IndexingHandler, QoSIndexHandl
 
           // flatten out the contact so we can search it
           Map<String, Object> contactProps = contactAuth.getSafeProperties();
-          if ( contactAuth != null ) {
-            for (String prop : FLATTENED_PROPS) {
-              Object value = contactProps.get(prop);
-              if ( value != null ) {
-                doc.addField(prop, value);
-              }
+          for (String prop : FLATTENED_PROPS) {
+            Object value = contactProps.get(prop);
+            if ( value != null ) {
+              doc.addField(prop, value);
             }
           }
 

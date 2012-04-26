@@ -33,7 +33,6 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.api.lite.jackrabbit.JackrabbitSparseUtils;
 import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

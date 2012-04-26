@@ -41,7 +41,6 @@ import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
-import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 
 import java.io.IOException;
 import java.util.Map;
@@ -50,7 +49,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 @SlingServlet(methods = { "GET" }, resourceTypes = { "sakai/pooled-content" })
-@ServiceDocumentation(name = "CanModifyContentPoolServlet documentation", okForVersion = "1.1",
+@ServiceDocumentation(name = "CanModifyContentPoolServlet documentation", okForVersion = "1.2",
   shortDescription = "Delegates to another servlet",
   description = "Delegates to another servlet",
   bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/pooled-content",

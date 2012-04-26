@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura'
 require 'nakamura/test'
 require 'nakamura/authz'
@@ -19,7 +21,7 @@ class TC_Kern483Test < Test::Unit::TestCase
   end
 
   def test_node_access_changes
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     @authz = SlingAuthz::Authz.new(@s)
     creatorid = "testuser_creator#{m}"
     creator = create_user(creatorid)
@@ -41,7 +43,7 @@ class TC_Kern483Test < Test::Unit::TestCase
     res = @s.execute_get(@s.url_for(nodepath+".acl.json"))
     @log.info("path=#{nodepath}, ACL=#{res.body}")
 
-    @s.switch_user(creator)
+    
     everyone = SlingUsers::Group.new("everyone")
     @authz.grant(nodepath, "everyone", {"jcr:read" => "denied"})
 
@@ -50,6 +52,7 @@ class TC_Kern483Test < Test::Unit::TestCase
 
     collabs.add_member(@s, creatorid, "user")
     collabs.add_member(@s, collabid, "user")
+    @s.switch_user(creator)
     res = @s.execute_get(@s.url_for("/system/userManager/group/#{collabsid}.json"))
     @log.info("from non-admin, group=#{res.body}")
 

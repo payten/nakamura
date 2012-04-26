@@ -19,6 +19,7 @@
 package org.sakaiproject.nakamura.user.lite.servlet;
 
 import com.google.common.collect.Lists;
+
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
@@ -49,7 +50,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Enumeration;
 import java.util.List;
 
-@ServiceDocumentation(name = "Update User ACE Servlet", okForVersion = "1.1",
+@ServiceDocumentation(name = "Update User ACE Servlet", okForVersion = "1.2",
         description = "Updates a user's Access Control Entry (ACE). Maps on to nodes of resourceType sparse/user " +
                 "with the modifyAce selector. This servlet responds at " +
                 "/system/userManager/user/suzy.modifyAce.html",
@@ -76,6 +77,8 @@ import java.util.List;
         ))
 @SlingServlet(resourceTypes = {"sparse/user"}, methods = {"POST"}, selectors = {"modifyAce"})
 public class LiteModifyUserAceServlet extends LiteAbstractUserPostServlet {
+
+  private static final long serialVersionUID = 9154151078639439773L;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LiteModifyUserAceServlet.class);
 

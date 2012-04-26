@@ -71,6 +71,7 @@ public class BasicUserInfoServiceTest {
     adminSession.logout();
     session = repository.loginAdministrative("ieb");
     basicUserInfoService = new BasicUserInfoServiceImpl();
+    basicUserInfoService.repository = this.repository;
     final SolrServerService sss = Mockito.mock(SolrServerService.class);
     SolrServer solrServer = Mockito.mock(SolrServer.class);
     Mockito.when(sss.getServer()).thenReturn(solrServer);

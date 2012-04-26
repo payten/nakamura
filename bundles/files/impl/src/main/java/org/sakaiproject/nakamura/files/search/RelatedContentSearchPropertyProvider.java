@@ -231,7 +231,7 @@ public class RelatedContentSearchPropertyProvider extends
           LOG.warn(
               "Exceeded maximum number of solr binary operations: {}. Reduced size to 1024.",
               allFileNames.size());
-          final String[] tooLarge = (String[]) allFileNames.toArray();
+          final String[] tooLarge = allFileNames.toArray(new String[allFileNames.size()]);
           final String[] justRight = Arrays.copyOf(tooLarge, 1024);
           allFileNames = new HashSet<String>(Arrays.asList(justRight));
         }
@@ -248,7 +248,7 @@ public class RelatedContentSearchPropertyProvider extends
           LOG.warn(
               "Exceeded maximum number of solr binary operations: {}. Reduced size to 1024.",
               allTags.size());
-          final String[] tooLarge = (String[]) allTags.toArray();
+          final String[] tooLarge = allTags.toArray(new String[allTags.size()]);
           final String[] justRight = Arrays.copyOf(tooLarge, 1024);
           allTags = new HashSet<String>(Arrays.asList(justRight));
         }

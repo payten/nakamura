@@ -20,12 +20,13 @@ package org.sakaiproject.nakamura.resource.lite.servlet.post.helper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Facilitates parsing of the Accept HTTP request header.
@@ -310,6 +311,12 @@ public class MediaRangeList extends TreeSet<MediaRangeList.MediaRange> {
             }
             return super.equals(obj);
         }
+
+    @Override
+    public int hashCode() {
+      String type = this.supertype + "/" + this.subtype;
+      return type.hashCode();
+    }
 
         public boolean equals(String s) {
             return (this.supertype + "/" + this.subtype).equals(s);

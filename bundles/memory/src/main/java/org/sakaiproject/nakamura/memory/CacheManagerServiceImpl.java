@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.memory;
 
-import com.google.common.collect.Maps;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.management.ManagementService;
 
@@ -27,6 +26,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
@@ -34,15 +34,11 @@ import org.sakaiproject.nakamura.util.ResourceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.sling.commons.osgi.PropertiesUtil;
-
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PipedInputStream;
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
@@ -171,7 +167,12 @@ public class CacheManagerServiceImpl implements CacheManagerService {
       }
       config.append(configLine + "\n");
     }
-    return IOUtils.toInputStream(config);
+
+    try {
+      return IOUtils.toInputStream(config.toString(), "UTF-8");
+    } catch (IOException e) {
+      throw new RuntimeException(e.getMessage());
+    }
   }
 
   public static void main(String[] args) throws Exception {

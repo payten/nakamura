@@ -4,10 +4,9 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>1.1</version>
+    <version>1.2.0</version>
     <relativePath>../../../pom.xml</relativePath>
   </parent>
-  <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.profile.api</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: Profile API Bundle</name>
@@ -101,7 +100,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.user</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>    
   </dependencies>

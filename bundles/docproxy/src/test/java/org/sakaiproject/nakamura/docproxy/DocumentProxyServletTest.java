@@ -20,11 +20,8 @@ package org.sakaiproject.nakamura.docproxy;
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
-import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_LOCATION;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_PROCESSOR;
-import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY_DOCUMENT;
-import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.EXTERNAL_ID;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -104,7 +101,7 @@ public class DocumentProxyServletTest extends AbstractDocProxyServlet {
     servlet.doGet(request, response);
 
     String result = baos.toString("UTF-8");
-    assertEquals("K2 docProxy test resource", result);
+    assertEquals("Nakamura docProxy test resource", result);
   }
 
   @Test
@@ -151,7 +148,7 @@ public class DocumentProxyServletTest extends AbstractDocProxyServlet {
     servlet.doGet(request, response);
 
     String result = baos.toString("UTF-8");
-    assertEquals("K2 docProxy test resource", result);
+    assertEquals("Nakamura docProxy test resource", result);
   }
 
   @Test

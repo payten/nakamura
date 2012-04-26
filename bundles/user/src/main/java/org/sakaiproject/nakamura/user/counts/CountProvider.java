@@ -54,4 +54,15 @@ public interface CountProvider {
   * @return
   */
   public long getUpdateIntervalMinutes();
+
+  /**
+   * update total count for a single property of an authorizable.
+   * @param authorizable
+   * @param propertyName
+   * @param session
+   * @throws AccessDeniedException
+   * @throws StorageClientException
+   */
+  public void updateCountProperty(Authorizable authorizable, String propertyName, Session session)
+      throws AccessDeniedException, StorageClientException;
 }

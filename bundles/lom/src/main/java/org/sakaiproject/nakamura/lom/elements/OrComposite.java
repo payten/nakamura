@@ -44,12 +44,14 @@ public class OrComposite extends Serialize {
     String minimumVersionName = "minimumVersion";
     String maxmumVersionName = "maximumVersion";
     JSONObject typeJSON = JSONUtil.getJSONObject(json, typeName);
-    if (typeJSON != null) 
+    if (typeJSON != null) {
       type = new Type(typeJSON);
+    }
     
     JSONObject nameJSON = JSONUtil.getJSONObject(json, nameName);
-    if (nameJSON != null)
+    if (nameJSON != null) {
       name = new Name(nameJSON);
+    }
     
     minimumVersion = JSONUtil.getStringValue(json, minimumVersionName);
     maximumVersion = JSONUtil.getStringValue(json, maxmumVersionName);
@@ -90,16 +92,21 @@ public class OrComposite extends Serialize {
   @Override
   public String generateXML() {
     StringBuilder sb = new StringBuilder("");
-    if (this.getName() != null) 
+    if (this.getName() != null) {
       sb.append(this.getName().generateXML());
-    if (this.getType() != null)
+    }
+    if (this.getType() != null) {
       sb.append(this.getType().generateXML());
-    if (this.getMaxmumVersion() != null)
+    }
+    if (this.getMaxmumVersion() != null) {
       sb.append("<maximumVersion>" + this.getMaxmumVersion() + "</maximumVersion>");
-    if (this.getMinimumVersion() != null)
+    }
+    if (this.getMinimumVersion() != null) {
       sb.append("<minimumVersion>" + this.getMinimumVersion() + "</minimumVersion>");
-    if (sb.toString().equals(""))
+    }
+    if (sb.toString().equals("")) {
       return "";
+    }
     return new String("<orComposite>" + sb.toString() + "</orComposite>");
   }
 }

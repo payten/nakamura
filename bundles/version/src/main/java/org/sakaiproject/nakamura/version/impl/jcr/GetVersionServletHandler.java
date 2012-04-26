@@ -62,10 +62,6 @@ import javax.servlet.http.HttpServletResponse;
 public class GetVersionServletHandler extends AbstractSafeMethodsServletResourceHandler {
 
   public static final Logger LOG = LoggerFactory.getLogger(GetVersionServletHandler.class);
-  /**
-*
-*/
-  private static final long serialVersionUID = -4838347347796204151L;
 
   /**
    * {@inheritDoc}

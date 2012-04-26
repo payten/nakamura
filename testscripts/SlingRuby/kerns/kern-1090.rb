@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 include SlingUsers
 
@@ -8,7 +10,7 @@ class TC_Kern1090Test < Test::Unit::TestCase
   include SlingTest
 
   def test_default_group_access
-    m = Time.now.to_nsec
+    m = uniqueness()
     @s.switch_user(User.admin_user())
     member = create_user("user-manager-#{m}")
     manager = create_user("user-member-#{m}")

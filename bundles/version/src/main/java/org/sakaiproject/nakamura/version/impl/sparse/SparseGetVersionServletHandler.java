@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.version.impl.sparse;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -28,6 +29,7 @@ import org.apache.sling.api.resource.ResourceWrapper;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
+import org.sakaiproject.nakamura.api.files.FileMigrationService;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
@@ -35,6 +37,7 @@ import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.AbstractSafeMethodsServletResourceHandler;
 import org.sakaiproject.nakamura.api.resource.SafeServletResourceHandler;
 import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
+import org.sakaiproject.nakamura.util.PathUtils;
 import org.sakaiproject.nakamura.version.impl.jcr.VersionRequestPathInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,11 +56,10 @@ import javax.servlet.http.HttpServletResponse;
 @Property(name="handling.servlet",value="GetVersionServlet")
 public class SparseGetVersionServletHandler extends AbstractSafeMethodsServletResourceHandler {
 
-  public static final Logger LOG = LoggerFactory.getLogger(SparseGetVersionServletHandler.class);
-  /**
-*
-*/
-  private static final long serialVersionUID = -4838347347796204151L;
+  private static final Logger LOG = LoggerFactory.getLogger(SparseGetVersionServletHandler.class);
+
+  @Reference
+  FileMigrationService fileMigrationService;
 
   /**
    * {@inheritDoc}
@@ -89,12 +91,17 @@ public class SparseGetVersionServletHandler extends AbstractSafeMethodsServletRe
         if ( i < 0 || i >= versionIds.size()) {
           response
           .sendError(HttpServletResponse.SC_BAD_REQUEST,
-              "No version specified, url should of the form nodepath.version.,versionnumber,.json");
+              "Found " + versionIds.size() + " versions while you requested #" + versionNumber);
           return;          
         }
         requestVersionName = versionIds.get(versionIds.size()-1-versionNumber);
       }
       versionContentTemp = contentManager.getVersion(content.getPath(), requestVersionName);
+      if (fileMigrationService.isPageNode(versionContentTemp, contentManager) && !versionContentTemp.hasProperty("rows")) {
+        // this request is for a page we're going to want to migrate
+        Content pageParent = contentManager.get(PathUtils.getParentReference(versionContentTemp.getPath()));
+        versionContentTemp = fileMigrationService.migrateSinglePage(pageParent, versionContentTemp);
+      }
     } catch (StorageClientException e1) {
       LOG.warn(e1.getMessage(),e1);
       throw new ServletException(e1.getMessage(),e1);
@@ -107,80 +114,7 @@ public class SparseGetVersionServletHandler extends AbstractSafeMethodsServletRe
     final VersionRequestPathInfo versionRequestPathInfo = new VersionRequestPathInfo(
         requestPathInfo);
 
-    ResourceWrapper resourceWrapper = new ResourceWrapper(resource) {
-      /**
-       * {@inheritDoc}
-       * 
-       * @see org.apache.sling.api.resource.ResourceWrapper#adaptTo(java.lang.Class)
-       */
-      @SuppressWarnings("unchecked")
-      @Override
-      public <AdapterType> AdapterType adaptTo(Class<AdapterType> type) {
-        LOG.debug("Adapting to:{} ", type);
-        if (type.equals(Content.class)) {
-          return (AdapterType) versionContent;
-        }
-        if (type.equals(ValueMap.class) || type.equals(Map.class)) {
-          ValueMap vm = new ValueMapDecorator(versionContent.getProperties());
-          return (AdapterType) vm;
-        }
-        if (type.equals(InputStream.class)) {
-          getResourceMetadata()
-              .setContentLength(toLong(versionContent
-                      .getProperty(Content.LENGTH_FIELD)));
-          try {
-            return (AdapterType) contentManager.getVersionInputStream(versionContent.getPath(), versionName);
-          } catch (AccessDeniedException e) {
-            LOG.warn(e.getMessage());
-          } catch (StorageClientException e) {
-            LOG.warn(e.getMessage());
-          } catch (IOException e) {
-            LOG.warn(e.getMessage());
-          }
-        }
-        return super.adaptTo(type);
-      }
-
-      private long toLong(Object property) {
-        if ( property instanceof Long) {
-          return ((Long) property).longValue();
-        }
-        return 0;
-      }
-
-      /**
-       * {@inheritDoc}
-       * 
-       * @see org.apache.sling.api.resource.ResourceWrapper#getPath()
-       */
-      @Override
-      public String getPath() {
-        return versionContent.getPath();
-      }
-
-      /**
-       * {@inheritDoc}
-       * 
-       * @see org.apache.sling.api.resource.ResourceWrapper#getResourceType()
-       */
-      @Override
-      public String getResourceType() {
-        return (String) versionContent
-            .getProperty("sling:resourceType");
-      }
-
-      /**
-       * {@inheritDoc}
-       * 
-       * @see org.apache.sling.api.resource.ResourceWrapper#getResourceSuperType()
-       */
-      @Override
-      public String getResourceSuperType() {
-        return (String) versionContent
-            .getProperty("sling:resourceSuperType");
-      }
-
-    };
+    ResourceWrapper resourceWrapper = getVersionResourceWrapper(resource, versionName, versionContent, contentManager);
 
     SlingHttpServletRequestWrapper requestWrapper = new SlingHttpServletRequestWrapper(
         request) {
@@ -200,6 +134,90 @@ public class SparseGetVersionServletHandler extends AbstractSafeMethodsServletRe
 
   public boolean accepts(SlingHttpServletRequest request) {
     return (request.getResource() instanceof SparseContentResource);
+  }
+
+  protected static ResourceWrapper getVersionResourceWrapper(Resource resource,
+                                                             final String versionName,
+                                                             final Content versionContent,
+                                                             final ContentManager contentManager) {
+   return new ResourceWrapper(resource) {
+     /**
+      * {@inheritDoc}
+      *
+      * @see org.apache.sling.api.resource.ResourceWrapper#adaptTo(java.lang.Class)
+      */
+     @SuppressWarnings("unchecked")
+     @Override
+     public <AdapterType> AdapterType adaptTo(Class<AdapterType> type) {
+       LOG.debug("Adapting to:{} ", type);
+       if (type.equals(Content.class)) {
+         return (AdapterType) versionContent;
+       }
+       if (type.equals(ValueMap.class) || type.equals(Map.class)) {
+         ValueMap vm = new ValueMapDecorator(versionContent.getProperties());
+         return (AdapterType) vm;
+       }
+       if (type.equals(InputStream.class)) {
+         getResourceMetadata()
+           .setContentLength(toLong(versionContent
+               .getProperty(Content.LENGTH_FIELD)));
+         try {
+           return (AdapterType) contentManager.getVersionInputStream(versionContent.getPath(), versionName);
+         } catch (AccessDeniedException e) {
+           LOG.warn(e.getMessage());
+         } catch (StorageClientException e) {
+           LOG.warn(e.getMessage());
+         } catch (IOException e) {
+           LOG.warn(e.getMessage());
+         }
+       }
+       return super.adaptTo(type);
+     }
+
+     private long toLong(Object property) {
+       if ( property instanceof Long) {
+         return ((Long) property).longValue();
+       }
+       return 0;
+     }
+
+     /**
+      * {@inheritDoc}
+      *
+      * @see org.apache.sling.api.resource.ResourceWrapper#getPath()
+      */
+     @Override
+     public String getPath() {
+       return versionContent.getPath();
+     }
+
+     /**
+      * {@inheritDoc}
+      *
+      * @see org.apache.sling.api.resource.ResourceWrapper#getResourceType()
+      */
+     @Override
+     public String getResourceType() {
+       Object resourceType = versionContent.getProperty("sling:resourceType");
+       if (resourceType == null) {
+         return "sparse/unknown";
+       } else {
+         return (String) resourceType;
+       }
+     }
+
+     /**
+      * {@inheritDoc}
+      *
+      * @see org.apache.sling.api.resource.ResourceWrapper#getResourceSuperType()
+      */
+     @Override
+     public String getResourceSuperType() {
+       return (String) versionContent
+         .getProperty("sling:resourceSuperType");
+     }
+
+   };
   }
 
 }

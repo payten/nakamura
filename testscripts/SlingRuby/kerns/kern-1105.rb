@@ -2,6 +2,8 @@
 
 
 require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'json'
 require 'logger';
 require 'net/http';

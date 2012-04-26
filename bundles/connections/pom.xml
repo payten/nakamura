@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>1.1</version>
+    <version>1.2.0</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.connections</artifactId>
@@ -83,19 +83,19 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.search.api</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.user</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -118,7 +118,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.resource</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -163,7 +163,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -178,13 +178,13 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.locking</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
      <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -198,7 +198,7 @@
     <dependency>
     	<groupId>org.sakaiproject.nakamura</groupId>
     	<artifactId>org.sakaiproject.nakamura.profile.api</artifactId>
-	<version>1.1</version>
+	<version>1.2.0</version>
     	<scope>provided</scope>
     </dependency>
   </dependencies>

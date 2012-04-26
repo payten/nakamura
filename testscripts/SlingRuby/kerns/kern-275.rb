@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura'
 require 'base64'
 require 'nakamura/test'
@@ -156,7 +158,7 @@ class CropitTest < Test::Unit::TestCase
     #@s.debug = true
     res = @s.execute_post(@s.url_for("var/image/cropit"), cropreq)
     #@s.debug = false
-    assert_equal("200", res.code, "Expected crop to succeed")
+    assert_equal("200", res.code, "Expected crop to succeed\n#{res.body}")
     result = JSON.parse(res.body) 
     assert_equal(2, result["files"].size, "Expected two files back")
     result["files"].each do |file|

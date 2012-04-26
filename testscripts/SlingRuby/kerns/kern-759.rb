@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'nakamura/search'
 require 'nakamura/contacts'
@@ -16,12 +18,12 @@ class TC_Kern759Test < Test::Unit::TestCase
 
   def test_private_group
     # Create a couple of user who are connected
-    m = Time.now.to_i.to_s
+    m = uniqueness()
 
     manager = create_user("user-manager-#{m}")
     viewer = create_user("user-viewer-#{m}")
     other = create_user("user-other-#{m}")
-    admin = User.new("admin","admin")
+    admin = User.admin_user()
 
     # Create a group
     contactsgroup = create_group("g-test-group-#{m}")
@@ -35,6 +37,8 @@ class TC_Kern759Test < Test::Unit::TestCase
 
     contactsgroup.add_manager(@s, manager.name)
     contactsgroup.add_viewer(@s, viewer.name)
+    contactsgroup.remove_viewer(@s, "everyone")
+    contactsgroup.remove_viewer(@s, "anonymous")
     res = @s.execute_get(@s.url_for(Group.url_for(contactsgroup.name) + ".json"))
     assert_equal("200",res.code)
     @log.debug(res.body)

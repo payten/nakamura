@@ -23,7 +23,6 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
 import org.apache.solr.client.solrj.util.ClientUtils;
-import org.apache.solr.common.SolrInputDocument;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,8 +34,6 @@ import org.sakaiproject.nakamura.api.lite.StoreListener;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
-import org.sakaiproject.nakamura.api.user.UserConstants;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -83,34 +80,6 @@ public class AuthorizableIndexingHandlerTest {
     assertNotNull(queries);
     assertEquals(1, queries.size());
     assertEquals("id:" + ClientUtils.escapeQueryChars("user1"), queries.iterator().next());
-  }
-
-  @Test
-  public void deleteExcluded() {
-    user1.setProperty(UserConstants.SAKAI_EXCLUDE, "true");
-
-    Hashtable<String, Object> props = new Hashtable<String, Object>();
-    props.put("path", "user1");
-    Event event = new Event(StoreListener.UPDATED_TOPIC, (Map) props);
-
-    Collection<String> queries = handler.getDeleteQueries(repoSession, event);
-
-    assertNotNull(queries);
-    assertEquals(1, queries.size());
-  }
-
-  @Test
-  public void doNotIndexExcluded() {
-    user1.setProperty(UserConstants.SAKAI_EXCLUDE, "true");
-
-    Hashtable<String, Object> props = new Hashtable<String, Object>();
-    props.put("path", "user1");
-    Event event = new Event(StoreListener.UPDATED_TOPIC, (Map) props);
-
-    Collection<SolrInputDocument> queries = handler.getDocuments(repoSession, event);
-
-    assertNotNull(queries);
-    assertEquals(0, queries.size());
   }
 
   @Test

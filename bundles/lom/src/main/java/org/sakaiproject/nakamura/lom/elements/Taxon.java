@@ -72,8 +72,9 @@ public class Taxon extends Serialize {
     if (this.getEntry() != null) {
       sb.append(this.getEntry().generateXML());
     }
-    if (sb.toString().equals(""))
+    if (sb.toString().equals("")) {
       return "";
+    }
     return new String("<taxon>" + sb.toString() + "</taxon>");
   }
 }

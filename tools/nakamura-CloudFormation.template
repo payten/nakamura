@@ -243,7 +243,7 @@
                             "Ref": "NakamuraBinaryURL"
                         },
                         "\n",
-                        "java -XX:MaxPermSize=128m -Xmx512m -server -Dcom.sun.management.jmxremote -jar ", {
+                        "java -Dfile.encoding=UTF8 -XX:MaxPermSize=128m -Xmx512m -server -Dcom.sun.management.jmxremote -jar ", {
                             "Ref": "NakamuraBinaryFilename"
                         },
                         " -f - 1> run.log 2>&1 &", "\n"]]
@@ -314,7 +314,7 @@
                         "Ref": "NakamuraBinaryURL"
                     },
                     "\n",
-                    "java -XX:MaxPermSize=128m -Xmx512m -server -Dcom.sun.management.jmxremote -jar ", {
+                    "java -Dfile.encoding=UTF8 -XX:MaxPermSize=128m -Xmx512m -server -Dcom.sun.management.jmxremote -jar ", {
                         "Ref": "NakamuraBinaryFilename"
                     },
                     " -f - 1> run.log 2>&1 &", "\n"]]

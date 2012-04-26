@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'find'
 
 Find.find("#{File.dirname(__FILE__)}/..") do |path|

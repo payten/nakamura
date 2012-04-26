@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura'
 require 'nakamura/test'
 require 'nakamura/authz'
@@ -16,7 +18,7 @@ class TC_Kern568Test < Test::Unit::TestCase
   
   # Just check that we get a response to a bad t parameter
   def test_malformed_time
-    m = Time.now.to_nsec
+    m = uniqueness()
     userid = "testuser-#{m}"
     user = create_user(userid)
     @s.switch_user(user)
@@ -31,7 +33,7 @@ class TC_Kern568Test < Test::Unit::TestCase
 
   # Test that the pulltime comes through right, ignoring the update flag
   def test_correct_pulltime
-    m = Time.now.to_nsec
+    m = uniqueness()
     userid = "testuser-#{m}"
     user = create_user(userid)
     @s.switch_user(user)
@@ -59,7 +61,7 @@ class TC_Kern568Test < Test::Unit::TestCase
   # and that the pulltime is not what we specify for the first
   # request and is the specified timestamp for the second
   def test_preserve_first_check
-    m = Time.now.to_nsec
+    m = uniqueness()
     userid = "testuser-#{m}"
     user = create_user(userid)
     @s.switch_user(user)

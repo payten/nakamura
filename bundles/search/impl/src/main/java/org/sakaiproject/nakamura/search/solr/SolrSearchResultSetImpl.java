@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.search.solr;
 
 import com.google.common.collect.UnmodifiableIterator;
+
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
@@ -36,8 +37,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
-
 
 public class SolrSearchResultSetImpl implements SolrSearchResultSet, SolrQueryResponseWrapper {
 
@@ -45,7 +44,6 @@ public class SolrSearchResultSetImpl implements SolrSearchResultSet, SolrQueryRe
 
   private final QueryResponse queryResponse;
   private SolrDocumentList responseList;
-  private SortedMap<Long, String> tagCloud;
 
   public SolrSearchResultSetImpl(QueryResponse queryResponse) {
     LOGGER.debug("new SolrSearchResultSetImpl(QueryResponse {})", queryResponse);
@@ -111,7 +109,7 @@ public class SolrSearchResultSetImpl implements SolrSearchResultSet, SolrQueryRe
       }
     }
 
-    Comparator scoreSorter = new Comparator<SolrDocument>() {
+    Comparator<SolrDocument> scoreSorter = new Comparator<SolrDocument>() {
       public int compare(SolrDocument doc1, SolrDocument doc2) {
         return ((Float) doc1.getFieldValue("score")).compareTo((Float) doc2.getFieldValue("score"));
       }

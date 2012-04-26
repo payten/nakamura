@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.files.pool;
 
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -30,7 +33,11 @@ import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.files.FileMigrationService;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,16 +50,16 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 @SlingServlet(methods = { "GET" }, extensions = { "json" }, resourceTypes = { "sakai/pooled-content" })
-@ServiceDocumentation(name = "GetContentPoolServlet documentation", okForVersion = "1.1",
+@ServiceDocumentation(name = "GetContentPoolServlet documentation", okForVersion = "1.2",
   shortDescription = "Gets a JSON representation of a content pool item.",
-  description = { "Gets a JSON representation of a content pool item.",
-    "<pre>curl http://localhost:8080/p/hESoXumAT.json</pre>",
-    "<pre>{\n    \"_previousBlockId\": \"UbGXYKGfEeCAXdkUrBABAw+\",\n    \"_lastModifiedBy\": \"admin\",\n    \"_previousVersion\": \"UbCF8KGfEeCAXdkUrBABAw+\",\n    \"_path\": \"hESoXumAT\",\n    \"sakai:fileextension\": \".png\",\n    \"_blockId\": \"UbGXYKGfEeCAXdkUrBABAw+\",\n    \"sakai:allowcomments\": \"true\",\n    \"sakai:pooled-content-viewer\": [\"anonymous\", \"everyone\"],\n    \"_id\": \"UchTsaGfEeCAXdkUrBABAw+\",\n    \"_bodyCreatedBy\": \"admin\",\n    \"sakai:pool-content-created-for\": \"suzy\",\n    \"sakai:pooled-content-file-name\": \"hero-zach-unmasked.png\",\n    \"_bodyCreated\": 1309276646363,\n    \"sakai:copyright\": \"creativecommons\",\n    \"_length\": 25606,\n    \"sakai:needsprocessing\": \"true\",\n    \"sakai:permissions\": \"public\",\n    \"_mimeType\": \"image/png\",\n    \"_bodyLastModifiedBy\": \"admin\",\n    \"_createdBy\": \"admin\",\n    \"_versionHistoryId\": \"UchTsKGfEeCAXdkUrBABAw+\",\n    \"sakai:showcomments\": \"true\",\n    \"sling:resourceType\": \"sakai/pooled-content\",\n    \"_created\": 1309276646351,\n    \"sakai:pooled-content-manager\": [\"suzy\"],\n    \"_bodyLastModified\": 1309276646363,\n    \"_lastModified\": 1309276646472,\n    \"_bodyLocation\": \"2011/5/-V/7P/mM/-V7PmMdM-QDHyHslMftAMF21H4s\"\n}</pre>"
-  },
   bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/pooled-content",
     extensions = { @ServiceExtension(name = "json") }),
   methods = {
-    @ServiceMethod(name = "GET", description = "",
+    @ServiceMethod(name = "GET",
+      description = {"Gets a JSON representation of a content pool item.",
+          "<pre>curl http://localhost:8080/p/hESoXumAT.json</pre>",
+          "<pre>{\n    \"_previousBlockId\": \"UbGXYKGfEeCAXdkUrBABAw+\",\n    \"_lastModifiedBy\": \"admin\",\n    \"_previousVersion\": \"UbCF8KGfEeCAXdkUrBABAw+\",\n    \"_path\": \"hESoXumAT\",\n    \"sakai:fileextension\": \".png\",\n    \"_blockId\": \"UbGXYKGfEeCAXdkUrBABAw+\",\n    \"sakai:allowcomments\": \"true\",\n    \"sakai:pooled-content-viewer\": [\"anonymous\", \"everyone\"],\n    \"_id\": \"UchTsaGfEeCAXdkUrBABAw+\",\n    \"_bodyCreatedBy\": \"admin\",\n    \"sakai:pool-content-created-for\": \"suzy\",\n    \"sakai:pooled-content-file-name\": \"hero-zach-unmasked.png\",\n    \"_bodyCreated\": 1309276646363,\n    \"sakai:copyright\": \"creativecommons\",\n    \"_length\": 25606,\n    \"sakai:needsprocessing\": \"true\",\n    \"sakai:permissions\": \"public\",\n    \"_mimeType\": \"image/png\",\n    \"_bodyLastModifiedBy\": \"admin\",\n    \"_createdBy\": \"admin\",\n    \"_versionHistoryId\": \"UchTsKGfEeCAXdkUrBABAw+\",\n    \"sakai:showcomments\": \"true\",\n    \"sling:resourceType\": \"sakai/pooled-content\",\n    \"_created\": 1309276646351,\n    \"sakai:pooled-content-manager\": [\"suzy\"],\n    \"_bodyLastModified\": 1309276646363,\n    \"_lastModified\": 1309276646472,\n    \"_bodyLocation\": \"2011/5/-V/7P/mM/-V7PmMdM-QDHyHslMftAMF21H4s\"\n}</pre>"
+      },
       response = {
         @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
         @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
@@ -62,6 +69,9 @@ import javax.servlet.http.HttpServletResponse;
 public class GetContentPoolServlet extends SlingSafeMethodsServlet implements OptingServlet {
   private static final long serialVersionUID = -382733858518678148L;
   private static final Logger LOGGER = LoggerFactory.getLogger(GetContentPoolServlet.class);
+
+  @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY, policy = ReferencePolicy.DYNAMIC)
+  protected FileMigrationService migrationService;
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -98,8 +108,9 @@ public class GetContentPoolServlet extends SlingSafeMethodsServlet implements Op
     writer.setTidy(isTidy);
     try {
       Content content = resource.adaptTo(Content.class);
+      ContentManager contentManager = resource.adaptTo(ContentManager.class);
       if ( content != null ) {
-        ExtendedJSONWriter.writeContentTreeToWriter(writer, content, false,  recursion);
+        writeContentResponse(recursion, writer, content, contentManager);
       } else {
         Node node = resource.adaptTo(Node.class);
         ExtendedJSONWriter.writeNodeTreeToWriter(writer, node, recursion);
@@ -111,6 +122,24 @@ public class GetContentPoolServlet extends SlingSafeMethodsServlet implements Op
     } catch (RepositoryException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       LOGGER.info("Caught Repository {}", e.getMessage());
+    } catch (Exception e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      LOGGER.error(e.getMessage());
+    }
+  }
+
+  private void writeContentResponse(int recursion, ExtendedJSONWriter writer, Content content, ContentManager contentManager) throws Exception {
+    Content contentToWrite = migrateFileContent(content, contentManager);
+    ExtendedJSONWriter.writeContentTreeToWriter(writer, contentToWrite, false,  recursion);
+  }
+
+  private Content migrateFileContent(Content content, ContentManager contentManager) throws StorageClientException, AccessDeniedException {
+    if (migrationService != null
+      && migrationService.fileContentNeedsMigration(content)) {
+      migrationService.migrateFileContent(content);
+      return contentManager.get(content.getPath());
+    } else {
+      return content;
     }
   }
 

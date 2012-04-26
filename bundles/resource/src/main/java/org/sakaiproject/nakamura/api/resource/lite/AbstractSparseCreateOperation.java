@@ -50,7 +50,7 @@ public abstract class AbstractSparseCreateOperation extends AbstractSparsePostOp
   }
 
   public void setExtraNodeNameGenerators(NodeNameGenerator[] extraNodeNameGenerators) {
-    this.extraNodeNameGenerators = extraNodeNameGenerators;
+    this.extraNodeNameGenerators = extraNodeNameGenerators.clone();
   }
 
 
@@ -284,7 +284,7 @@ public abstract class AbstractSparseCreateOperation extends AbstractSparsePostOp
       if (specialParam.getString() != null && specialParam.getString().length() > 0) {
         // If the path ends with a *, create a node under its parent, with
         // a generated node name
-        basePath = basePath += "/" + specialParam.getString();
+        basePath += "/" + specialParam.getString();
 
         String contentPath = removeAndValidateWorkspace(basePath);
         if (contentManager.exists(contentPath)) {
@@ -326,6 +326,7 @@ public abstract class AbstractSparseCreateOperation extends AbstractSparsePostOp
       throws StorageClientException {
 
     String path = removeAndValidateWorkspace(basePath);
+    String bPath = basePath;
 
     // if resulting path exists, add a suffix until it's not the case
     // anymore
@@ -333,7 +334,7 @@ public abstract class AbstractSparseCreateOperation extends AbstractSparsePostOp
       for (int idx = 0; idx < 1000; idx++) {
         String newPath = path + "_" + idx;
         if (!contentManager.exists(newPath)) {
-          basePath = basePath + "_" + idx;
+          bPath = bPath + "_" + idx;
           path = newPath;
           break;
         }
@@ -346,7 +347,7 @@ public abstract class AbstractSparseCreateOperation extends AbstractSparsePostOp
           + basePath);
     }
 
-    return basePath;
+    return bPath;
   }
 
 }

@@ -23,7 +23,7 @@ then
   echo Instance already running
 else
   echo Starting new instance....
-  java -Xmx1024m -XX:PermSize=256m -server -jar org.sakaiproject.nakamura.app-${NAK_VERSION}.jar 1> run.log 2>&1 &    
+  java -Dfile.encoding=UTF8 -Xmx1024m -XX:PermSize=256m -server -jar org.sakaiproject.nakamura.app-${NAK_VERSION}.jar 1> run.log 2>&1 &
   echo Waiting for 5...  
   sleep 5
   cat run.log

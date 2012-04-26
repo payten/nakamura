@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'nakamura/search'
 require 'nakamura/message'
@@ -20,7 +22,7 @@ class TC_Kern335Test < Test::Unit::TestCase
 
 
   def test_chatupdate
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     user1 = create_user("chatuser1-#{m}")
     user2 = create_user("chatuser2-#{m}")
   

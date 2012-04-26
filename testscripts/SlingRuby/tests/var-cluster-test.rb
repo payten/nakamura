@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'set'
 require 'nakamura/test'
 require 'nakamura/message'
@@ -11,8 +13,7 @@ class TC_BasicLTI < Test::Unit::TestCase
 
   def setup
     super;
-    @now = Time.now.to_nsec
-    @user = create_user("user-test#{@now}");
+    @user = create_user("user-test#{uniqueness()}");
     assert_not_nil(@user);
     @admin = SlingUsers::User.admin_user();
     assert_not_nil(@admin);

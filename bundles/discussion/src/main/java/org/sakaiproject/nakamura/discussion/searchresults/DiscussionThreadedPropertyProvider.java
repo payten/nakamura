@@ -21,6 +21,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
@@ -30,7 +31,8 @@ import org.sakaiproject.nakamura.util.PathUtils;
 import java.util.Map;
 
 /**
- *
+ * Property provider for injecting message store location for the discussion thread search
+ * feed.
  */
 @Component
 @Service
@@ -47,8 +49,11 @@ public class DiscussionThreadedPropertyProvider implements SolrSearchPropertyPro
       Map<String, String> propertiesMap) {
     String path = request.getParameter("path");
     String homePath = PathUtils.toUserContentPath(path) + "/";
+    // we have to use a path hash here because a discussion thread has a hashed
+    // messagestore value from LiteDiscussionMessageTransport@146
     String pathHash = StorageClientUtils.insecureHash(homePath);
-    propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGEROOT, pathHash);
+    propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGEROOT, "(" + pathHash + " OR "
+        + ClientUtils.escapeQueryChars(homePath) + ")");
   }
 
 }

@@ -49,7 +49,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * The <code>ShowHomeServlet</code>
  */
-@ServiceDocumentation(name = "Show Home", okForVersion = "1.1",
+@ServiceDocumentation(name = "Show Home", okForVersion = "1.2",
   description = " Shows the content of the configured homepage per authorizable type (user, group)",
   shortDescription = "Shows homepage for users and groups",
   bindings = @ServiceBinding(type = BindingType.TYPE,

@@ -36,8 +36,8 @@ public class OperationResponseReplay implements Serializable {
   private byte[] byteContent;
 
   public OperationResponseReplay(Operation[] operations, byte[] byteContent, String stringContent) {
-    this.operations = operations;
-    this.byteContent = byteContent;
+    this.operations = operations.clone();
+    this.byteContent = byteContent.clone();
     this.stringContent = stringContent;
   }
 

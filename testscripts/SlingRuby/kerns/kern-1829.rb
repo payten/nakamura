@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'nakamura/file'
 require 'nakamura/users'
@@ -23,7 +25,7 @@ class TC_Kern1829Test < Test::Unit::TestCase
   end
 
   def test_manager_users
-    m = Time.now.to_i.to_s
+    m = uniqueness()
 
     # Create some users
     creator = create_user("testuser-#{m}")
@@ -71,7 +73,7 @@ class TC_Kern1829Test < Test::Unit::TestCase
 
     res = @s.execute_get(@s.url_for("/var/search/comments/flat.json?sortOn=_created&sortOrder=desc&page=0&items=10&marker=596725146&path=/p/#{id}/596725146/comments/message&_charset_=utf-8&_=1305140929946"))
 	assert_equal("200", res.code)
-	@log.error("Got #{res.body}")
+	@log.info("Got #{res.body}")
     json = JSON.parse(res.body)
 	assert_equal(1, json["total"])
 	assert_equal("Comment on /p/#{id}",json["results"][0]["post"]["sakai:subject"])

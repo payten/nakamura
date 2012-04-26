@@ -7,5 +7,7 @@
         </service>
         <property name="sakai.tika.max_string_length" type="Integer" value="100000"/>
         <property name="service.pid" value="org.sakaiproject.nakamura.tika.TikaServiceImpl"/>
+        <reference name="detector" interface="org.apache.tika.detect.Detector" cardinality="1..1" policy="static" bind="bindDetector" unbind="unbindDetector"/>
+        <reference name="parser" interface="org.apache.tika.parser.Parser" cardinality="1..1" policy="static" bind="bindParser" unbind="unbindParser"/>
     </scr:component>
 </components>

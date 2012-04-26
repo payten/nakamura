@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 include SlingUsers
 
@@ -8,7 +10,7 @@ class TC_Kern1020Test < Test::Unit::TestCase
   include SlingTest
 
   def test_find_all_groups
-    m = Time.now.to_nsec
+    m = uniqueness()
     @s.switch_user(User.admin_user())
     manager = create_user("user-manager-#{m}")
     member = create_user("user-member-#{m}")
@@ -56,20 +58,20 @@ class TC_Kern1020Test < Test::Unit::TestCase
     res = @s.execute_get(@s.url_for("/system/me/managedgroups.json"))
     assert_equal("200", res.code, "My Managed Groups servlet should return successfully")
     managedgroups = JSON.parse(res.body)
-    assert_equal(3, managedgroups.size, "Should have one managed group")
+    assert_equal(1, managedgroups["total"], "Should have one managed group : #{res.body}")
     assert_equal(managedgroup.name, managedgroups["results"][0]["sakai:group-id"], "Did not retrieve the managed group")
     res = @s.execute_get(@s.url_for("/system/me/groups.json"))
     assert_equal("200", res.code, "My Groups servlet should return successfully")
     groups = JSON.parse(res.body)
-    assert_equal(3, groups.size, "Should have two groups")
+    assert_equal(2, groups["total"], "Should have two groups")
     assert_not_nil(groups["results"].find{|e| e["sakai:group-id"] == managedgroup.name}, "Expected group not returned #{managedgroup.name}")
     assert_not_nil(groups["results"].find{|e| e["sakai:group-id"] == membergroup.name}, "Expected group not returned #{membergroup.name}")
   end
 
   def test_find_matching_groups
-    m = Time.now.to_nsec
-    other = Time.now.to_f.to_s.gsub('.', 'XX')
-    excluded = Time.now.to_f.to_s.gsub('.', 'YY')
+    m = uniqueness()
+    other = m + 'XX'
+    excluded = m + 'YY'
     @s.switch_user(User.admin_user())
     manager = create_user("user-manager-#{m}")
     member = create_user("user-member-#{m}")
@@ -107,7 +109,7 @@ class TC_Kern1020Test < Test::Unit::TestCase
     res = @s.execute_get(@s.url_for("/system/me/managedgroups.json"))
     assert_equal("200", res.code, "My Managed Groups servlet should return successfully")
     managedgroups = JSON.parse(res.body)
-    assert_equal(3, managedgroups["total"], "Should have three managed groups")
+    assert_equal(3, managedgroups["total"], "Should have three managed groups : #{res.body}")
     assert_not_nil(managedgroups["results"].find{|e| e["sakai:group-id"] == managedgroupMatching.name}, "Expected group not returned")
     assert_not_nil(managedgroups["results"].find{|e| e["sakai:group-id"] == managedgroupEmbeddedMatching.name}, "Expected group not returned")
     assert_not_nil(managedgroups["results"].find{|e| e["sakai:group-id"] == managedgroupNotMatching.name}, "Expected group not returned")

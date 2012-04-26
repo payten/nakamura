@@ -1,0 +1,166 @@
+{
+  "_lastModifiedBy": "qakent",
+  "sakai:permissions": "everyone",
+  "_mimeType": "x-sakai/document",
+  "_createdBy": "admin",
+  "_path": "l4EWYweuaa",
+  "sakai:showcomments": "true",
+  "sling:resourceType": "sakai/pooled-content",
+  "sakai:allowcomments": "true",
+  "sakai:pooled-content-viewer": [
+    "everyone"
+  ],
+  "sakai:pooled-content-manager": [
+    "qakent"
+  ],
+  "_created": 1335198359179,
+  "sakai:pool-content-created-for": "qakent",
+  "_id": "AopVsI1hEeGtT7ccjdVx3A+",
+  "structure0": "{\"page1\":{\"_ref\":\"id1587576\",\"_order\":0,\"_title\":\"basiclti\",\"main\":{\"_ref\":\"id1587576\",\"_order\":0,\"_title\":\"basiclti\"}}}",
+  "sakai:pooled-content-file-name": "basiclti",
+  "_lastModified": 1335198637664,
+  "sakai:pooled-content-editor": [
+  ],
+  "sakai:copyright": "creativecommons",
+  "id1587576": {
+    "_created": 1335198359948,
+    "_id": "mD0hQI1iEeGtT7ccjdVx3A+",
+    "page": "<p><img src=\"/devwidgets/basiclti/images/basiclti.png\" id=\"widget_basiclti_id5404779\" class=\"widget_inline\" style=\"display: block; padding: 10px; margin: 4px;\" border=\"1\"><\/p><p><br><\/p><p><strong>orem Ipsum<\/strong> is simply dummy text\n of the printing and typesetting industry. Lorem Ipsum has been the \nindustry's standard dummy text ever since the 1500s, when an unknown \nprinter took a galley of type and scrambled it to make a type specimen \nbook. It has survived not only five centuries, but also the leap into \nelectronic typesetting, remaining essentially unchanged. It was \npopularised in the 1960s with the release of Letraset sheets containing \nLorem Ipsum passages, and more recently with desktop publishing software\n like Aldus PageMaker including versions of Lorem Ipsum.<\/p><div class=\"rc\"><p>It\n is a long established fact that a reader will be distracted by the \nreadable content of a page when looking at its layout. The point of \nusing Lorem Ipsum is that it has a more-or-less normal distribution of \nletters, as opposed to using 'Content here, content here', making it \nlook like readable English. Many desktop publishing packages and web \npage editors now use Lorem Ipsum as their default model text, and a \nsearch for 'lorem ipsum' will uncover many web sites still in their \ninfancy. Various versions have evolved over the years, sometimes by \naccident, sometimes on purpose (injected humour and the like).<\/p><\/div>&nbsp;<p><img src=\"/devwidgets/embedcontent/images/content.png\" id=\"widget_embedcontent_id4588861\" class=\"widget_inline block_image_right\" style=\"display: block; padding: 10px; margin: 4px;\" border=\"1\"><\/p><div style=\"clear:both;\"><div class=\"lc\"><p>Contrary\n to popular belief, Lorem Ipsum is not simply random text. It has roots \nin a piece of classical Latin literature from 45 BC, making it over 2000\n years old. Richard McClintock, a Latin professor at Hampden-Sydney \nCollege in Virginia, looked up one of the more obscure Latin words, \nconsectetur, from a Lorem Ipsum passage, and going through the cites of \nthe word in classical literature, discovered the undoubtable source. \nLorem Ipsum comes from sections 1.10.32 and 1.10.33 of \"de Finibus \nBonorum et Malorum\" (The Extremes of Good and Evil) by Cicero, written \nin 45 BC. This book is a treatise on the theory of ethics, very popular \nduring the Renaissance. The first line of Lorem Ipsum, \"Lorem ipsum \ndolor sit amet..\", comes from a line in section 1.10.32.<\/p><p>The \nstandard chunk of Lorem Ipsum used since the 1500s is reproduced below \nfor those interested. Sections 1.10.32 and 1.10.33 from \"de Finibus \nBonorum et Malorum\" by Cicero are also reproduced in their exact \noriginal form, accompanied by English versions from the 1914 translation\n by H. Rackham.<\/p><\/div><div class=\"rc\"><p>There\n are many variations of passages of Lorem Ipsum available, but the \nmajority have suffered alteration in some form, by injected humour, or \nrandomised words which don't look even slightly believable. If you are \ngoing to use a passage of Lorem Ipsum, you need to be sure there isn't \nanything embarrassing hidden in the middle of text. All the Lorem Ipsum \ngenerators on the Internet tend to repeat predefined chunks as \nnecessary, making this the first true generator on the Internet. It uses\n a dictionary of over 200 Latin words, combined with a handful of model \nsentence structures, to generate Lorem Ipsum which looks reasonable. The\n generated Lorem Ipsum is therefore always free from repetition, \ninjected humour, or non-characteristic words etc.<\/p><\/div><\/div>",
+    "_lastModifiedBy": "qakent",
+    "_lastModified": 1335199039784,
+    "_previousVersion": "NOteUI1hEeGtT7ccjdVx3A+",
+    "_createdBy": "qakent",
+    "_path": "l4EWYweuaa/id1587576",
+    "_versionHistoryId": "A2e9YI1hEeGtT7ccjdVx3A+",
+    "editing": {
+      "time": 1335213437513,
+      "_created": 1335198372526,
+      "_id": "Cn7s4I1hEeGtT7ccjdVx3A+",
+      "_lastModifiedBy": "qakent",
+      "_lastModified": 1335199037519,
+      "_createdBy": "qakent",
+      "_path": "l4EWYweuaa/id1587576/editing"
+    },
+    "autosave": {
+      "_created": 1335198387536,
+      "_id": "E3FFAI1hEeGtT7ccjdVx3A+",
+      "_lastModifiedBy": "qakent",
+      "page": "<p><br><\/p><p><br><\/p><p><img src=\"/devwidgets/embedcontent/images/content.png\" id=\"widget_embedcontent_id4588861\" class=\"widget_inline\" style=\"display: block; padding: 10px; margin: 4px;\" border=\"1\"><\/p><p><br data-mce-bogus=\"1\"><\/p>",
+      "_lastModified": 1335198417526,
+      "_createdBy": "qakent",
+      "_path": "l4EWYweuaa/id1587576/autosave"
+    }
+  },
+  "activity": {
+    "sling:resourceType": "sakai/activityStore",
+    "_created": 1335198360674,
+    "_id": "A250II1hEeGtT7ccjdVx3A+",
+    "_lastModifiedBy": "admin",
+    "_lastModified": 1335198360674,
+    "_createdBy": "admin",
+    "_path": "l4EWYweuaa/activity",
+    "2012-04-23-12-4fc57c728391b4fcb07412099a6a4a96934f887a": {
+      "sling:resourceType": "sakai/activity-post",
+      "_created": 1335198360810,
+      "sakai:activity-source": "l4EWYweuaa",
+      "_id": "A4M0oI1hEeGtT7ccjdVx3A+",
+      "sakai:activity-appid": "default",
+      "sakai:activity-type": "pooled content",
+      "_lastModifiedBy": "admin",
+      "_lastModified": 1335198361353,
+      "sakai:activity-actor": "qakent",
+      "sakai:activityMessage": "UPDATED_CONTENT",
+      "_createdBy": "admin",
+      "_path": "l4EWYweuaa/activity/2012-04-23-12-4fc57c728391b4fcb07412099a6a4a96934f887a"
+    }
+  },
+  "activityFeed": {
+    "_created": 1335198360781,
+    "_id": "A37H0I1hEeGtT7ccjdVx3A+",
+    "_lastModifiedBy": "admin",
+    "_lastModified": 1335198360781,
+    "_createdBy": "admin",
+    "_path": "l4EWYweuaa/activityFeed",
+    "2012-04-23-12-4fc57c728391b4fcb07412099a6a4a96934f887a": {
+      "sling:resourceType": "sakai/activity",
+      "_created": 1335198361681,
+      "sakai:activity-source": "l4EWYweuaa",
+      "_id": "BAgcEI1hEeGtT7ccjdVx3A+",
+      "_lastModifiedBy": "admin",
+      "sakai:activity-type": "pooled content",
+      "sakai:activity-appid": "default",
+      "_lastModified": 1335198361681,
+      "sakai:activity-actor": "qakent",
+      "sakai:activityMessage": "UPDATED_CONTENT",
+      "_createdBy": "admin",
+      "_path": "l4EWYweuaa/activityFeed/2012-04-23-12-4fc57c728391b4fcb07412099a6a4a96934f887a"
+    }
+  },
+  "id4588861": {
+    "_created": 1335198398177,
+    "_id": "Gcj1EI1hEeGtT7ccjdVx3A+",
+    "_lastModifiedBy": "qakent",
+    "_lastModified": 1335198398177,
+    "_createdBy": "qakent",
+    "_path": "l4EWYweuaa/id4588861",
+    "embedcontent": {
+      "embedmethod": "original",
+      "_lastModifiedBy": "qakent",
+      "sakai:indexed-fields": "title,description",
+      "download": false,
+      "_createdBy": "qakent",
+      "_path": "l4EWYweuaa/id4588861/embedcontent",
+      "sling:resourceType": "sakai/widget-data",
+      "_created": 1335198398196,
+      "title": "",
+      "_id": "GcvbQI1hEeGtT7ccjdVx3A+",
+      "details": false,
+      "description": "",
+      "_lastModified": 1335198398212,
+      "name": false,
+      "layout": "single",
+      "items": {
+        "_created": 1335198398204,
+        "_id": "Gc0TwI1hEeGtT7ccjdVx3A+",
+        "_lastModifiedBy": "qakent",
+        "_lastModified": 1335198398204,
+        "_createdBy": "qakent",
+        "__array__0__": "/p/l4EobcQuaa",
+        "_path": "l4EWYweuaa/id4588861/embedcontent/items"
+      }
+    }
+  },
+  "id5404779": {
+    "_created": 1335199038031,
+    "_id": "lyrt8I1iEeGtT7ccjdVx3A+",
+    "_lastModifiedBy": "qakent",
+    "_lastModified": 1335199038031,
+    "_createdBy": "qakent",
+    "_path": "l4EWYweuaa/id5404779",
+    "basiclti": {
+      "width_unit": "%",
+      "_charset_": "utf-8",
+      "_lastModifiedBy": "qakent",
+      "width": "100",
+      "debug": true,
+      "_createdBy": "qakent",
+      "_path": "l4EWYweuaa/id5404779/basiclti",
+      "isSakai2Tool": "false",
+      "sling:resourceType": "sakai/basiclti",
+      "_created": 1335199038074,
+      "_id": "lzF9oI1iEeGtT7ccjdVx3A+",
+      "_lastModified": 1335199038074,
+      "release_names": true,
+      "frame_height": "200",
+      "release_email": true,
+      "ltiurl": "http://www.imsglobal.org/developers/BLTI/tool.php",
+      "border_color": "cccccc",
+      "release_principal_name": true,
+      "border_size": "0",
+      "ltiKeys": {
+      	"key": "the-key",
+      	"secret": "the-secret"
+      }
+    }
+  }
+}

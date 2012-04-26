@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 include SlingUsers
 
@@ -8,7 +10,7 @@ class TC_Kern1064Test < Test::Unit::TestCase
   include SlingTest
 
   def test_restrict_group_visibility_to_logged_in_users
-    m = Time.now.to_nsec
+    m = uniqueness()
     nonmember = create_user("user-nonmember-#{m}")
     group = Group.new("g-test-#{m}")
     @s.switch_user(User.admin_user())

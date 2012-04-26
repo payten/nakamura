@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'nakamura/search'
 require 'nakamura/contacts'
@@ -16,7 +18,7 @@ class TC_Kern763Test < Test::Unit::TestCase
   
   def test_permissions
     # Create a couple of user who are connected
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     u1 = create_user("user-one-#{m}")
     u2 = create_user("user-two-#{m}")
     u3 = create_user("user-three-#{m}")

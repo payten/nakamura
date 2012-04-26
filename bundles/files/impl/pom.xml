@@ -14,7 +14,7 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>1.1</version>
+    <version>1.2.0</version>
     <relativePath>../../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.files.impl</artifactId>
@@ -36,7 +36,9 @@
           <instructions>
             <Bundle-Category> sakai-nakamura </Bundle-Category>
             <Bundle-Activator>org.sakaiproject.nakamura.files.Activator</Bundle-Activator>
-            <Private-Package> org.sakaiproject.nakamura.files.* </Private-Package>
+            <Private-Package>
+              org.sakaiproject.nakamura.files.*
+            </Private-Package>
             <Sling-Initial-Content>SLING-INF/content;overwriteProperties:=true;uninstall:=false</Sling-Initial-Content>
           </instructions>
         </configuration>
@@ -81,7 +83,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
-      <version>2.1.0.1.1</version>
+      <version>2.1.0.1.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.jackrabbit</groupId>
@@ -121,8 +123,14 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.activity.api</artifactId>
+      <version>1.2.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.resource</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -133,6 +141,11 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.solr</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.user</artifactId>
+      <version>1.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
@@ -173,7 +186,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.activemq</artifactId>
-      <version>5.3.0.1.1</version>
+      <version>5.3.0.1.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
@@ -188,86 +201,86 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.personal</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.profile.api</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.files.api</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.search.api</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>  
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.locking</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.cluster</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.connections</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.tika</artifactId>
-      <version>0.9.1.1</version>
+      <version>1.0.1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.jcr</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.lom</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.content-packaging</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <!-- testing -->
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>

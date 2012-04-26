@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'nakamura/search'
 require 'nakamura/contacts'
@@ -11,7 +13,7 @@ class TC_Kern289Test < Test::Unit::TestCase
   include SlingTest
 
   def test_connection_details
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     u1 = create_user("testuser#{m}")
     u2 = create_user("otheruser#{m}")
     

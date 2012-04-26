@@ -263,6 +263,21 @@ public interface UserConstants {
   public static final String GROUP_MEMBERS_PROP = "membersCount"; // the number of members that a group has
 
   /**
+   * Counts that apply to all authorizables
+   */
+  public static final String[] AUTHZ_COUNTS_PROPS = new String[]{CONTENT_ITEMS_PROP, COUNTS_LAST_UPDATE_PROP};
+
+  /**
+   * Counts that apply to users only
+   */
+  public static final String[] USER_COUNTS_PROPS = new String[]{CONTACTS_PROP, GROUP_MEMBERSHIPS_PROP};
+
+  /**
+   * Counts that apply to groups only
+   */
+  public static final String[] GROUP_COUNTS_PROPS = new String[]{GROUP_MEMBERS_PROP};
+
+  /**
    * If present and true, the authorizable will not appear in the search index.
    */
   public static final String SAKAI_EXCLUDE = "sakai:excludeSearch";

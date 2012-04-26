@@ -8,7 +8,7 @@ include SlingSearch
 class TC_Kern637Test < Test::Unit::TestCase
   include SlingTest
   def test_site_is_not_template
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
     sitecreator = create_user("testuser#{m}")

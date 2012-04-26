@@ -308,7 +308,7 @@ public class SamlAuthenticationHandlerTest {
         response, authenticationInfo);
     assertFalse(actionTaken);
     verify(postProcessService).process(any(Authorizable.class), any(Session.class),
-        any(ModificationType.class), any(SlingHttpServletRequest.class));
+        any(ModificationType.class), any(Map.class));
   }
 
   @Test

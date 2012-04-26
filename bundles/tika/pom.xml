@@ -18,12 +18,12 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>1.1</version>
+    <version>1.2.0</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.tika</artifactId>
   <packaging>jar</packaging>
-  <version>0.9.1.1</version>
+  <version>1.0.1.2.0</version>
   <name>Sakai Nakamura :: Tika Bundle</name>
   <description>Wraps the Tika functionality but uses a slightly different tika-mimetypes.xml for extracting HTML.</description>
   <build>
@@ -42,7 +42,7 @@
               <goal>unpack-dependencies</goal>
             </goals>
             <configuration>
-              <includeArtifactIds>tika-bundle</includeArtifactIds>
+              <includeArtifactIds>tika-core</includeArtifactIds>
               <excludeTransitive>false</excludeTransitive>
               <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
               <excludes>META-INF/MANIFEST.MF,org/apache/tika/mime/tika-mimetypes.xml,org/apache/tika/tika-config.xml</excludes>
@@ -127,8 +127,13 @@
     </dependency>
     <dependency>
       <groupId>org.apache.tika</groupId>
-      <artifactId>tika-bundle</artifactId>
-      <version>0.9</version>
+      <artifactId>tika-core</artifactId>
+      <version>1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>biz.aQute</groupId>
+      <artifactId>bndlib</artifactId>
+      <version>1.50.0</version>
     </dependency>
   </dependencies>
 </project>

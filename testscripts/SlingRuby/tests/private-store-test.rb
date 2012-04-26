@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura'
 require 'nakamura/test'
 include SlingInterface
@@ -11,7 +13,7 @@ class TC_PrivateNodeCreateTest < Test::Unit::TestCase
 
   def test_create__private_node
     @log.info("test_create_private_node---------------------------------------------------START")
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     testpath = "/private/testnode"
     user1 = "user1ps-"+m
     u1 = create_user(user1)

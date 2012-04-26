@@ -21,6 +21,11 @@ import static org.sakaiproject.nakamura.api.connections.ConnectionState.ACCEPTED
 import static org.sakaiproject.nakamura.api.connections.ConnectionState.INVITED;
 import static org.sakaiproject.nakamura.api.connections.ConnectionState.PENDING;
 
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.util.ISO9075;
@@ -30,6 +35,7 @@ import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
@@ -50,19 +56,22 @@ import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.messagebucket.MessageBucketException;
 import org.sakaiproject.nakamura.api.messagebucket.MessageBucketService;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+import org.sakaiproject.nakamura.api.user.AuthorizableUtil;
 import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
+import org.sakaiproject.nakamura.util.telemetry.TelemetryCounter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Joiner;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -73,14 +82,17 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.MissingResourceException;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "MeServlet", okForVersion = "1.1",
+@ServiceDocumentation(name = "MeServlet", okForVersion = "1.2",
     shortDescription = "Returns information about the current active user.",
     description = "Presents information about current user in JSON format.",
     bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/me"),
@@ -121,8 +133,25 @@ import javax.servlet.http.HttpServletResponse;
       "}<pre>"),
     @ServiceResponse(code = 401, description = "Unauthorized: credentials provided were not acceptable to return information for."),
     @ServiceResponse(code = 500, description = "Unable to return information about current user.") }))
-@SlingServlet(paths = { "/system/me" }, generateComponent = true, generateService = true, methods = { "GET" })
+@SlingServlet(paths = { "/system/me" }, generateComponent = false, methods = { "GET" })
+@Component // this is needed to add the activate method
+@Properties({
+  @Property(name = LiteMeServlet.LOCALE_LANGUAGE_PROP, value = LiteMeServlet.DEFAULT_LANGUAGE),
+  @Property(name = LiteMeServlet.LOCALE_COUNTRY_PROP, value = LiteMeServlet.DEFAULT_COUNTRY)
+})
 public class LiteMeServlet extends SlingSafeMethodsServlet {
+  public static final String LOCALE_LANGUAGE_PROP = "locale.language";
+  public static final String LOCALE_COUNTRY_PROP = "locale.country";
+
+  public static final String DEFAULT_LANGUAGE = "en";
+  public static final String DEFAULT_COUNTRY = "US";
+
+  // ^[a-zA-Z]{2}([_]?([a-zA-Z]{2}|[0-9]{3}))?$");
+  private static final String LANGUAGE_PATTERN = "([a-zA-Z]{2})";
+  private static final String COUNTRY_PATTERN = "([a-zA-Z]{2}|[0-9]{3})";
+  private static final String LOCALE_PATTERN = "^%s(_%s)?$";
+  private static final Pattern LOCALE_REGEX = Pattern.compile(String.format(
+      LOCALE_PATTERN, LANGUAGE_PATTERN, COUNTRY_PATTERN));
 
   private static final long serialVersionUID = -3786472219389695181L;
   private static final Logger LOG = LoggerFactory.getLogger(LiteMeServlet.class);
@@ -136,15 +165,22 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
   protected transient ConnectionManager connectionManager;
 
   @Reference
-  protected transient ProfileService profileService;
+  protected MessageBucketService messageBucketService;
 
   @Reference
-  private MessageBucketService messageBucketService;
+  protected SolrSearchServiceFactory searchServiceFactory;
 
   @Reference
-  SolrSearchServiceFactory searchServiceFactory;
-  @Reference
-  BasicUserInfoService basicUserInfoService;
+  protected BasicUserInfoService basicUserInfoService;
+
+  private String defaultLanguage;
+  private String defaultCountry;
+
+  @Activate @Modified
+  protected void activate(Map<?, ?> props) {
+    defaultLanguage = PropertiesUtil.toString(props.get(LOCALE_LANGUAGE_PROP), DEFAULT_LANGUAGE);
+    defaultCountry = PropertiesUtil.toString(props.get(LOCALE_COUNTRY_PROP), DEFAULT_COUNTRY).toUpperCase();
+  }
 
   /**
    * {@inheritDoc}
@@ -155,10 +191,10 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
+    TelemetryCounter.incrementValue("meservice", "LiteMeServlet", "/system/me");
     try {
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
-      javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
       final Session session = StorageClientUtils.adaptToSession(request
           .getResourceResolver().adaptTo(javax.jcr.Session.class));
       if (session == null) {
@@ -199,7 +235,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
 
       // Dump this user his info
       writer.key("profile");
-      ValueMap profile = profileService.getProfileMap(au,jcrSession);
+      ValueMap profile = new ValueMapDecorator(basicUserInfoService.getProperties(au));
       writer.valueMap(profile);
 
       // Dump this user his number of unread messages.
@@ -208,11 +244,11 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
 
       // Dump this user his number of contacts.
       writer.key("contacts");
-      writeContactCounts(writer, session, au, request);
+      writeContactCounts(writer, au, request);
 
       // Dump the groups for this user.
       writer.key("groups");
-      writeGroups(writer, session, au, jcrSession);
+      writeGroups(writer, session, au);
 
       writer.endObject();
     } catch (JSONException e) {
@@ -227,10 +263,6 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
       LOG.error("Failed to get a user his profile node in /system/me", e);
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
           "Access denied error.");
-    } catch (RepositoryException e) {
-      LOG.error("Failed to get a user his profile node in /system/me", e);
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-          "Sparse storage client error.");
     } catch (MessagingException e) {
       LOG.error("Failed to get a user his message counts in /system/me", e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
@@ -253,7 +285,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
    * @throws AccessDeniedException
    * @throws RepositoryException
    */
-  protected void writeGroups(ExtendedJSONWriter writer, Session session, Authorizable au, javax.jcr.Session jcrSession)
+  protected void writeGroups(ExtendedJSONWriter writer, Session session, Authorizable au)
       throws JSONException, StorageClientException, AccessDeniedException {
     AuthorizableManager authorizableManager = session.getAuthorizableManager();
     writer.array();
@@ -265,10 +297,9 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
 //      for(String principal : principals) {
 //        Authorizable group = authorizableManager.findAuthorizable(principal);
         Authorizable group = memberOf.next();
-        if (group == null
-            || !(group instanceof Group)
+        if (AuthorizableUtil.isContactGroup(group)
             || Group.EVERYONE.equals(group.getId())) {
-          // we don't want the "everyone" group in this feed
+          // we don't want the "everyone" group or contact groups in this feed
           continue;
         }
         if (group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
@@ -298,8 +329,8 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
    * @throws SolrSearchException
    * @throws RepositoryException
    */
-  protected void writeContactCounts(ExtendedJSONWriter writer, Session session,
-      Authorizable au, SlingHttpServletRequest request) throws JSONException, SolrSearchException {
+  protected void writeContactCounts(ExtendedJSONWriter writer, Authorizable au,
+      SlingHttpServletRequest request) throws JSONException, SolrSearchException {
     writer.object();
 
     // We don't do queries for anonymous users. (Possible ddos hole).
@@ -329,7 +360,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
       while (resultIterator.hasNext()) {
         Result contact = resultIterator.next();
         if (contact.getProperties().containsKey("state")) {
-          String state = (String) contact.getProperties().get("state").iterator().next();
+          String state = ((String) contact.getProperties().get("state").iterator().next()).toLowerCase();
           int count = 0;
           if (contacts.containsKey(state)) {
             count = contacts.get(state);
@@ -438,19 +469,12 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
   protected void writeLocale(ExtendedJSONWriter write, Map<String, Object> properties,
       SlingHttpServletRequest request) throws JSONException {
 
-    /* Get the correct locale */
-    Locale l = request.getLocale();
-    if (properties.containsKey(LOCALE_FIELD)) {
-      String locale[] = properties.get(LOCALE_FIELD).toString().split("_");
-      if (locale.length == 2) {
-        l = new Locale(locale[0], locale[1]);
-      }
-    }
+    Locale locale = getLocale(properties);
 
     /* Get the correct time zone */
     TimeZone tz = TimeZone.getDefault();
     if (properties.containsKey(TIMEZONE_FIELD)) {
-      String timezone = properties.get(TIMEZONE_FIELD).toString();
+      String timezone = String.valueOf(properties.get(TIMEZONE_FIELD));
       tz = TimeZone.getTimeZone(timezone);
     }
     int daylightSavingsOffset = tz.inDaylightTime(new Date()) ? tz.getDSTSavings() : 0;
@@ -460,23 +484,33 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
     write.key("locale");
     write.object();
     write.key("country");
-    write.value(l.getCountry());
+    write.value(locale.getCountry());
     write.key("displayCountry");
-    write.value(l.getDisplayCountry(l));
+    write.value(locale.getDisplayCountry(locale));
     write.key("displayLanguage");
-    write.value(l.getDisplayLanguage(l));
+    write.value(locale.getDisplayLanguage(locale));
     write.key("displayName");
-    write.value(l.getDisplayName(l));
+    write.value(locale.getDisplayName(locale));
     write.key("displayVariant");
-    write.value(l.getDisplayVariant(l));
+    write.value(locale.getDisplayVariant(locale));
     write.key("ISO3Country");
-    write.value(l.getISO3Country());
+    try {
+      write.value(locale.getISO3Country());
+    } catch (MissingResourceException e) {
+      write.value("");
+      LOG.debug("Unable to find ISO3 country [{}]", locale);
+    }
     write.key("ISO3Language");
-    write.value(l.getISO3Language());
+    try {
+      write.value(locale.getISO3Language());
+    } catch (MissingResourceException e) {
+      write.value("");
+      LOG.debug("Unable to find ISO3 language [{}]", locale);
+    }
     write.key("language");
-    write.value(l.getLanguage());
+    write.value(locale.getLanguage());
     write.key("variant");
-    write.value(l.getVariant());
+    write.value(locale.getVariant());
 
     /* Add the timezone information into the output */
     write.key("timezone");
@@ -488,6 +522,40 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
     write.endObject();
 
     write.endObject();
+  }
+
+  /**
+   * Get a valid {@link Locale}. Checks <code>properties</code> for a locale setting.
+   * Defaults to the server configured language and country code.
+   *
+   * @param properties
+   * @return
+   */
+  protected Locale getLocale(Map<String, Object> properties) {
+    /* Get the correct locale */
+    String localeLanguage = defaultLanguage;
+    String localeCountry = defaultCountry;
+    if (properties.containsKey(LOCALE_FIELD)) {
+      String localeProp = String.valueOf(properties.get(LOCALE_FIELD));
+      Matcher localeMatcher = LOCALE_REGEX.matcher(localeProp);
+      if (localeMatcher.matches()) {
+        localeLanguage = localeMatcher.group(1);
+        if (localeMatcher.groupCount() == 3 && localeMatcher.group(3) != null) {
+          localeCountry = localeMatcher.group(3).toUpperCase();
+        } else {
+          localeCountry = "";
+        }
+      } else {
+        LOG.info("Using default locale [{}_{}] instead of locale setting [{}]",
+            new Object[] { localeLanguage, localeCountry, localeProp });
+      }
+    } else {
+      LOG.info("Using default locale [{}_{}]; no locale setting found", new Object[] {
+          localeLanguage, localeCountry });
+    }
+
+    Locale locale = new Locale(localeLanguage, localeCountry);
+    return locale;
   }
 
   /**
@@ -556,8 +624,9 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
     Map<String, Object> result = new HashMap<String, Object>();
     if (authorizable != null) {
       for (String propName : authorizable.getSafeProperties().keySet()) {
-        if (propName.startsWith("rep:"))
+        if (propName.startsWith("rep:")) {
           continue;
+        }
         Object o = authorizable.getProperty(propName);
         if ( o instanceof Object[] ) {
           Object[] values = (Object[]) o;
@@ -568,11 +637,8 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
             result.put(propName, values[0]);
             break;
           default: {
-            StringBuilder valueString = new StringBuilder("");
-            for (int i = 0; i < values.length; i++) {
-              valueString.append("," + values[i]);
-            }
-            result.put(propName, valueString.toString().substring(1));
+            String valueString = Joiner.on(',').join(values);
+            result.put(propName, valueString);
           }
           }
         } else {

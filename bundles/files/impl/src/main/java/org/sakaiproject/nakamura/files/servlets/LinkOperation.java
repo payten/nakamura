@@ -66,7 +66,12 @@ import javax.servlet.http.HttpServletResponse;
     @Property(name = "sling.post.operation", value = "link"),
     @Property(name = "service.description", value = "Creates an internal link to a file."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-@ServiceDocumentation(name = "LinkOperation", shortDescription = "Link a node to a file", description = { "Link a node to another node in the repository." }, methods = { @ServiceMethod(name = "POST", description = { "This operation has to be performed on the file NOT the target. In the current implementation we use file link nodes that connect the original uploaded file to another location. This practice will continue except we will obviously link to wherever the file was uploaded." }, parameters = {
+@ServiceDocumentation(name = "LinkOperation",
+    shortDescription = "Link a node to a file",
+    description = { "Link a node to another node in the repository." },
+    okForVersion = "1.2",
+    methods = { @ServiceMethod(name = "POST", description = { "This operation has to be performed on the file NOT the target. In the current implementation we use file link nodes that connect the original uploaded file to another location. This practice will continue except we will obviously link to wherever the file was uploaded." },
+        parameters = {
     @ServiceParameter(name = ":operation", description = "The value HAS TO BE <i>link</i>."),
     @ServiceParameter(name = "link", description = {
         "The absolute path in JCR where the link should be put.",
@@ -80,7 +85,6 @@ import javax.servlet.http.HttpServletResponse;
 public class LinkOperation extends AbstractSlingPostOperation {
 
   public static final Logger log = LoggerFactory.getLogger(LinkOperation.class);
-  private static final long serialVersionUID = -6206802633585722105L;
   private static final String LINK_PARAM = "link";
 
   @Reference

@@ -46,7 +46,6 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
@@ -59,6 +58,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.user.AuthorizableCountChanger;
 import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
 
 import java.io.IOException;
@@ -66,7 +66,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.security.Principal;
 import java.util.Arrays;
-import java.util.Iterator;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -109,7 +108,7 @@ public class ManageMembersContentPoolServletTest {
   @Mock
   private ProfileService profileService;
   @Mock
-  Iterator iterator;
+  private AuthorizableCountChanger authorizableCountChanger;
 
   private ManageMembersContentPoolServlet servlet;
   private PrintWriter printWriter;
@@ -170,6 +169,7 @@ public class ManageMembersContentPoolServletTest {
     // class as well as the internals of the MeServlet class. Mocking it would
     // reduce the cost of test maintenance.
     servlet.profileService = profileService;
+    servlet.authorizableCountChanger = authorizableCountChanger;
     when(resource.getResourceResolver()).thenReturn(resourceResolver);
     when(resourceResolver.adaptTo(Session.class)).thenReturn(session);
 

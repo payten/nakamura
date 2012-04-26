@@ -62,6 +62,8 @@ import org.sakaiproject.nakamura.proxy.velocity.JcrResourceLoader;
 import org.sakaiproject.nakamura.proxy.velocity.VelocityLogger;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -111,7 +113,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    */
   private static final String JCR_RESOURCE_LOADER = "jcr";
 
-  @Property(value={"rss", "trustedLoginTokenProxyPostProcessor", "someothersafepostprocessor"})
+  @Property(value={"rss", "trustedLoginTokenProxyPostProcessor", "iCal", "someothersafepostprocessor"})
   private static final String SAFE_POSTPROCESSORS = "safe.postprocessors";
 
   /**
@@ -138,6 +140,9 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
   private Map<String, Object> configProperties;
 
   private Set<String> safeOpenProcessors = new HashSet<String>();
+  
+  public static final Logger logger = LoggerFactory
+      .getLogger(ProxyClientServiceImpl.class);
 
   /**
    * Set to true if HttpClient communicates via an authenticating proxy server to
@@ -326,7 +331,8 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
             proxyMethod = ProxyMethod.valueOf(node
                 .getProperty(SAKAI_REQUEST_PROXY_METHOD).getString());
           } catch (Exception e) {
-
+            logger.debug("The Proxy request specified by  " + node
+          + " failed, cause follows:", e);
           }
         }
         HttpMethod method = null;

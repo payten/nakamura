@@ -12,7 +12,7 @@ class TC_MySiteTest < Test::Unit::TestCase
   include SlingTest
 
   def do_site_create
-    m = Time.now.to_i.to_s
+    m = uniqueness()
 	# the location of the site container
     sitecontainerid = "sites"
 	# the name of the site (under the container)
@@ -44,7 +44,7 @@ class TC_MySiteTest < Test::Unit::TestCase
   end
 
   def test_add_group_to_site
-    @m = Time.now.to_i.to_s
+    @m = uniqueness()
    site_group = create_group("g-mysitegroup"+@m)
    test_site = create_site("sites","Site Title"+@m,"/somesite"+@m)
    test_site.add_group(site_group.name)
@@ -54,7 +54,7 @@ class TC_MySiteTest < Test::Unit::TestCase
   end
 
   def test_join_unjoinable_site
-    @m = Time.now.to_i.to_s
+    @m = uniqueness()
     site_group = create_group("g-mysitegroup"+@m)
     site_user = create_user("mysiteuser"+@m)
     test_site = create_site("sites","Site Title"+@m,"/somesite"+@m)
@@ -84,12 +84,12 @@ class TC_MySiteTest < Test::Unit::TestCase
   end
 
   def test_join
-    @m = Time.now.to_i.to_s
+    @m = uniqueness()
     return do_join("someothersite"+@m, "g-mysitegroup"+@m, "mysiteuser"+@m)
   end
 
   def test_join_and_search
-    @m = Time.now.to_i.to_s
+    @m = uniqueness()
     do_join("anothersite"+@m, "g-mysitegroup"+@m, "mysiteuser"+@m)
     res = @s.update_node_props("sites/somesite/anothersite"+@m, "fish" => "dog")
     assert_equal(200, res.code.to_i, "Expected site property to be updated")
@@ -102,7 +102,7 @@ class TC_MySiteTest < Test::Unit::TestCase
   end
 
   def test_multi_group_join
-    @m = Time.now.to_i.to_s
+    @m = uniqueness()
     site = do_join("anothersite"+@m, "g-mysitegroup"+@m, "mysiteuser"+@m)
     group2 = create_group("g-sitegroup2"+@m)
     group2.add_member(@s, "mysiteuser"+@m, "user")

@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 include SlingUsers
 
@@ -8,7 +10,7 @@ class TC_Kern1540Test < Test::Unit::TestCase
   include SlingTest
 
   def test_calendar_in_user_home
-    m = Time.now.to_nsec
+    m = uniqueness()
     user = create_user("user-#{m}")
     home = user.home_path_for(@s)
     public = user.public_path_for(@s)

@@ -54,6 +54,7 @@ import org.sakaiproject.nakamura.util.StringUtils;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import javax.jcr.RepositoryException;
 
 /**
@@ -85,7 +86,6 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
     writers.put(writer.getType(), writer);
   }
 
-  @SuppressWarnings({"UnusedDeclaration"})
   public void unbindWriters(LiteMessageProfileWriter writer) {
     writers.remove(writer.getType());
   }

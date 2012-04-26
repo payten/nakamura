@@ -40,7 +40,6 @@ import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
@@ -65,6 +64,7 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Handler for messages that are sent locally and intended for local delivery. Needs to be
@@ -129,9 +129,9 @@ public class LiteDiscussionMessageTransport implements LiteMessageTransport {
           Map<String, Object> propertyBuilder = Maps.newHashMap();
 
           Map<String, Object> messageProps = originalMessage.getProperties();
-          for (String propertyKey : messageProps.keySet()) {
-            if (!JcrUtils.isJCRProperty(propertyKey)) {
-              propertyBuilder.put(propertyKey, messageProps.get(propertyKey));
+          for (Entry<String, Object> messageProp : messageProps.entrySet()) {
+            if (!JcrUtils.isJCRProperty(messageProp.getKey())) {
+              propertyBuilder.put(messageProp.getKey(), messageProp.getValue());
             }
           }
 
@@ -141,11 +141,9 @@ public class LiteDiscussionMessageTransport implements LiteMessageTransport {
           propertyBuilder.put(PROP_SAKAI_MESSAGEBOX, BOX_INBOX);
           propertyBuilder.put(PROP_SAKAI_SENDSTATE, STATE_NOTIFIED);
           // store the path of the message store for searching
-          // hash the path to keep it from being too long
           String messageStorePath = messagingService.getFullPathToStore(recipient,
               session);
-          propertyBuilder.put(PROP_SAKAI_MESSAGE_STORE,
-              StorageClientUtils.insecureHash(messageStorePath));
+          propertyBuilder.put(PROP_SAKAI_MESSAGE_STORE, messageStorePath);
 
           Content newMessageNode = new Content(toPath, propertyBuilder);
           

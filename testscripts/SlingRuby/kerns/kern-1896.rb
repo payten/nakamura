@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'nakamura/file'
 require 'nakamura/users'
@@ -23,7 +25,7 @@ class TC_Kern1896Test < Test::Unit::TestCase
   end
 
   def test_manager_users
-    m = Time.now.to_i.to_s
+    m = uniqueness()
 
     # Create some users
     creator = create_user("testuser-#{m}")

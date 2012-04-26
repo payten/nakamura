@@ -38,7 +38,6 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.api.search.solr.SolrSearchUtil;
 import org.sakaiproject.nakamura.api.solr.SafeSolrMap;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -84,7 +83,6 @@ public class DefaultResourceSearchResultProcessor implements SolrSearchResultPro
 
   public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result)
       throws JSONException {
-    int maxTraversalDepth = SolrSearchUtil.getTraversalDepth(request);
     ResourceResolver resolver = request.getResourceResolver();
     write.object();
     write.key("searchdoc");

@@ -53,7 +53,10 @@ public class CalenderSearchPropertyProvider implements SolrSearchPropertyProvide
   protected static final String START_DAY_PARAM = "start";
   protected static final String END_DAY_PARAM = "end";
 
-  protected static final SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
+  private SimpleDateFormat format() {
+    final SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
+    return format;
+  }
 
   /**
    * {@inheritDoc}
@@ -126,8 +129,8 @@ public class CalenderSearchPropertyProvider implements SolrSearchPropertyProvide
       if (startParam != null && endParam != null) {
         String start = startParam.getString("UTF-8");
         String end = endParam.getString("UTF-8");
-        cStart.setTime(format.parse(start));
-        cEnd.setTime(format.parse(end));
+        cStart.setTime(format().parse(start));
+        cEnd.setTime(format().parse(end));
       }
 
       // Calculate the beginning and the end date.

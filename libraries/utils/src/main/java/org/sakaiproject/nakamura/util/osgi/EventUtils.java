@@ -17,18 +17,19 @@
  */
 package org.sakaiproject.nakamura.util.osgi;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
+
 import org.apache.sling.api.SlingConstants;
 import org.apache.sling.api.resource.Resource;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMap.Builder;
-
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -126,10 +127,10 @@ public class EventUtils {
     if (obj instanceof Map){
       Map<String,Object> oldMap = (Map<String,Object>)obj;
       Builder<String, Object> newMap = ImmutableMap.builder();
-      for (String key: oldMap.keySet()){
-        Object newVal = cleanProperty(oldMap.get(key));
+      for (Entry<String, Object> entry : oldMap.entrySet()) {
+        Object newVal = cleanProperty(entry.getValue());
         if (newVal != null){
-          newMap.put(key, newVal);
+          newMap.put(entry.getKey(), newVal);
         }
       }
       return newMap.build();

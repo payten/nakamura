@@ -67,7 +67,7 @@ import javax.servlet.http.HttpServletResponse;
 @Service(value = Servlet.class)
 @SlingServlet(resourceTypes = { "sakai/proxy" }, methods = { "GET", "POST", "PUT",
     "HEAD", "OPTIONS" },generateComponent=true, generateService=true)
-@ServiceDocumentation(name = "ResourceProxyServlet", okForVersion = "1.1",
+@ServiceDocumentation(name = "ResourceProxyServlet", okForVersion = "1.2",
   shortDescription = "This servlet binds to a resource that defines an end point.",
   description = "This servlet binds to a resource that defines an end point.",
   bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/proxy") },
@@ -303,8 +303,9 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet implements Opti
       if (node.hasProperty(ProxyPostProcessor.SAKAI_POSTPROCESSOR)) {
         String postProcessorName = node.getProperty(
             ProxyPostProcessor.SAKAI_POSTPROCESSOR).getString();
-        if (postProcessors.containsKey(postProcessorName))
+        if (postProcessors.containsKey(postProcessorName)) {
           postProcessor = postProcessors.get(postProcessorName);
+        }
         if (postProcessor == null) {
           LOGGER.warn("Unable to find post processor of name {} for node {} ",
               postProcessorName, node.getPath());

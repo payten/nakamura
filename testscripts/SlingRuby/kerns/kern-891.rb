@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura'
 require 'nakamura/test'
 require 'nakamura/file'
@@ -20,7 +22,7 @@ class TC_MyFileTest_891 < Test::Unit::TestCase
   end
 
   def test_upload_file
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     @log.info("Creating user simon"+m)
     simon = create_user("simon"+m)
 
@@ -30,34 +32,27 @@ class TC_MyFileTest_891 < Test::Unit::TestCase
     # Upload a couple of files to the user his public space.
     res = @s.execute_file_post(@s.url_for("/system/pool/createfile"), "alfa", "alfa", "This is some random content: alfaalfa.", "text/plain")
     assert_equal(201, res.code.to_i(), "Expected to be able to upload a file.")
-	uploadresult = JSON.parse(res.body)
-	alfa = uploadresult['alfa']
-	assert_not_nil(alfa)
-	alphaID = alfa['poolId']
+    uploadresult = JSON.parse(res.body)
+    alfa = uploadresult['alfa']
+    assert_not_nil(alfa)
+    alphaID = alfa['poolId']
 
     res = @s.execute_file_post(@s.url_for("/system/pool/createfile"), "beta", "beta", "This is some random content: betabeta.", "text/plain")
     # This will return modified..
     assert_equal(201, res.code.to_i(), "Expected to be able to upload a file.")
-	uploadresult = JSON.parse(res.body)
-	beta = uploadresult['beta']
+    uploadresult = JSON.parse(res.body)
+	  beta = uploadresult['beta']
     assert_not_nil(beta)
     betaID = beta['poolId']
 
-    # Create a tag.
-    res = @ff.createTag("foobar", "#{publicSimon}/tags/footag")
-    assert_equal(201, res.code.to_i(), "Expected to be able to create a tag.")
-    # Get tag info
-    res = @s.execute_get(@s.url_for("#{publicSimon}/tags/footag.json"))
-    tag = JSON.parse(res.body)
-    assert_not_nil(tag, "No response when creating a tag.")
-
     # Tag the alfa file.
-    res = @ff.tag("/p/#{alphaID}", "#{publicSimon}/tags/footag")
+    res = @ff.tag("/p/#{alphaID}", "/tags/footag#{m}")
     assert_equal(200, res.code.to_i(), "Expected to be able to tag an uploaded file.")
 
-    # Tag a file with a non-existing tag.
-    res = @ff.tag("/p/#{betaID}", "foobar")
-    assert_equal(404, res.code.to_i(), "Tagging something with a non existing tag should return 404.")
+    # Get tag info
+    res = @s.execute_get(@s.url_for("/tags/footag#{m}.json"))
+    tag = JSON.parse(res.body)
+    assert_not_nil(tag, "No response when creating a tag.")
 
     #Try uploading as anonymous
     @log.info("Check that Anon is denied ")

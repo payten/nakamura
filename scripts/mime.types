@@ -458,6 +458,7 @@ image/g3fax
 image/gif			gif
 image/ief			ief
 image/jpeg			jpeg jpg jpe
+image/pjpeg			jpeg jpg jpe
 image/naplps
 image/png			png
 image/prs.btif

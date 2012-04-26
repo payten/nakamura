@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.templates.velocity;
 
 import org.apache.commons.collections.ExtendedProperties;
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
@@ -39,10 +40,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.Node;
 import javax.jcr.Repository;
-import org.apache.commons.lang.StringUtils;
 
 @Service
 @Component(immediate = true)
@@ -76,15 +77,16 @@ public class VelocityTemplateService implements TemplateService, TemplateNodeSou
 
   private Map<String,String> sanitize(Map<String, ? extends Object> parameters) {
     Map<String,String> rv = new HashMap<String,String>();
-    for (Object key : parameters.keySet()) {
-      Object value = parameters.get(key);
+    for (Entry<String, ? extends Object> param : parameters.entrySet()) {
+      Object value = param.getValue();
+      String key = param.getKey();
       if (value instanceof RequestParameter) {
-        rv.put(key.toString(), String.valueOf((RequestParameter) value));
+        rv.put(key, String.valueOf((RequestParameter) value));
       } else if (value instanceof String[]) {
         String[] values = (String[])value;
-        rv.put(key.toString(), values[0]);
+        rv.put(key, values[0]);
       } else {
-        rv.put(key.toString(), String.valueOf(value));
+        rv.put(key, String.valueOf(value));
       }
     }
     return rv;

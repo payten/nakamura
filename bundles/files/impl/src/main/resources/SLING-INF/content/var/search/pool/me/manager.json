@@ -1,6 +1,9 @@
 {
-  "sakai:query-template": "resourceType:sakai/pooled-content AND ((content:(${q}) OR filename:(${q}) OR tag:(${q}) OR description:(${q}) OR ngram:(${q}) OR edgengram:(${q}))${_meManagerGroups})${_mimetype}",
+  "sakai:query-template": "((content:(${q}) OR filename:(${q}) OR tag:(${q}) OR description:(${q}) OR ngram:(${q}) OR edgengram:(${q}) OR widgetdata(${q}))${_meManagerGroups})${_mimetype}",
   "sakai:query-template-options": {
+      "fq": "resourceType:(sakai/pooled-content OR sakai/widget-data)",
+      "group": true,
+      "group.field": "returnpath",
       "sort": "${sortOn} ${sortOrder}",
       "facet" : true,
       "facet.field" : "tagname",
@@ -12,7 +15,7 @@
     "sortOrder": "desc"
   },
   "sling:resourceType": "sakai/solr-search",
-  "sakai:propertyprovider" : ["PooledContent", "MimeMatch"],
+  "sakai:propertyprovider" : ["PooledContentSparse", "MimeMatch"],
   "sakai:title": "Pooled Content - Me - Manager",
   "sakai:shortDescription": "Searches trough all the files where the current user is a manager.",
   "sakai:parameters" : [

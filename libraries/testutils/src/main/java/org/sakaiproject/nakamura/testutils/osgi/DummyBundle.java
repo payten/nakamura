@@ -132,6 +132,7 @@ public class DummyBundle implements Bundle {
   public void update(InputStream arg0) throws BundleException {
   }
 
+  @SuppressWarnings("rawtypes")
   @Override
   public Map getSignerCertificates(int arg0) {
     return null;

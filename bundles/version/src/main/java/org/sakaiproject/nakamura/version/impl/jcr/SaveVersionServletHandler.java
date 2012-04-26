@@ -51,11 +51,6 @@ import javax.servlet.http.HttpServletResponse;
 @Property(name="handling.servlet",value="SaveVersionServlet")
 public class SaveVersionServletHandler  extends AbstractAllMethodsServletResourceHandler {
 
-
-  /**
-   *
-   */
-  private static final long serialVersionUID = -7513481862698805983L;
   private static final Logger LOGGER = LoggerFactory.getLogger(SaveVersionServletHandler.class);
 
   @Reference

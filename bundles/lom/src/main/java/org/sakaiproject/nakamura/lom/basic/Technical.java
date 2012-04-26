@@ -195,26 +195,37 @@ public class Technical extends Serialize{
   @Override
   public String generateXML() {
     StringBuilder sb = new StringBuilder("");
-    if (this.getFormat() != null)
-      for (int i = 0; i < this.getFormat().size(); i++)
+    if (this.getFormat() != null) {
+      for (int i = 0; i < this.getFormat().size(); i++) {
         sb.append("<format>" + this.getFormat().get(i) + "</format>");
-    if (this.getSize() != null)
+      }
+    }
+    if (this.getSize() != null) {
       sb.append("<size>" + this.getSize() + "</size>");
-    if (this.getLocation() != null)
-      for (int i = 0; i < this.getLocation().size(); i++)
+    }
+    if (this.getLocation() != null) {
+      for (int i = 0; i < this.getLocation().size(); i++) {
         sb.append("<location>" + this.getLocation().get(i) + "</location>");
-    if (this.getDuration() != null)
+      }
+    }
+    if (this.getDuration() != null) {
       sb.append(this.getDuration().generateXML());
-    if (this.getRequirement() != null)
-      for (int i = 0; i < this.getRequirement().size(); i++)
+    }
+    if (this.getRequirement() != null) {
+      for (int i = 0; i < this.getRequirement().size(); i++) {
         sb.append(this.getRequirement().get(i).generateXML());
-    if (this.getInstallationRemarks() != null)
+      }
+    }
+    if (this.getInstallationRemarks() != null) {
       sb.append(this.getInstallationRemarks().generateXML());
-    if (this.getOtherPlatFormRequirements() != null)
+    }
+    if (this.getOtherPlatFormRequirements() != null) {
       sb.append(this.getOtherPlatFormRequirements().generateXML());
+    }
     
-    if (sb.toString().equals(""))
+    if (sb.toString().equals("")) {
       return "";
+    }
     return new String("<technical>" + sb.toString() + "</technical>");
   }
 }

@@ -33,8 +33,9 @@ public class TypicalAgeRange extends LangStringType {
   
   @Override
   public String generateXML() {
-    if (this.getLangString().generateXML().equals(""))
+    if (this.getLangString().generateXML().equals("")) {
       return "";
+    }
     return new String("<typicalAgeRange>" + this.getLangString().generateXML() + "</typicalAgeRange>");
   }
 }

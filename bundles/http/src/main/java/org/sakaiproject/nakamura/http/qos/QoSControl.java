@@ -35,7 +35,7 @@ public class QoSControl {
       long timeout) {
     semaphore = new Semaphore(nRequests, true);
     this.priority = priority;
-    this.priorityQueue = priorityQueue;
+    this.priorityQueue = priorityQueue.clone();
     this.timeout = timeout;
   }
 

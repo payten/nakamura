@@ -40,8 +40,9 @@ public class InteractivityType extends VocabularyType {
   
   @Override
   public String generateXML() {
-    if (super.generateXML().equals(""))
+    if (super.generateXML().equals("")) {
       return "";
+    }
     return new String("<interactivityType>" + super.generateXML() + "</interactivityType>");
   }
 

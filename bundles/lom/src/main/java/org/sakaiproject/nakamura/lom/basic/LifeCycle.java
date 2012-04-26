@@ -48,12 +48,14 @@ public class LifeCycle extends Serialize {
     String statusName = "status";
     String contributeName = "contribute";
     JSONObject versionJSON = JSONUtil.getJSONObject(json, versionName);
-    if (versionJSON != null) 
+    if (versionJSON != null) {
       version = new Version(versionJSON);
+    }
     
     JSONObject statusJSON = JSONUtil.getJSONObject(json, statusName);
-    if (statusJSON != null)
+    if (statusJSON != null) {
       status = new Status(statusJSON);
+    }
     
     JSONObject contributeJSON = JSONUtil.getJSONObject(json, contributeName);
     if (contributeJSON == null) {
@@ -61,8 +63,9 @@ public class LifeCycle extends Serialize {
       if (contributeArray != null) {
         for (int i = 0; i < contributeArray.length(); i++) {
           JSONObject object = contributeArray.optJSONObject(i);
-          if (object != null)
+          if (object != null) {
             addContribute(new Contribute(object, Contribute.CONTRIBUTETYPE.LIFECYCLE));
+          }
         }
       }
     } else {
@@ -106,16 +109,20 @@ public class LifeCycle extends Serialize {
   @Override
   public String generateXML() {
     StringBuilder sb = new StringBuilder("");
-    if (this.getVersion() != null)
+    if (this.getVersion() != null) {
       sb.append(this.getVersion().generateXML());
-    if (this.getStatus() != null)
-      sb.append(this.getStatus().generateXML());
-    if (this.getContribute() != null) {
-      for (int i = 0; i < this.getContribute().size(); i++)
-        sb.append(this.getContribute().get(i).generateXML());
     }
-    if (sb.toString().equals(""))
+    if (this.getStatus() != null) {
+      sb.append(this.getStatus().generateXML());
+    }
+    if (this.getContribute() != null) {
+      for (int i = 0; i < this.getContribute().size(); i++) {
+        sb.append(this.getContribute().get(i).generateXML());
+      }
+    }
+    if (sb.toString().equals("")) {
       return "";
+    }
     return new String("<lifeCycle>" + sb.toString() + "</lifeCycle>");
   }
 }

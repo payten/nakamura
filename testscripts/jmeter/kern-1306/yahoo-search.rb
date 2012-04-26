@@ -1,6 +1,8 @@
 # usage: ruby yahoo-search.rb <destination path> <html|msword|pdf|ppt|rss|txt|xls> <Yahoo! appid>
 # Get your own app id at https://developer.apps.yahoo.com/wsregapp/
 require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'json'
 require 'net/http'
 

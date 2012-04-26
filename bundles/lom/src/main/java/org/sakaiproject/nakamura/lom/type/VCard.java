@@ -49,15 +49,15 @@ public class VCard {
         for(int i=0; i<lines.length; i++) {
           String l = lines[i].trim();
           if (l.startsWith("FN")){
-            name += l.substring(l.indexOf(":")+1);
+            name += l.substring(l.indexOf(':') + 1);
           }else if(l.startsWith("ORG")){
-            organization += l.substring(l.indexOf(":")+1);
+            organization += l.substring(l.indexOf(':') + 1);
           }else if(l.startsWith("TEL")){
-            tel += l.substring(l.indexOf(":")+1);
+            tel += l.substring(l.indexOf(':') + 1);
           }else if(l.startsWith("EMAIL")){
-            email += l.substring(l.indexOf(":")+1);
+            email += l.substring(l.indexOf(':') + 1);
           }else if(l.startsWith("ADR")){
-            address += l.substring(l.indexOf(":")+1);
+            address += l.substring(l.indexOf(':') + 1);
           }
         }
       }
@@ -99,16 +99,21 @@ public class VCard {
   public String getContent() {
     StringBuffer buf = new StringBuffer();
     buf.append("BEGIN:VCARD\n");
-    if (name!=null && name.length()>0)
+    if (name != null && name.length() > 0) {
       buf.append("FN:"+name+"\n");
-    if (organization!=null && organization.length()>0)
+    }
+    if (organization != null && organization.length() > 0) {
       buf.append("ORG:"+organization+"\n");
-    if (tel!=null && tel.length()>0)
+    }
+    if (tel != null && tel.length() > 0) {
       buf.append("TEL:"+tel+"\n");
-    if (email!=null && email.length()>0)
+    }
+    if (email != null && email.length() > 0) {
       buf.append("EMAIL;TYPE=INTERNET:"+email+"\n");
-    if (address!=null && address.length()>0)
+    }
+    if (address != null && address.length() > 0) {
       buf.append("ADR:"+address+"\n");
+    }
     buf.append("END:VCARD\n");
     content = buf.toString();
     return content;

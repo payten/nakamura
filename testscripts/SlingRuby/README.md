@@ -23,7 +23,7 @@ You can then install the ruby gem dependencies by running
 
 If you are using Windows XP, the following instruction may help.
 
-How to install curl, ruby, and the rubygem libraries (curb and json) onto a windows xp machine.
+How to install curl, ruby, and the rubygem libraries (json) onto a windows xp machine.
 ===============================================================================================
 Please note that more up to date documentation may be available on confluence.
 

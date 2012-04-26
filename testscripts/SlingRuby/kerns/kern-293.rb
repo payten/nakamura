@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'nakamura/search'
 require 'test/unit.rb'
@@ -11,7 +13,7 @@ class TC_Kern293Test < Test::Unit::TestCase
 
 =begin
   def test_overwrite
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     n1 = create_node("d1#{m}")
     n2 = create_node("d2#{m}")
     res = @s.execute_post(@s.url_for(n1), { ":operation" => "copy",
@@ -21,7 +23,7 @@ class TC_Kern293Test < Test::Unit::TestCase
 =end
 
   def test_overwrite_with_replace
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     n1 = create_node("a1#{m}")
     n2 = create_node("a2#{m}")
 	res = @s.execute_get(@s.url_for("a1#{m}.json"))

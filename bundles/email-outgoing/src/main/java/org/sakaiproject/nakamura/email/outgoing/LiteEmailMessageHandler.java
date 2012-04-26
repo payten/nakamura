@@ -26,7 +26,10 @@ import org.sakaiproject.nakamura.api.events.EventDeliveryConstants;
 import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventDeliveryMode;
 import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventMessageMode;
 import org.sakaiproject.nakamura.api.lite.content.Content;
-import org.sakaiproject.nakamura.api.message.*;
+import org.sakaiproject.nakamura.api.message.LiteMessageTransport;
+import org.sakaiproject.nakamura.api.message.MessageConstants;
+import org.sakaiproject.nakamura.api.message.MessageRoute;
+import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,7 +91,8 @@ public class LiteEmailMessageHandler implements LiteMessageTransport {
       props.put(EventDeliveryConstants.MESSAGE_MODE, EventMessageMode.PERSISTENT);
       props.put(LiteOutgoingEmailMessageListener.RECIPIENTS, recipients);
       props.put(LiteOutgoingEmailMessageListener.CONTENT_PATH_PROPERTY, message.getPath());
-      Event emailEvent = new Event(LiteOutgoingEmailMessageListener.QUEUE_NAME, (Map) props);
+      Event emailEvent = new Event(LiteOutgoingEmailMessageListener.QUEUE_NAME,
+          (Map<Object, Object>) props);
 
       LOGGER.debug("Sending event [" + emailEvent + "]");
       eventAdmin.postEvent(emailEvent);

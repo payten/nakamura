@@ -18,7 +18,7 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>1.1</version>
+    <version>1.2.0</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.cluster</artifactId>
@@ -102,19 +102,19 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.memory</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.proxy</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -165,7 +165,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     
@@ -180,7 +180,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -192,7 +192,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.activemq</artifactId>
-      <version>5.3.0.1.1</version>
+      <version>5.3.0.1.2.0</version>
       <scope>provided</scope>
     </dependency>
   

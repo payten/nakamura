@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'nakamura/file'
 require 'nakamura/authz'
@@ -33,7 +35,7 @@ class TC_Kern1877Test < Test::Unit::TestCase
   def test_get_pooled_content_activities
     @fm = FileManager.new(@s)
     @authz = SlingAuthz::Authz.new(@s)
-    m = Time.now.to_nsec
+    m = uniqueness()
     manager = create_user("user-manager-#{m}")
     @s.switch_user(manager)
     res = @fm.upload_pooled_file("random-#{m}.txt", "Plain content", "text/plain")

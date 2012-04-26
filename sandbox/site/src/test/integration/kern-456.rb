@@ -10,7 +10,7 @@ class TC_Kern456Test < Test::Unit::TestCase
   include SlingTest
 
   def test_site_node_deletion
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     site_creator = create_user("testuser#{m}")
     non_member = create_user("otheruser#{m}")
     @s.switch_user(site_creator)

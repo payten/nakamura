@@ -27,12 +27,12 @@ import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.basiclti.LiteBasicLTIContextIdResolver;
 import org.sakaiproject.nakamura.api.basiclti.VirtualToolDataProvider;
-import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
-import org.sakaiproject.nakamura.api.lite.authorizable.Group;
-import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,20 +69,23 @@ public class LiteDefaultContextIdResolver implements LiteBasicLTIContextIdResolv
    * 
    * @see {@link LiteBasicLTIContextIdResolver#resolveContextId(Content)}
    */
-  public String resolveContextId(final Content node, String groupId, Session session) throws AccessDeniedException, StorageClientException {
-    LOG.debug("resolveContextId(Content {})", node);
+  public String resolveContextId(final Content node, String groupId, Session session)
+      throws AccessDeniedException, StorageClientException {
+    LOG.debug("resolveContextId(Content {}, String {}, Session session)", node, groupId);
     if (node == null) {
       throw new IllegalArgumentException("Content cannot be null");
     }
+    if (session == null) {
+      throw new IllegalArgumentException("Session cannot be null");
+    }
     
     final AuthorizableManager authManager = session.getAuthorizableManager();
-    final org.sakaiproject.nakamura.api.lite.authorizable.Authorizable az = authManager
-        .findAuthorizable(session.getUserId());
 
     String contextId = null;
     if (groupId != null) {
       contextId = groupId;
       Group group = (Group) authManager.findAuthorizable(groupId);
+      LOG.debug("group = {}", group);
       // If we are using a Group, we check the group's node to see if it has the optional
       // cle-site property which will correspond to a concrete site on the CLE installs that
       // we wish to use for the context on Sakai2Tools widgets. 
@@ -90,14 +93,16 @@ public class LiteDefaultContextIdResolver implements LiteBasicLTIContextIdResolv
       // ( it could be from a completely seperate location, etherpad etc. ). If it is
       // a Sakai 2 Tool, then we use the cle-site property as the context for that BLTI
       // launch.
-      String sakaiSite = (String) group.getProperty("sakai:cle-site");
-      if (sakaiSite != null) {
-        // Check and see if this is a Sakai Site
-        // Right now the only virtualtoolprovider is for Sakai CLE.
-        String vtoolid = (String) node.getProperty(LTI_VTOOL_ID);
-        if (vtoolid != null && 
-            virtualToolDataProvider.getSupportedVirtualToolIds().contains(vtoolid)) {
-          contextId = sakaiSite;
+      if (group != null) {
+        final String sakaiSite = (String) group.getProperty("sakai:cle-site");
+        if (sakaiSite != null) {
+          // Check and see if this is a Sakai Site
+          // Right now the only virtualtoolprovider is for Sakai CLE.
+          final String vtoolid = (String) node.getProperty(LTI_VTOOL_ID);
+          if (vtoolid != null &&
+              virtualToolDataProvider.getSupportedVirtualToolIds().contains(vtoolid)) {
+            contextId = sakaiSite;
+          }
         }
       }
     }

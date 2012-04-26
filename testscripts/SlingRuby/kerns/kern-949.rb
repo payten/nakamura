@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 include SlingUsers
 
@@ -9,7 +11,7 @@ class TC_Kern949Test < Test::Unit::TestCase
 
   # test is moot because of KERN-1821
   def test_create_managers_group
-    # m = Time.now.to_nsec
+    # m = uniqueness()
     # manager = create_user("user-manager-#{m}")
     # group = Group.new("g-test-#{m}")
     # @s.switch_user(User.admin_user())
@@ -34,7 +36,7 @@ class TC_Kern949Test < Test::Unit::TestCase
 
   # test is moot because of KERN-1821
   def test_update_managers_group
-    # m = Time.now.to_nsec
+    # m = uniqueness()
     # manager = create_user("user-manager-#{m}")
     # other = create_user("user-other-#{m}")
     # group = Group.new("g-test-#{m}")
@@ -60,7 +62,7 @@ class TC_Kern949Test < Test::Unit::TestCase
   def Xtest_managers_group_contention
     # this test is no longer valid and so has been disabled.
 
-    m = Time.now.to_nsec
+    m = uniqueness()
     manager = create_user("user-manager-#{m}")
     group = Group.new("g-test-#{m}")
     contentious = Group.new("g-test-#{m}-managers")

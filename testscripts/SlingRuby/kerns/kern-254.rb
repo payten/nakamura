@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'nakamura/search'
 require 'test/unit.rb'
@@ -11,7 +13,7 @@ class TC_Kern254Test < Test::Unit::TestCase
   include SlingTest
 
   def test_modify_user_after_group_join
-    m = "1b"+Time.now.to_i.to_s
+    m = "1b"+uniqueness()
 	testuser = "testuser#{m}"
     u = create_user(testuser)
     g1 = create_group("g-testgroup#{m}")

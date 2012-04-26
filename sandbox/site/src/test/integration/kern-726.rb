@@ -6,7 +6,7 @@ require 'nakamura/test'
 class TC_Kern726Test < Test::Unit::TestCase
   include SlingTest
   def test_site_create_not_destroy
-    m = Time.now.to_f.to_s.gsub('.', '_')
+    m = uniqueness()
     siteid = "testsite_#{m}"
     siteparent = "testsite_parent_#{m}"
     sitecreator = create_user("testsiteuser#{m}")

@@ -17,17 +17,17 @@
  */
 package org.sakaiproject.nakamura.user.counts;
 
-import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.user.AuthorizableUtil;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Iterator;
+import java.util.List;
 
 /**
  * Membership counter.
@@ -50,36 +50,23 @@ public class GroupMembershipCounter {
     
     int count = 0;
     if ( au != null && !CountProvider.IGNORE_AUTHIDS.contains(au.getId())) {
-      // code borrowed from LiteMeServlet to include indirect memberships
-      // KERN-1831 changed from getPrincipals to memberOf to drill down list
-      for (Iterator<Group> memberOf = au.memberOf(authorizableManager); memberOf.hasNext();) {
-        Authorizable group = memberOf.next();
-        if (group == null || !(group instanceof Group)
-            // we don't want to count the everyone groups
-            || CountProvider.IGNORE_AUTHIDS.contains(group.getId())
-            // don't count if the group is to be excluded
-            || Boolean.parseBoolean(String.valueOf(group.getProperty("sakai:excludeSearch")))
-            // don't count if the group lacks a title
-            || group.getProperty("sakai:group-title") == null
-            || StringUtils.isEmpty(String.valueOf(group.getProperty("sakai:group-title")))
-            // don't count the special "contacts" group
-            || group.getId().startsWith("g-contacts-")) {
-          continue;
-        }
+      // get groups from AuthorizableUtil
+      List<Authorizable> groups = AuthorizableUtil.getUserFacingGroups(au,authorizableManager);
+      for (Authorizable group : groups) {
         if (group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
           // fetch the group that the manager group manages
           Authorizable managedGroup = authorizableManager.findAuthorizable((String) group
               .getProperty(UserConstants.PROP_MANAGED_GROUP));
           if (managedGroup == null || !(managedGroup instanceof Group)) {
             // dont count this group if the managed group doesnt exist. (ieb why ?, the users is still a member of this group even if the managed group doesnt exist)
-            continue;
+            groups.remove(group);
           }
         }
-        count++;
-        if (count >= MAX_GROUP_COUNT) {
-          LOGGER.warn("getGroupsCount() has reached its maximum of {} check for reason, possible DOS issue?", new Object[]{MAX_GROUP_COUNT});
-          return count;
-        }
+      }
+      count = groups.size();
+      if (count >= MAX_GROUP_COUNT) {
+        LOGGER.warn("getGroupsCount() has reached its maximum of {} check for reason, possible DOS issue?", new Object[]{MAX_GROUP_COUNT});
+        return count;
       }
     }
     return count;

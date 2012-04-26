@@ -14,7 +14,7 @@ class TC_Kern259Test < Test::Unit::TestCase
 #  end
 
   def test_site_membership
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     @log.info("Creating Site at /sites/testsite/"+m)
     test_site = create_site("sites", "My Test Site " + m, "/testsite/" + m)
     test_site.set_joinable("yes")

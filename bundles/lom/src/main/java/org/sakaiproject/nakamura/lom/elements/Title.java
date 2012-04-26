@@ -33,8 +33,9 @@ public class Title extends LangStringType {
   
   @Override
   public String generateXML() {
-    if (this.getLangString().generateXML().equals(""))
+    if (this.getLangString().generateXML().equals("")) {
       return "";
+    }
     return new String("<title>" + this.getLangString().generateXML() + "</title>");
   }
 }

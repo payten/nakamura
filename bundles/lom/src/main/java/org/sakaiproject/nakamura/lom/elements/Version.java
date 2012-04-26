@@ -32,8 +32,9 @@ public class Version extends LangStringType {
   
   @Override
   public String generateXML() {
-    if (this.getLangString().generateXML().equals(""))
+    if (this.getLangString().generateXML().equals("")) {
       return "";
+    }
     return new String("<version>" + this.getLangString().generateXML() + "</version>");
   }
 }

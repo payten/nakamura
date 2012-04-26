@@ -40,8 +40,9 @@ public abstract class DateTimeType extends Serialize {
     String descriptionName = "description";
     dateTime = JSONUtil.getStringValue(json, dateTimeName);
     JSONObject descriptionJSON = JSONUtil.getJSONObject(json, descriptionName);
-    if (descriptionJSON != null)
+    if (descriptionJSON != null) {
       description = new Description(descriptionJSON);
+    }
   }
   
   public String getDateTime() {
@@ -69,8 +70,9 @@ public abstract class DateTimeType extends Serialize {
     if (this.getDescription() != null) {
       sb.append(this.getDescription().generateXML());
     }
-    if (sb.toString().equals(""))
+    if (sb.toString().equals("")) {
       return "";
+    }
     return sb.toString();
   }
 }

@@ -1,5 +1,8 @@
 #!/usr/bin/ruby
 
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 
 if ARGV.size < 1
   puts "Usage: test.rb TESTNAME"

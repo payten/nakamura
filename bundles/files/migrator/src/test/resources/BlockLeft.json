@@ -1,0 +1,297 @@
+{
+    "_lastModifiedBy": "4803",
+    "sakai:permissions": "public",
+    "_mimeType": "x-sakai/document",
+    "_createdBy": "admin",
+    "_path": "kyl9opYaa",
+    "sakai:description": "",
+    "sling:resourceType": "sakai/pooled-content",
+    "sakai:pooled-content-viewer": [
+        "anonymous",
+        "everyone",
+        "IS214-Needs-Usability-Assessment-member"
+    ],
+    "sakai:pooled-content-manager": [
+        "208861",
+        "IS214-Needs-Usability-Assessment-manager"
+    ],
+    "_created": 1327107267914,
+    "sakai:pool-content-created-for": "208861",
+    "_id": "eFVaoEPKEeGO3eGMqeXzCg+",
+    "sakai:pooled-content-file-name": "Class Information",
+    "structure0": "{\"id6301780\":{\"_title\":\"Home Page\",\"_order\":0,\"_ref\":\"id479360\",\"_nonEditable\":false,\"main\":{\"_title\":\"Page 1\",\"_order\":0,\"_ref\":\"id479360\",\"_nonEditable\":false,\"_id\":\"main\",\"_elements\":[],\"_poolpath\":\"/p/kyl9opYaa\",\"_childCount\":0},\"_id\":\"id6301780\",\"_elements\":[{\"_title\":\"Page 1\",\"_order\":0,\"_ref\":\"id479360\",\"_nonEditable\":false,\"_id\":\"main\",\"_elements\":[],\"_poolpath\":\"/p/kyl9opYaa\",\"_childCount\":0}],\"_poolpath\":\"/p/kyl9opYaa\",\"_canEdit\":true,\"_canSubedit\":true,\"_childCount\":1},\"id7620951\":{\"_title\":\"Contact\",\"_order\":2,\"_ref\":\"id9733210\",\"_nonEditable\":false,\"main\":{\"_title\":\"Page 3\",\"_order\":0,\"_ref\":\"id9733210\",\"_nonEditable\":false,\"_id\":\"main\",\"_elements\":[],\"_poolpath\":\"/p/kyl9opYaa\",\"_childCount\":0},\"_id\":\"id7620951\",\"_elements\":[{\"_title\":\"Page 3\",\"_order\":0,\"_ref\":\"id9733210\",\"_nonEditable\":false,\"_id\":\"main\",\"_elements\":[],\"_poolpath\":\"/p/kyl9opYaa\",\"_childCount\":0}],\"_poolpath\":\"/p/kyl9opYaa\",\"_canEdit\":true,\"_canSubedit\":true,\"_childCount\":1},\"id8516593\":{\"_title\":\"Grading & Policies\",\"_order\":3,\"_ref\":\"id4815761\",\"_nonEditable\":false,\"main\":{\"_title\":\"Page 4\",\"_order\":0,\"_ref\":\"id4815761\",\"_nonEditable\":false,\"_id\":\"main\",\"_elements\":[],\"_poolpath\":\"/p/kyl9opYaa\",\"_childCount\":0},\"_id\":\"id8516593\",\"_elements\":[{\"_title\":\"Page 4\",\"_order\":0,\"_ref\":\"id4815761\",\"_nonEditable\":false,\"_id\":\"main\",\"_elements\":[],\"_poolpath\":\"/p/kyl9opYaa\",\"_childCount\":0}],\"_poolpath\":\"/p/kyl9opYaa\",\"_canEdit\":true,\"_canSubedit\":true,\"_childCount\":1},\"_poolpath\":\"/p/kyl9opYaa\",\"id1867793\":{\"_ref\":\"id1867793\",\"_title\":\"Class Materials\",\"_order\":4,\"_canSubedit\":true,\"_canEdit\":true,\"_poolpath\":\"/p/kyl9opYaa\",\"main\":{\"_ref\":\"id1867793\",\"_order\":0,\"_title\":\"Untitled Page\",\"_childCount\":0,\"_canSubedit\":true,\"_canEdit\":true,\"_poolpath\":\"/p/kyl9opYaa\",\"_id\":\"main\",\"_elements\":[]},\"_childCount\":1,\"_id\":\"id1867793\",\"_elements\":[{\"_ref\":\"id1867793\",\"_order\":0,\"_title\":\"Untitled Page\",\"_childCount\":0,\"_canSubedit\":true,\"_canEdit\":true,\"_poolpath\":\"/p/kyl9opYaa\",\"_id\":\"main\",\"_elements\":[]}]},\"id7893846\":{\"_ref\":\"id7893846\",\"_title\":\"Overview\",\"_order\":1,\"_canSubedit\":true,\"_canEdit\":true,\"_poolpath\":\"/p/kyl9opYaa\",\"main\":{\"_ref\":\"id7893846\",\"_order\":0,\"_title\":\"Untitled Page\",\"_childCount\":0,\"_canSubedit\":true,\"_canEdit\":true,\"_poolpath\":\"/p/kyl9opYaa\",\"_id\":\"main\",\"_elements\":[]},\"_childCount\":1,\"_id\":\"id7893846\",\"_elements\":[{\"_ref\":\"id7893846\",\"_order\":0,\"_title\":\"Untitled Page\",\"_childCount\":0,\"_canSubedit\":true,\"_canEdit\":true,\"_poolpath\":\"/p/kyl9opYaa\",\"_id\":\"main\",\"_elements\":[]}]},\"_childCount\":5}",
+    "_lastModified": 1327951630414,
+    "sakai:pooled-content-editor": [
+    ],
+    "sakai:copyright": "creativecommons",
+    "activity": {
+        "sling:resourceType": "sakai/activityStore",
+        "_created": 1327107267964,
+        "_id": "eFz7wEPKEeGO3eGMqeXzCg+",
+        "_lastModifiedBy": "admin",
+        "_lastModified": 1327107267964,
+        "_createdBy": "admin",
+        "_path": "kyl9opYaa/activity",
+        "2012-01-20-16-b9c6a103a329870e001f1f6d721949ef3a7c570f": {
+            "sling:resourceType": "sakai/activity-post",
+            "_created": 1327107267995,
+            "sakai:activity-source": "kyl9opYaa",
+            "_id": "eGG2sUPKEeGO3eGMqeXzCg+",
+            "sakai:activity-appid": "default",
+            "sakai:activity-type": "pooled content",
+            "_lastModifiedBy": "admin",
+            "_lastModified": 1327107268010,
+            "sakai:activity-actor": "208861",
+            "sakai:activityMessage": "UPDATED_CONTENT",
+            "_createdBy": "admin",
+            "_path": "kyl9opYaa/activity/2012-01-20-16-b9c6a103a329870e001f1f6d721949ef3a7c570f"
+        }
+    },
+    "id7893846": {
+        "_created": 1327536778347,
+        "_id": "t9NgEFQiEeGfm8ccqeXzCg+",
+        "page": "<h2>Course Info<\/h2><p><\/p><hr><address><strong>Format:<\/strong> Three hours of lecture per week<\/address><address><strong>Units:<\/strong> 3<\/address><address><strong>Prerequisites:<\/strong> None<\/address><address><strong>Semesters offered:<\/strong> Spring<\/address><address><strong>Grading:<\/strong> Letter grade or pass/not pass<\/address><address><br><\/address><p><\/p><h2>Course Schedule<\/h2><address><\/address><hr><address><strong>Lecture Schedule:<\/strong> Tu Th 2-3:30pm<\/address><address><strong>Location:<\/strong> 210 <a href=\"http://www.berkeley.edu/map/3dmap/3dmap.shtml?south\" data-mce-href=\"http://www.berkeley.edu/map/3dmap/3dmap.shtml?south\" class=\"s3d-regular-links\">South Hall<\/a><\/address><address><strong>Final Exam:<\/strong>&nbsp;None<br><\/address><p><br><\/p><h2>Course Catalog Description<\/h2><p><\/p><hr><p>Concepts and methods of needs and usability assessment. Understanding users' needs and practices and translating them into design decisions. Topics include methods of identifying and describing user needs and requirements; user-centered design; user and task analysis; contextual design; heuristic evaluation; surveys, interviews, and focus groups; usability testing; naturalistic/ethnographic methods; managing usability in organizations; and universal usability.<br><br><\/p><p><\/p>",
+        "_lastModifiedBy": "208861",
+        "_lastModified": 1328904388701,
+        "_previousVersion": "VBC9cFQiEeGfm8ccqeXzCg+",
+        "_createdBy": "208861",
+        "_path": "kyl9opYaa/id7893846",
+        "_versionHistoryId": "dzX7EEezEeG9NfzEqeXzCg+",
+        "editing": {
+            "_created": 1327536778883,
+            "time": 1328933184519,
+            "_id": "gNIdMEeyEeG9NfzEqeXzCg+",
+            "_lastModifiedBy": "208861",
+            "_lastModified": 1328904384566,
+            "_createdBy": "208861",
+            "_path": "kyl9opYaa/id7893846/editing"
+        },
+        "autosave": {
+            "_created": 1327536814699,
+            "_id": "liszsEeyEeG9NfzEqeXzCg+",
+            "_lastModifiedBy": "208861",
+            "page": "<h2>Course Info<\/h2><p><\/p><hr><address><strong>Format:<\/strong> Three hours of lecture per week<\/address><address><strong>Units:<\/strong> 3<\/address><address><strong>Prerequisites:<\/strong> None<\/address><address><strong>Semesters offered:<\/strong> Spring<\/address><address><strong>Grading:<\/strong> Letter grade or pass/not pass<\/address><address><br><\/address><p><\/p><h2>Course Schedule<\/h2><address><\/address><hr><address><strong>Lecture Schedule:<\/strong> Tu Th 2-3:30pm<\/address><address><strong>Location:<\/strong> 210 South Hall<\/address><address><strong>Final Exam:<\/strong> <br><\/address><p><br><\/p><h2>Course Catalog Description<\/h2><p><\/p><hr><p>Concepts and methods of needs and usability assessment. Understanding users' needs and practices and translating them into design decisions. Topics include methods of identifying and describing user needs and requirements; user-centered design; user and task analysis; contextual design; heuristic evaluation; surveys, interviews, and focus groups; usability testing; naturalistic/ethnographic methods; managing usability in organizations; and universal usability.<br><br><\/p><p><\/p>",
+            "_lastModified": 1327622034109,
+            "_createdBy": "208861",
+            "_path": "kyl9opYaa/id7893846/autosave"
+        }
+    },
+    "id9733210": {
+        "_created": 1327107268009,
+        "_id": "wBbakFQiEeGfm8ccqeXzCg+",
+        "page": "<h2>Lead Instructor<\/h2><p><\/p><hr><h3><b><a href=\"~4803\" data-mce-href=\"~4803\" class=\"s3d-regular-links\">Nancy Van House<\/a><\/b><\/h3><p><img id=\"widget_embedcontent_id4486849\" class=\"widget_inline block_image_left\" style=\"display: block; padding: 10px; margin: 4px;\" src=\"https://calcentral.berkeley.edu/devwidgets/embedcontent/images/content.png\" data-mce-src=\"devwidgets/embedcontent/images/content.png\" data-mce-style=\"display: block; padding: 10px; margin: 4px;\" border=\"1\"><\/p><address><b><br><\/b><\/address><address><strong>Email:<\/strong> vanhouse@ischool.berkeley.edu<\/address><address><strong>Website:<\/strong> <a data-mce-href=\"http://people.ischool.berkeley.edu/~vanhouse/\" href=\"http://people.ischool.berkeley.edu/~vanhouse/\" class=\"s3d-regular-links\">http://people.ischool.berkeley.edu/~vanhouse/<\/a><br><\/address><address><strong>Phone #:<\/strong> 510-642-0855<br><\/address><address><strong>Office:<\/strong> 307A <a data-mce-href=\"http://www.berkeley.edu/map/3dmap/3dmap.shtml?south\" href=\"http://www.berkeley.edu/map/3dmap/3dmap.shtml?south\" class=\"s3d-regular-links\">South Hall<\/a><br><\/address><address><strong>Office hours: <\/strong>Tu &amp; Th 3:45-5<\/address>",
+        "_lastModifiedBy": "208861",
+        "_lastModified": 1328904401626,
+        "_previousVersion": "Sc5lsFQiEeGfm8ccqeXzCg+",
+        "_createdBy": "208861",
+        "_path": "kyl9opYaa/id9733210",
+        "_versionHistoryId": "gEUioEe2EeG9NfzEqeXzCg+",
+        "editing": {
+            "time": 1328933197670,
+            "_created": 1327124877932,
+            "_id": "eLjawEPzEeGO3eGMqeXzCg+",
+            "_lastModifiedBy": "208861",
+            "_lastModified": 1328904397755,
+            "_createdBy": "208861",
+            "_path": "kyl9opYaa/id9733210/editing"
+        },
+        "autosave": {
+            "_created": 1327124892960,
+            "_id": "ga3yAEPzEeGO3eGMqeXzCg+",
+            "_lastModifiedBy": "208861",
+            "page": "<h2>Lead Instructor<\/h2><p><\/p><hr><h3><b>Professor <a href=\"~4803\" data-mce-href=\"~4803\" class=\"s3d-regular-links\">Nancy Van House<\/a><\/b><\/h3><p><img id=\"widget_embedcontent_id4486849\" class=\"widget_inline block_image_left\" style=\"display: block; padding: 10px; margin: 4px;\" src=\"https://calcentral.berkeley.edu/devwidgets/embedcontent/images/content.png\" data-mce-src=\"devwidgets/embedcontent/images/content.png\" data-mce-style=\"display: block; padding: 10px; margin: 4px;\" border=\"1\"><\/p><address><strong>Professor<\/strong><\/address><address><strong><br><\/strong><\/address><address><strong>Email:<\/strong> vanhouse@ischool.berkeley.edu<\/address><address><strong>Website:<\/strong> <a data-mce-href=\"http://people.ischool.berkeley.edu/~vanhouse/\" href=\"http://people.ischool.berkeley.edu/%7Evanhouse/\">http://people.ischool.berkeley.edu/~vanhouse/<\/a><br><\/address><address><strong>Phone #:<\/strong> 510-642-0855<br><\/address><address><strong>Office:<\/strong> 307A <a data-mce-href=\"http://berkeley.edu/map/maps/CD45.html\" href=\"http://berkeley.edu/map/maps/CD45.html\">South Hall<\/a><br><\/address><address><strong>Office hours: <\/strong>Tu &amp; Th 3:45-5<\/address>",
+            "_lastModified": 1328828262314,
+            "_createdBy": "208861",
+            "_path": "kyl9opYaa/id9733210/autosave"
+        }
+    },
+    "id8614512": {
+        "_created": 1327348657792,
+        "_id": "f-moAEX8EeG0hrg4qeXzCg+",
+        "_lastModifiedBy": "208861",
+        "_lastModified": 1327348657792,
+        "_createdBy": "208861",
+        "_path": "kyl9opYaa/id8614512",
+        "editing": {
+            "_created": 1327348657794,
+            "time": 1327377457764,
+            "_id": "f-n2IEX8EeG0hrg4qeXzCg+",
+            "_lastModifiedBy": "208861",
+            "_lastModified": 1327348657794,
+            "_createdBy": "208861",
+            "_path": "kyl9opYaa/id8614512/editing"
+        }
+    },
+    "activityFeed": {
+        "_created": 1327107267992,
+        "_id": "eGFBgEPKEeGO3eGMqeXzCg+",
+        "_lastModifiedBy": "admin",
+        "_lastModified": 1327107267992,
+        "_createdBy": "admin",
+        "_path": "kyl9opYaa/activityFeed",
+        "2012-01-20-16-b9c6a103a329870e001f1f6d721949ef3a7c570f": {
+            "sling:resourceType": "sakai/activity",
+            "_created": 1327107268107,
+            "sakai:activity-source": "kyl9opYaa",
+            "_id": "eHLNsEPKEeGO3eGMqeXzCg+",
+            "_lastModifiedBy": "admin",
+            "sakai:activity-type": "pooled content",
+            "sakai:activity-appid": "default",
+            "_lastModified": 1327107268107,
+            "sakai:activity-actor": "208861",
+            "sakai:activityMessage": "UPDATED_CONTENT",
+            "_createdBy": "admin",
+            "_path": "kyl9opYaa/activityFeed/2012-01-20-16-b9c6a103a329870e001f1f6d721949ef3a7c570f"
+        }
+    },
+    "id5190920": {
+        "_created": 1327107267995,
+        "_id": "ahaNUEeuEeG9NfzEqeXzCg+",
+        "page": "<p><\/p><h1 data-mce-style=\"font-size: 16px; margin-top: 1em; margin-right: 0px; margin-bottom: 1em; margin-left: 0px; font-weight: bold; padding: 0px;\" style=\"font-size: 16px; margin-top: 1em; margin-right: 0px; margin-bottom: 1em; margin-left: 0px; font-weight: bold; padding: 0px;\"><span data-mce-style=\"font-family: arial, helvetica, sans-serif;\" style=\"font-family: arial, helvetica, sans-serif; \">Course Info<\/span><\/h1><p style=\"margin-top: 0px; margin-right: 0px; margin-bottom: 1em; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 0px; \"><\/p><table class=\"mceItemTable\" border=\"0\" data-mce-style=\"cursor: default; font-size: inherit; margin-bottom: 1em;\" style=\"cursor: default; font-size: inherit; margin-bottom: 1em; \"><tbody><tr><td data-mce-style=\"cursor: text; padding: 0px; margin: 0px;\" style=\"margin-top: 0px; margin-right: 0px; margin-bottom: 0px; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 0px; cursor: text; \"><span class=\"Apple-style-span\" data-mce-style=\"line-height: 15px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; font-family: arial, helvetica, sans-serif;\" style=\"line-height: 15px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; font-family: arial, helvetica, sans-serif; \"><\/span><span class=\"Apple-style-span\" data-mce-style=\"line-height: 15px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; font-family: arial, helvetica, sans-serif;\" style=\"line-height: 15px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; font-family: arial, helvetica, sans-serif; \"><\/span><span class=\"Apple-style-span\" data-mce-style=\"line-height: 15px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; font-family: arial, helvetica, sans-serif;\" style=\"line-height: 15px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; font-family: arial, helvetica, sans-serif; \"><\/span><span class=\"Apple-style-span\" data-mce-style=\"line-height: 15px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; font-family: arial, helvetica, sans-serif;\" style=\"line-height: 15px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; font-family: arial, helvetica, sans-serif; \"><\/span><span class=\"Apple-style-span\" data-mce-style=\"line-height: 15px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; font-family: arial, helvetica, sans-serif;\" style=\"line-height: 15px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; font-family: arial, helvetica, sans-serif; \"><\/span><span class=\"Apple-style-span\" data-mce-style=\"line-height: 15px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; font-family: arial, helvetica, sans-serif;\" style=\"line-height: 15px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; font-family: arial, helvetica, sans-serif; \">Format:&nbsp;Three hours or lecture per week<\/span><\/td><td data-mce-style=\"cursor: text; padding: 0px; margin: 0px;\" style=\"margin-top: 0px; margin-right: 0px; margin-bottom: 0px; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 0px; cursor: text; \"><\/td><\/tr><tr><td data-mce-style=\"cursor: text; padding: 0px; margin: 0px;\" style=\"margin-top: 0px; margin-right: 0px; margin-bottom: 0px; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 0px; cursor: text; \"><span class=\"Apple-style-span\" data-mce-style=\"line-height: 15px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; font-family: arial, helvetica, sans-serif;\" style=\"line-height: 15px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; font-family: arial, helvetica, sans-serif; \">Units:&nbsp;3<\/span><\/td><td data-mce-style=\"cursor: text; padding: 0px; margin: 0px;\" style=\"margin-top: 0px; margin-right: 0px; margin-bottom: 0px; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 0px; cursor: text; \"><\/td><\/tr><tr><td data-mce-style=\"cursor: text; padding: 0px; margin: 0px;\" style=\"margin-top: 0px; margin-right: 0px; margin-bottom: 0px; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 0px; cursor: text; \"><p style=\"margin-top: 0px; margin-right: 0px; margin-bottom: 1em; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 0px; \"><span data-mce-style=\"font-family: arial, helvetica, sans-serif;\" style=\"font-family: arial, helvetica, sans-serif; \">Prerequisites:&nbsp;203 or consent of instructor<\/span><\/p><p style=\"margin-top: 0px; margin-right: 0px; margin-bottom: 1em; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 0px; \"><span data-mce-style=\"font-family: arial, helvetica, sans-serif;\" style=\"font-family: arial, helvetica, sans-serif; \"><\/span><\/p><p style=\"margin-top: 0px; margin-right: 0px; margin-bottom: 1em; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 0px; \"><span data-mce-style=\"font-family: arial, helvetica, sans-serif;\" style=\"font-family: arial, helvetica, sans-serif; \"><\/span><span data-mce-style=\"font-family: arial, helvetica, sans-serif;\" style=\"font-family: arial, helvetica, sans-serif; \">Semesters Offered: Spring<\/span><\/p><p style=\"margin-top: 0px; margin-right: 0px; margin-bottom: 1em; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 0px; \"><span data-mce-style=\"font-family: arial, helvetica, sans-serif;\" style=\"font-family: arial, helvetica, sans-serif; \">Grading:&nbsp;THIS DOES NOT APPLY<\/span><\/p><\/td><\/tr><\/tbody><\/table><p><\/p><h2><span class=\"Apple-style-span\" style=\"font-size: 13px; font-weight: normal; \"><\/span><\/h2><h2><span style=\"font-family: arial, helvetica, sans-serif; \"><hr>Course Schedule<\/span><\/h2><address><span class=\"Apple-style-span\" style=\"font-family: arial, helvetica, sans-serif; \"><strong>Lecture Schedule:<\/strong> Tu Thu 2-3:30pm<\/span><\/address><address><span style=\"font-family: arial, helvetica, sans-serif; \"><strong>Location:<\/strong> 210 South Hall<\/span><\/address><p><span style=\"font-family: arial, helvetica, sans-serif; \" data-mce-style=\"font-family: arial, helvetica, sans-serif;\">Final Exam: Info Unavailable<\/span><\/p><h2><span class=\"Apple-style-span\" style=\"font-family: arial, helvetica, sans-serif; \"><hr>Course Catalog Description<\/span><\/h2><p><span class=\"Apple-style-span\" style=\"line-height: normal; font-size: small; font-family: arial, helvetica, sans-serif; \" data-mce-style=\"line-height: normal; font-size: small; font-family: arial, helvetica, sans-serif;\">Concepts and methods of needs and usability assessment. Understanding users' needs and practices and translating them into design decisions. Topics include methods of identifying and describing user needs and requirements; user-centered design; user and task analysis; contextual design; heuristic evaluation; surveys, interviews, and focus groups; usability testing; naturalistic/ethnographic methods; managing usability in organizations; and universal usability.<\/span><\/p><address><span class=\"Apple-style-span\" style=\"line-height: normal; font-size: small; font-family: arial, helvetica, sans-serif; \"><span class=\"Apple-style-span\" style=\"font-family: Arial, Helvetica, sans-serif; line-height: 15px; font-size: 13px; \"><h2 style=\"font-size: 16px; margin-top: 1em; margin-right: 0px; margin-bottom: 1em; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 0px; font-weight: bold; \"><span data-mce-style=\"font-family: arial, helvetica, sans-serif;\" style=\"font-family: arial, helvetica, sans-serif; \"><br><\/span><\/h2><\/span><\/span><\/address>",
+        "_lastModifiedBy": "208861",
+        "_lastModified": 1327535022735,
+        "_previousVersion": "UnS_UEeuEeG9NfzEqeXzCg+",
+        "_createdBy": "208861",
+        "_path": "kyl9opYaa/id5190920",
+        "_versionHistoryId": "6nwI4EPjEeGO3eGMqeXzCg+",
+        "autosave": {
+            "_created": 1327117756605,
+            "_id": "5BRvwEPiEeGO3eGMqeXzCg+",
+            "page": "<p><\/p><h1 data-mce-style=\"font-size: 16px; margin-top: 1em; margin-right: 0px; margin-bottom: 1em; margin-left: 0px; font-weight: bold; padding: 0px;\" style=\"font-size: 16px; margin: 1em 0px; font-weight: bold; padding: 0px;\"><span data-mce-style=\"font-family: arial, helvetica, sans-serif;\" style=\"font-family: arial,helvetica,sans-serif;\">Course Info<\/span><\/h1><p style=\"margin: 0px 0px 1em; padding: 0px;\"><\/p><table class=\"mceItemTable\" data-mce-style=\"cursor: default; font-size: inherit; margin-bottom: 1em;\" style=\"cursor: default; font-size: inherit; margin-bottom: 1em;\" width=\"1\" border=\"0\" height=\"16\"><tbody><tr><td data-mce-style=\"cursor: text; padding: 0px; margin: 0px;\" style=\"margin: 0px; padding: 0px; cursor: text;\"><br><\/td><td data-mce-style=\"cursor: text; padding: 0px; margin: 0px;\" style=\"margin: 0px; padding: 0px; cursor: text;\"><br><\/td><\/tr><tr><td data-mce-style=\"cursor: text; padding: 0px; margin: 0px;\" style=\"margin: 0px; padding: 0px; cursor: text;\"><br><\/td><td data-mce-style=\"cursor: text; padding: 0px; margin: 0px;\" style=\"margin: 0px; padding: 0px; cursor: text;\"><br><\/td><\/tr><tr><td data-mce-style=\"cursor: text; padding: 0px; margin: 0px;\" style=\"margin: 0px; padding: 0px; cursor: text;\"><br><\/td><\/tr><\/tbody><\/table><p><\/p><h2><span class=\"Apple-style-span\" style=\"font-size: 13px; font-weight: normal;\"><\/span><\/h2><h2><span style=\"font-family: arial,helvetica,sans-serif;\"><hr>Course Schedule<\/span><\/h2><address><span class=\"Apple-style-span\" style=\"font-family: arial,helvetica,sans-serif;\"><strong>Lecture Schedule:<\/strong> Tu Thu 2-3:30pm<\/span><\/address><address><span style=\"font-family: arial,helvetica,sans-serif;\"><strong>Location:<\/strong> 210 South Hall<\/span><\/address><p><span style=\"font-family: arial,helvetica,sans-serif;\" data-mce-style=\"font-family: arial, helvetica, sans-serif;\">Final Exam: Info Unavailable<\/span><\/p><h2><span class=\"Apple-style-span\" style=\"font-family: arial,helvetica,sans-serif;\"><hr>Course Catalog Description<\/span><\/h2><p><span class=\"Apple-style-span\" style=\"line-height: normal; font-size: small; font-family: arial,helvetica,sans-serif;\" data-mce-style=\"line-height: normal; font-size: small; font-family: arial, helvetica, sans-serif;\">Concepts and methods of needs and usability assessment. Understanding users' needs and practices and translating them into design decisions. Topics include methods of identifying and describing user needs and requirements; user-centered design; user and task analysis; contextual design; heuristic evaluation; surveys, interviews, and focus groups; usability testing; naturalistic/ethnographic methods; managing usability in organizations; and universal usability.<\/span><\/p><address><span class=\"Apple-style-span\" style=\"line-height: normal; font-size: small; font-family: arial,helvetica,sans-serif;\"><span class=\"Apple-style-span\" style=\"font-family: Arial,Helvetica,sans-serif; line-height: 15px; font-size: 13px;\"><h2 style=\"font-size: 16px; margin: 1em 0px; padding: 0px; font-weight: bold;\"><span data-mce-style=\"font-family: arial, helvetica, sans-serif;\" style=\"font-family: arial,helvetica,sans-serif;\"><br><\/span><\/h2><\/span><\/span><\/address>",
+            "_lastModifiedBy": "208861",
+            "_lastModified": 1327536735047,
+            "_createdBy": "208861",
+            "_path": "kyl9opYaa/id5190920/autosave"
+        },
+        "editing": {
+            "time": 1327568918902,
+            "_created": 1327117741541,
+            "_id": "2xoBUEPiEeGO3eGMqeXzCg+",
+            "_lastModifiedBy": "208861",
+            "_lastModified": 1327540118919,
+            "_createdBy": "208861",
+            "_path": "kyl9opYaa/id5190920/editing"
+        }
+    },
+    "id479360": {
+        "_created": 1327107267983,
+        "_id": "3AV_0EniEeGuoJurqeXzCg+",
+        "_lastModifiedBy": "4803",
+        "page": "<h2><br><\/h2><p><\/p><h2>Class Description<\/h2><p><span class=\"Apple-style-span\" style=\"border-collapse: collapse; color: rgb(68, 68, 68); font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; line-height: 17px; -webkit-border-horizontal-spacing: 2px; -webkit-border-vertical-spacing: 2px; \"><\/span><\/p><p><\/p><hr><p>This course addresses concepts and methods of user experience research. The emphasis will be on methods of collecting and interpreting many kinds of data about real-world user activities and practices and translating them into design decisions. The course includes hands-on practice with a number of major user experience research methods, including heuristic evaluation; observation; interviews, surveys and focus groups. The emphasis will be on naturalistic/ethnographic (qualitative) methods, but we will also address major quantitative methods. Finally, we will discuss methods of bringing user experience research into the design process.<\/p><p><\/p><p>This course is appropriate for both 1st and 2nd-year MIMS students, and for students from other departments with a strong interest in user experience research, with the instructor's permission. Students will complete at least one major group project related to needs assessment and evaluation. Second-year MIMS students may use this project to meet their capping project requirement.<\/p><p><\/p><h2><br><\/h2>",
+        "_lastModified": 1327777449929,
+        "_previousVersion": "wGA7wEkCEeGrjtSuqeXzCg+",
+        "_createdBy": "208861",
+        "_path": "kyl9opYaa/id479360",
+        "_versionHistoryId": "7qC1sEPKEeGO3eGMqeXzCg+",
+        "autosave": {
+            "_created": 1327107418995,
+            "_id": "0mJ8MEPKEeGO3eGMqeXzCg+",
+            "_lastModifiedBy": "208861",
+            "page": "<h2>Welcome!<\/h2><p><em><\/em><\/p><hr><p><em>In this section you could enter information welcoming new or potential students, or members of the general public who find your site.&nbsp;<\/em><\/p><p><\/p><h2>Class Description<\/h2><p><span class=\"Apple-style-span\" style=\"border-collapse: collapse; color: rgb(68, 68, 68); font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; line-height: 17px; -webkit-border-horizontal-spacing: 2px; -webkit-border-vertical-spacing: 2px; \"><\/span><\/p><p><\/p><hr><p>This course addresses concepts and methods of user experience research. The emphasis will be on methods of collecting and interpreting many kinds of data about real-world user activities and practices and translating them into design decisions. The course includes hands-on practice with a number of major user experience research methods, including heuristic evaluation; observation; interviews, surveys and focus groups. The emphasis will be on naturalistic/ethnographic (qualitative) methods, but we will also address major quantitative methods. Finally, we will discuss methods of bringing user experience research into the design process.<\/p><p><\/p><p>This course is appropriate for both 1st and 2nd-year MIMS students, and for students from other departments with a strong interest in user experience research, with the instructor's permission. Students will complete at least one major group project related to needs assessment and evaluation. Second-year MIMS students may use this project to meet their capping project requirement.<\/p><p><\/p><h2>Learning Objectives<\/h2><p><em><\/em><\/p><hr><p><em>In this section you could enter course objectives and their related learning outcomes. For example:<\/em><\/p><p><\/p><p>1. <strong>Course Objective:<\/strong> To introduce students to concepts related t and best practices for usability evaluation.<\/p><p>2. <strong>Learning Outcome:<\/strong> Students will learn to conduct heuristic analyses and usability testing sessions.<\/p><p><em>See <a href=\"http://oct.sfsu.edu/design/syllabus/htmls/outcomes.html\" data-mce-href=\"http://oct.sfsu.edu/design/syllabus/htmls/outcomes.html\">Course Objectives and Learning Outcomes<\/a>&nbsp;for more ideas and information.<\/em><\/p>",
+            "_lastModified": 1327681191399,
+            "_createdBy": "208861",
+            "_path": "kyl9opYaa/id479360/autosave"
+        },
+        "editing": {
+            "_created": 1327107403934,
+            "time": 1329467616989,
+            "_id": "yWhb4EPKEeGO3eGMqeXzCg+",
+            "_lastModifiedBy": "208861",
+            "_lastModified": 1329438818846,
+            "_createdBy": "208861",
+            "_path": "kyl9opYaa/id479360/editing"
+        }
+    },
+    "id1867793": {
+        "_created": 1327107347182,
+        "_id": "KiJpUEh0EeGoG18WqeXzCg+",
+        "page": "<h2>Required Texts<\/h2><p><\/p><hr><p><\/p><p>Mike Kuniavsky, <span style=\"color: rgb(51, 102, 255); \"><a href=\"http://www.amazon.com/gp/product/1558609237/ref=s9_simh_gw_p14_i4?pf_rd_m=ATVPDKIKX0DER&amp;pf_rd_s=center-2&amp;pf_rd_r=1D67MQJPFCZMXKQ0MD9A&amp;pf_rd_t=101&amp;pf_rd_p=470938631&amp;pf_rd_i=507846\" data-mce-href=\"http://www.amazon.com/gp/product/1558609237/ref=s9_simh_gw_p14_i4?pf_rd_m=ATVPDKIKX0DER&amp;pf_rd_s=center-2&amp;pf_rd_r=1D67MQJPFCZMXKQ0MD9A&amp;pf_rd_t=101&amp;pf_rd_p=470938631&amp;pf_rd_i=507846\"><span style=\"color: rgb(51, 102, 255); \">Observing the User Experience: A Practitioner\u2019s Guide to User Research<\/span><\/a><\/span>, Morgan Kaufmann. Ordered for ASUC bookstore. &nbsp;<\/p><p>The&nbsp;<span style=\"color: rgb(51, 102, 255); \"><a href=\"http://www.usabilitybok.org/\" data-mce-href=\"http://www.usabilitybok.org/\"><span style=\"color: rgb(51, 102, 255); \">Usability Body of Knowledge<\/span><\/a><\/span> is an encyclopedia with brief descriptions usability methods and related topics, and links to readings. &nbsp;Descriptions are too brief for our purposes, and references are often old, but it\u2019s useful as a sort of dictionary for UX methods.<\/p><p><br><\/p><h2>Readings and Other Resources<\/h2><p><\/p><hr><p>Scanned readings will be in a Dropbox folder. &nbsp;<\/p><p>To access electronic readings from journals and conference proceedings and e-books available through UC, you need to connect from on-campus or use the <span style=\"color: rgb(51, 102, 255); \"><a href=\"http://www.lib.berkeley.edu/Help/proxy.html\" data-mce-href=\"http://www.lib.berkeley.edu/Help/proxy.html\"><span style=\"color: rgb(51, 102, 255); \">Library Proxy Service<\/span><\/a><\/span> to connect from off-campus. &nbsp;<\/p><p>A considerable amount of information relevant to this course is online in various forms. &nbsp;Many consulting firms post information for clients. &nbsp;There\u2019s also an active community of UX professionals. &nbsp;So company websites, SlideShare, and other such sites are valuable \u2014 &nbsp;there\u2019s more info relevant to this course in these formats than in formal publications. &nbsp;However, much of it is brief &nbsp;and superficial\u2013 a lot of &nbsp;the best material is proprietary. &nbsp;(A lot of it also is by students \u2014 caveat emptor.) <strong><em>&nbsp;Linking to materials on other sites does not necessarily mean that I endorse the source or the sponsor. Nor does the university.<\/em><\/strong> &nbsp;<\/p><p>Several of the recommended books are available electronically in one form or another. As you work on your projects, you may decide you want to own one or more of these books, and you may want them fast. &nbsp;Unfortunately, some of the publishers (e.g., Morgan Kaufmann/Elsevier) charge more for e-books. However, some books are available (more cheaply!) from Amazon in Kindle format. &nbsp;<strong>You don\u2019t have to own a Kindle to read Kindle books<\/strong> \u2013 you can read them on your computer.<\/p><p><\/p>",
+        "_lastModifiedBy": "208861",
+        "_lastModified": 1327619955694,
+        "_previousVersion": "OEWsIUhxEeGoG18WqeXzCg+",
+        "_createdBy": "208861",
+        "_path": "kyl9opYaa/id1867793",
+        "_versionHistoryId": "OEWsIEhxEeGoG18WqeXzCg+",
+        "autosave": {
+            "_created": 1327618484305,
+            "_id": "vQwcEEhwEeGoG18WqeXzCg+",
+            "page": "<h2>Required Texts<\/h2><p><\/p><hr><p><\/p><p>Mike Kuniavsky, <span style=\"color: rgb(51, 102, 255); \"><a href=\"http://www.amazon.com/gp/product/1558609237/ref=s9_simh_gw_p14_i4?pf_rd_m=ATVPDKIKX0DER&amp;pf_rd_s=center-2&amp;pf_rd_r=1D67MQJPFCZMXKQ0MD9A&amp;pf_rd_t=101&amp;pf_rd_p=470938631&amp;pf_rd_i=507846\" data-mce-href=\"http://www.amazon.com/gp/product/1558609237/ref=s9_simh_gw_p14_i4?pf_rd_m=ATVPDKIKX0DER&amp;pf_rd_s=center-2&amp;pf_rd_r=1D67MQJPFCZMXKQ0MD9A&amp;pf_rd_t=101&amp;pf_rd_p=470938631&amp;pf_rd_i=507846\"><span style=\"color: rgb(51, 102, 255); \">Observing the User Experience: A Practitioner\u2019s Guide to User Research<\/span><\/a><\/span>, Morgan Kaufmann. Ordered for ASUC bookstore. &nbsp;<\/p><p>The&nbsp;<span style=\"color: rgb(51, 102, 255); \"><a href=\"http://www.usabilitybok.org/\" data-mce-href=\"http://www.usabilitybok.org/\"><span style=\"color: rgb(51, 102, 255); \">Usability Body of Knowledge<\/span><\/a><\/span> is an encyclopedia with brief descriptions usability methods and related topics, and links to readings. &nbsp;Descriptions are too brief for our purposes, and references are often old, but it\u2019s useful as a sort of dictionary for UX methods.<\/p><p><br><\/p><h2>Readings and Other Resources<\/h2><p><\/p><hr><p>Scanned readings will be in a Dropbox folder. &nbsp;<\/p><p>To access electronic readings from journals and conference proceedings and e-books available through UC, you need to connect from on-campus or use the <span style=\"color: rgb(51, 102, 255); \"><a href=\"http://www.lib.berkeley.edu/Help/proxy.html\" data-mce-href=\"http://www.lib.berkeley.edu/Help/proxy.html\"><span style=\"color: rgb(51, 102, 255); \">Library Proxy Service<\/span><\/a><\/span> to connect from off-campus. &nbsp;<\/p><p>A considerable amount of information relevant to this course is online in various forms. &nbsp;Many consulting firms post information for clients. &nbsp;There\u2019s also an active community of UX professionals. &nbsp;So company websites, SlideShare, and other such sites are valuable \u2014 &nbsp;there\u2019s more info relevant to this course in these formats than in formal publications. &nbsp;However, much of it is brief &nbsp;and superficial\u2013 a lot of &nbsp;the best material is proprietary. &nbsp;(A lot of it also is by students \u2014 caveat emptor.) <strong><em>&nbsp;Linking to materials on other sites does not necessarily mean that I endorse the source or the sponsor. Nor does the university.<\/em><\/strong> &nbsp;<\/p><p>Several of the recommended books are available electronically in one form or another. As you work on your projects, you may decide you want to own one or more of these books, and you may want them fast. &nbsp;Unfortunately, some of the publishers (e.g., Morgan Kaufmann/Elsevier) charge more for e-books. However, some books are available (more cheaply!) from Amazon in Kindle format. &nbsp;<strong>You don\u2019t have to own a Kindle to read Kindle books<\/strong> \u2013 you can read them on your computer.<\/p><p><br><\/p><p><span style=\"color: rgb(51, 102, 255); \"><a href=\"http://www.berkeley.edu\" data-mce-href=\"http://www.berkeley.edu\"><span style=\"color: rgb(51, 102, 255); \">link<\/span><\/a><\/span>&nbsp;theraer<\/p><p><\/p>",
+            "_lastModifiedBy": "208861",
+            "_lastModified": 1327622814388,
+            "_createdBy": "208861",
+            "_path": "kyl9opYaa/id1867793/autosave"
+        },
+        "editing": {
+            "_created": 1327107347185,
+            "time": 1327651690008,
+            "_id": "p5UmEEPKEeGO3eGMqeXzCg+",
+            "_lastModifiedBy": "208861",
+            "_lastModified": 1327622890018,
+            "_createdBy": "208861",
+            "_path": "kyl9opYaa/id1867793/editing"
+        }
+    },
+    "id4486849": {
+        "_created": 1327538475169,
+        "_id": "c-LREEe2EeG9NfzEqeXzCg+",
+        "_lastModifiedBy": "208861",
+        "_lastModified": 1327538475169,
+        "_createdBy": "208861",
+        "_path": "kyl9opYaa/id4486849",
+        "embedcontent": {
+            "embedmethod": "original",
+            "_lastModifiedBy": "208861",
+            "sakai:indexed-fields": "title,description",
+            "download": false,
+            "_createdBy": "208861",
+            "_path": "kyl9opYaa/id4486849/embedcontent",
+            "sling:resourceType": "sakai/widget-data",
+            "_created": 1327538475181,
+            "title": "",
+            "_id": "c-Sl0Ee2EeG9NfzEqeXzCg+",
+            "details": false,
+            "description": "",
+            "_lastModified": 1327538475207,
+            "name": false,
+            "layout": "single",
+            "items": {
+                "_created": 1327538475203,
+                "_id": "c-gBMEe2EeG9NfzEqeXzCg+",
+                "_lastModifiedBy": "208861",
+                "_lastModified": 1327538475203,
+                "_createdBy": "208861",
+                "__array__0__": "/p/khw9aYQnie",
+                "_path": "kyl9opYaa/id4486849/embedcontent/items"
+            }
+        }
+    },
+    "id4815761": {
+        "_created": 1327107268031,
+        "_id": "RcifcFQjEeGfm8ccqeXzCg+",
+        "_lastModifiedBy": "208861",
+        "page": "<h2>Course Policies<\/h2><p><\/p><hr><h3>Turning in Assignments<\/h3><p>Turning in assignments: &nbsp;Work is due at class time on the due date. &nbsp;<\/p><p>Turn your work in both electronically and on paper. &nbsp;Please be sure your name is on the printed version and the electronic version! &nbsp;<\/p><p>Please follow this convention for filenames: &nbsp;LastName_Assn# &nbsp;<\/p><p>Everyone enrolled in the class has been invited to a dropbox folder named \u201ci214 Assignments &amp; Readings.\u201d &nbsp;Within that folder, there will be folders for each assignment. &nbsp;Please upload your file to the appropriate folder. &nbsp;<\/p><p><strong>NOTE: if you join dropbox as my contact, I get more Dropbox space \u2014 use this link: <a href=\"http://db.tt/d6faGKDO\" data-mce-href=\"http://db.tt/d6faGKDO\" class=\"s3d-regular-links\">http://db.tt/d6faGKDO<\/a><\/strong><\/p><p><strong><br><\/strong><\/p><p><\/p><h2>Campus Policies<\/h2><h3><hr><\/h3><h3>Course Materials Policy<\/h3><p>You may not post notes, powerpoint slides, scanned readings, readings accessed under campus licenses from publishers, or any other material from this class anywhere. (The one exception is material produced by you.&nbsp; If it is group work, all contributors must agree.) Any commercial use of materials from this class is forbidden by University policy and California state law.<br><br>You may not record this class.&nbsp; The one exception is students with disabilities, who should notify me if they are going to record the class or use a note-taker.<br><\/p>",
+        "_lastModified": 1328904625866,
+        "_previousVersion": "IN9QAFQjEeGfm8ccqeXzCg+",
+        "_createdBy": "208861",
+        "_path": "kyl9opYaa/id4815761",
+        "_versionHistoryId": "YGhwMEe3EeG9NfzEqeXzCg+",
+        "editing": {
+            "_created": 1327538712410,
+            "time": 1328933422438,
+            "_id": "AUrroEe3EeG9NfzEqeXzCg+",
+            "_lastModifiedBy": "208861",
+            "_lastModified": 1328904622490,
+            "_createdBy": "208861",
+            "_path": "kyl9opYaa/id4815761/editing"
+        },
+        "autosave": {
+            "_created": 1327538727473,
+            "_id": "CkVaEEe3EeG9NfzEqeXzCg+",
+            "page": "<h2>Course Policies<\/h2><p><\/p><hr><h3>Turning in Assignments<\/h3><p>Turning in assignments: &nbsp;Work is due at class time on the due date. &nbsp;<\/p><p>Turn your work in both electronically and on paper. &nbsp;Please be sure your name is on the printed version and the electronic version! &nbsp;<\/p><p>Please follow this convention for filenames: &nbsp;LastName_Assn# &nbsp;<\/p><p>Everyone enrolled in the class has been invited to a dropbox folder named \u201ci214 Assignments &amp; Readings.\u201d &nbsp;Within that folder, there will be folders for each assignment. &nbsp;Please upload your file to the appropriate folder. &nbsp;<\/p><p><strong>NOTE: if you join dropbox as my contact, I get more Dropbox space \u2014 use this link: <a href=\"http://db.tt/d6faGKDO\" data-mce-href=\"http://db.tt/d6faGKDO\" class=\"s3d-regular-links\">http://db.tt/d6faGKDO<\/a><\/strong><\/p><p><strong><br><\/strong><\/p><p><\/p><h2>Campus Policies<\/h2><h3><hr><\/h3><h3>Course Materials Policy<\/h3><p>You may not post notes, powerpoint slides, scanned readings, readings accessed under campus licenses from publishers, or any other material from this class anywhere. (The one exception is material produced by you.&nbsp; If it is group work, all contributors must agree.) Any commercial use of materials from this class is forbidden by University policy and California state law.<br><br>You may not record this class.&nbsp; The one exception is students with disabilities, who should notify me if they are going to record the class or use a note-taker.<br><\/p>",
+            "_lastModifiedBy": "208861",
+            "_lastModified": 1328904625396,
+            "_createdBy": "208861",
+            "_path": "kyl9opYaa/id4815761/autosave"
+        }
+    }
+}

@@ -51,9 +51,11 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
+import org.sakaiproject.nakamura.util.parameters.ParameterMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -112,7 +114,7 @@ import javax.servlet.http.HttpServletResponse;
         "EEE MMM dd yyyy HH:mm:ss 'GMT'Z", "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
         "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd", "dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy" })})
 
-@ServiceDocumentation(name="Delete Authorizable (Group and User) Servlet", okForVersion = "1.1",
+@ServiceDocumentation(name="Delete Authorizable (Group and User) Servlet", okForVersion = "1.2",
     description="Deletes a user or group. Maps on to nodes of resourceType sparse/userManager like " +
     		"/system/userManager. This servlet responds at " +
     		"/system/userManager.delete.html. The servlet also responds to single delete " +
@@ -153,8 +155,9 @@ public class LiteDeleteSakaiAuthorizableServlet extends LiteAbstractAuthorizable
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.jackrabbit.usermanager.post.CreateUserServlet#handleOperation(org.apache.sling.api.SlingHttpServletRequest, org.apache.sling.api.servlets.HtmlResponse, java.util.List)
+   * @see org.apache.sling.jackrabbit.usermanager.impl.post.CreateUserServlet#handleOperation(org.apache.sling.api.SlingHttpServletRequest, org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */
+  @SuppressWarnings("unchecked")
   @Override
   protected void handleOperation(SlingHttpServletRequest request, HtmlResponse response,
       List<Modification> changes)  {
@@ -194,11 +197,14 @@ public class LiteDeleteSakaiAuthorizableServlet extends LiteAbstractAuthorizable
       } else {
         session = session.getRepository().loginAdministrative();
       }
-      AuthorizableManager authorizableManager = session.getAuthorizableManager();
       for ( Authorizable authorizable : authorizables) {
         LOGGER.debug("Deleting {} ",authorizable.getId());
         authorizableEvents.put(authorizable.getId(), (authorizable instanceof Group));
-        postProcessorService.process(authorizable, session, ModificationType.DELETE, request);
+        if ( authorizable instanceof Group ) {
+          Group g = (Group) authorizable;
+          this.authorizableCountChanger.notify(UserConstants.GROUP_MEMBERSHIPS_PROP, Arrays.asList(g.getMembers()));
+        }
+        postProcessorService.process(authorizable, session, ModificationType.DELETE, ParameterMap.extractParameters(request));
         session.getAuthorizableManager().delete(authorizable.getId());
         if (adminSession.getAuthorizableManager().findAuthorizable(authorizable.getId()) != null) {
           adminSession.getAuthorizableManager().delete(authorizable.getId());
@@ -293,8 +299,6 @@ public class LiteDeleteSakaiAuthorizableServlet extends LiteAbstractAuthorizable
 
       private final Session session;
 
-      private final Resource baseResource;
-
       private final String[] paths;
 
       private int pathIndex;
@@ -304,8 +308,7 @@ public class LiteDeleteSakaiAuthorizableServlet extends LiteAbstractAuthorizable
       ApplyToIterator(SlingHttpServletRequest request, String[] paths) {
           this.resolver = request.getResourceResolver();
           this.session = StorageClientUtils.adaptToSession(this.resolver.adaptTo(javax.jcr.Session.class));
-          this.baseResource = request.getResource();
-          this.paths = paths;
+          this.paths = paths.clone();
           this.pathIndex = 0;
 
           nextResource = seek();

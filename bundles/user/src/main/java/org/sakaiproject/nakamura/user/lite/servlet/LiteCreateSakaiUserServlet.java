@@ -31,10 +31,6 @@ import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.QueryResponse;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.auth.trusted.RequestTrustValidator;
@@ -62,6 +58,7 @@ import org.sakaiproject.nakamura.api.user.UserFinder;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProvider;
 import org.sakaiproject.nakamura.user.lite.resource.LiteNameSanitizer;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
+import org.sakaiproject.nakamura.util.parameters.ParameterMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,7 +120,7 @@ import javax.servlet.http.HttpServletResponse;
         "EEE MMM dd yyyy HH:mm:ss 'GMT'Z", "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
         "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd", "dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy" }),
     @Property(name = "self.registration.enabled", boolValue = true) })
-@ServiceDocumentation(name = "Create User Servlet", okForVersion = "1.1",
+@ServiceDocumentation(name = "Create User Servlet", okForVersion = "1.2",
   description = "Creates a new user. Maps on to nodes of resourceType sparse/users like "
     + "/system/userManager/user. "
     + "This servlet responds at /system/userManager/user.create.html",
@@ -349,8 +346,7 @@ public class LiteCreateSakaiUserServlet extends LiteAbstractUserPostServlet {
 
             saveAll(selfRegSession, toSave);
             try {
-              postProcessorService.process(user, selfRegSession, ModificationType.CREATE,
-                  request);
+              postProcessorService.process(user, selfRegSession, ModificationType.CREATE, ParameterMap.extractParameters(request));
             } catch (Exception e) {
               log.warn(e.getMessage(), e);
               response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,

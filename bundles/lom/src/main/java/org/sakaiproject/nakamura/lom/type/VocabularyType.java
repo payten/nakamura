@@ -58,10 +58,11 @@ public abstract class VocabularyType extends Serialize {
   }
   
   public String getSource() {
-    if (source != null)
+    if (source != null) {
       return source.getLangString().getString();
-    else 
+    } else {
       return null;
+    }
   }
 
   public void setSource(String source) {
@@ -73,8 +74,9 @@ public abstract class VocabularyType extends Serialize {
   }
 
   public String getValue() {
-    if (value == null)
+    if (value == null) {
       return null;
+    }
     return value.getLangString().getString();
   }
 
@@ -90,10 +92,12 @@ public abstract class VocabularyType extends Serialize {
   @Override
   public String generateXML() {
     StringBuilder sb = new StringBuilder("");
-    if (this.getSource() != null)
+    if (this.getSource() != null) {
       sb.append("<source>" + this.getSource() + "</source>");
-    if (this.getValue() != null)
+    }
+    if (this.getValue() != null) {
       sb.append("<value>" + this.getValue() + "</value>");
+    }
     return sb.toString();
   }
 }

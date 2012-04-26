@@ -55,6 +55,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
@@ -63,6 +64,8 @@ import javax.servlet.http.HttpServletResponse;
 @Component(immediate = true, metatype = true, enabled = true)
 @SlingServlet(paths = {"/system/world/create"}, methods = {"POST"}, generateComponent = false)
 public class WorldCreationServlet extends SlingAllMethodsServlet {
+
+  private static final long serialVersionUID = 4059912378757447672L;
 
   public static enum PARAMS {
     data,
@@ -78,7 +81,8 @@ public class WorldCreationServlet extends SlingAllMethodsServlet {
     usersToAdd,
     visibility,
     joinability,
-    structure
+    structure,
+    schemaVersion
   }
 
   private static final Logger LOGGER = LoggerFactory.getLogger(WorldCreationServlet.class);

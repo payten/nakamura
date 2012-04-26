@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'nakamura/search'
 require 'test/unit.rb'
@@ -10,7 +12,7 @@ class TC_Kern294Test < Test::Unit::TestCase
   include SlingTest
 
   def test_move
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     n1 = create_node("test/d1#{m}")
     #@s.debug = true
     res = @s.execute_post(@s.url_for(n1), { ":operation" => "move",
@@ -20,7 +22,7 @@ class TC_Kern294Test < Test::Unit::TestCase
   end
 
   def test_move_at_root
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     n1 = create_node("d1#{m}")
     #@s.debug = true
     res = @s.execute_post(@s.url_for(n1), { ":operation" => "move",

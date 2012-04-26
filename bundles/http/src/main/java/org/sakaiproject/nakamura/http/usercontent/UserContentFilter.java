@@ -37,11 +37,25 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
+/**
+ * <p>
+ * Sling filter that protects the server against POSTs to non safe hosts. GETs and HEADs
+ * are allowed to pass without restriction.
+ * </p>
+ * <p>
+ * Notice that this is a <em>Sling</em> filter which is called after the Sling resource
+ * resolution mechanism is consulted. Check the <a
+ * href="http://sling.apache.org/site/filters.html">Sling Filter documentation</a> for
+ * more information about how they function.
+ * </p>
+ * 
+ * @see org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl
+ */
 @Properties(value = {
-    @Property(name = "service.description", value = "Nakamura Quality of Service Filter"),
+    @Property(name = "service.description", value = "Filter to ensure a safe request"),
     @Property(name = "service.vendor", value = "The Sakai Foundation")
 })
-@SlingFilter(order=10, metatype=true, scope=SlingFilterScope.REQUEST)
+@SlingFilter(order = 10, scope = SlingFilterScope.REQUEST)
 public class UserContentFilter implements Filter {
 
 
@@ -58,7 +72,11 @@ public class UserContentFilter implements Filter {
   
   /**
    * {@inheritDoc}
-   * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain)
+   * 
+   * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest,
+   *      javax.servlet.ServletResponse, javax.servlet.FilterChain)
+   * @see org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl#isRequestSafe(SlingHttpServletRequest,
+   *      SlingHttpServletResponse)
    */
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
   throws IOException, ServletException {

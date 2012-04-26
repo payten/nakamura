@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'optparse'
 require 'json'
 require 'digest/sha1'

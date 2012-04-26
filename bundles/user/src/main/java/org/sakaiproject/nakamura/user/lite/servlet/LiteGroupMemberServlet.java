@@ -68,7 +68,7 @@ import javax.servlet.http.HttpServletResponse;
  * Provides a listing for the members and managers of this group.
  */
 @ServiceDocumentation(
-  name = "Group Member Servlet", okForVersion = "1.1",
+  name = "Group Member Servlet", okForVersion = "1.2",
   shortDescription = "Provides a listing for the members and managers of this group.",
   description = "Provides a listing for the members and managers of this group.",
   bindings = {
@@ -333,6 +333,10 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
    * @throws RepositoryException
    */
   private String getName(Authorizable member)  {
+    logger.debug("getName(Authorizable {})", member);
+    if (member == null) {
+      throw new IllegalArgumentException("Authorizable member == null");
+    }
     String name = member.getId();
     if (member instanceof Group) {
       name = (String) member.getProperty("sakai:group-title");

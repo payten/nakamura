@@ -41,8 +41,9 @@ public class Purpose extends VocabularyType {
 
   @Override
   public String generateXML() {
-    if (super.generateXML().equals(""))
+    if (super.generateXML().equals("")) {
       return "";
+    }
     return new String("<purpose>" + super.generateXML() + "</purpose>");
   }
 }

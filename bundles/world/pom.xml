@@ -21,7 +21,7 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>1.1</version>
+    <version>1.2.0</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.world</artifactId>
@@ -108,22 +108,22 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.templates</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.resource</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.cluster</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
     </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>
@@ -167,7 +167,6 @@
     <dependency>
    	  <groupId>org.mockito</groupId>
    	  <artifactId>mockito-all</artifactId>
-   	  <version>1.8.5</version>
    	  <type>jar</type>
    	  <scope>test</scope>
     </dependency>

@@ -111,7 +111,8 @@ public class GeneralFeedSearchResultProcessor implements SolrSearchBatchResultPr
         Result result = results.next();
           String path = (String) result.getFirstValue("path");
 
-          if ("authorizable".equals(result.getFirstValue("resourceType"))) {
+          if ("authorizable".equals(result.getFirstValue("resourceType"))
+              || "profile".equals(result.getFirstValue("resourceType"))) {
             Authorizable auth = authManager.findAuthorizable(path);
             if (auth != null) {
               write.object();

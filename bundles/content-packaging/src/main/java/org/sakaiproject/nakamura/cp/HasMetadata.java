@@ -68,8 +68,9 @@ public class HasMetadata extends Serialize {
     if (this.getMetadata() != null) {
       sb.append(this.getMetadata().generateXML());
     }
-    if (sb.toString().equals(""))
+    if (sb.toString().equals("")) {
       return sb.toString();
+    }
     return new String(sb.toString());
   }  
 }

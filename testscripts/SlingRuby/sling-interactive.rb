@@ -1,6 +1,9 @@
 #!/usr/bin/env ruby
 
-require 'nakamura.rb'
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
+require 'nakamura'
 require 'irb'
 include SlingInterface
 

@@ -9,7 +9,7 @@ class TC_Kern702Test < Test::Unit::TestCase
   include SlingTest
 
   def test_create_site_without_template
-    m = Time.now.to_f.to_s.gsub('.', '_')
+    m = uniqueness()
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
     sitecreator = create_user("testuser#{m}")

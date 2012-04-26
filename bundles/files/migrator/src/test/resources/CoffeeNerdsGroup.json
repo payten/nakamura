@@ -1,0 +1,92 @@
+{
+    "_lastModifiedBy": "zach",
+    "sakai:permissions": "public",
+    "_mimeType": "x-sakai/document",
+    "_createdBy": "admin",
+    "_path": "k1SOy3oaa",
+    "excludeSearch": true,
+    "sakai:description": "",
+    "sling:resourceType": "sakai/pooled-content",
+    "sakai:pooled-content-viewer": ["coffee-nerds-member", "everyone", "anonymous"],
+    "sakai:pooled-content-manager": ["coffee-nerds-manager"],
+    "_created": 1331679590592,
+    "sakai:pool-content-created-for": "zach",
+    "_id": "PQYMAG1gEeG5yK0hwKgBZA+",
+    "structure0": "{\"library\":{\"_title\":\"Library\",\"_order\":0,\"_ref\":\"id27903150\",\"_nonEditable\":true,\"main\":{\"_title\":\"Library\",\"_ref\":\"id27903150\",\"_order\":0,\"_nonEditable\":true}}}",
+    "sakai:pooled-content-file-name": "Library",
+    "_lastModified": 1331679590832,
+    "sakai:excludeSearch": "true",
+    "sakai:copyright": "creativecommons",
+    "sakai:pooled-content-editor": [],
+    "id27903150": {
+        "_created": 1331679590747,
+        "_id": "PR2ysG1gEeG5yK0hwKgBZA+",
+        "_lastModifiedBy": "zach",
+        "page": "<img id='widget_mylibrary_id27903151' class='widget_inline' style='display: block; padding: 10px; margin: 4px;' src='/devwidgets/mylibrary/images/mylibrary.png' data-mce-src='/devwidgets/mylibrary/images/mylibrary.png' data-mce-style='display: block; padding: 10px; margin: 4px;' border='1'><br><\/p>",
+        "_lastModified": 1331679590747,
+        "_createdBy": "zach",
+        "_path": "k1SOy3oaa/id27903150"
+    },
+    "id27903151": {
+        "_created": 1331679590784,
+        "_id": "PSNYAW1gEeG5yK0hwKgBZA+",
+        "_lastModifiedBy": "zach",
+        "_lastModified": 1331679590784,
+        "_createdBy": "zach",
+        "_path": "k1SOy3oaa/id27903151",
+        "mylibrary": {
+            "_created": 1331679590807,
+            "_id": "PSbacG1gEeG5yK0hwKgBZA+",
+            "_lastModifiedBy": "zach",
+            "_lastModified": 1331679590807,
+            "groupid": "coffee-nerds",
+            "_createdBy": "zach",
+            "_path": "k1SOy3oaa/id27903151/mylibrary"
+        }
+    },
+    "activity": {
+        "sling:resourceType": "sakai/activityStore",
+        "_created": 1331679590805,
+        "_id": "PSaMUG1gEeG5yK0hwKgBZA+",
+        "_lastModifiedBy": "admin",
+        "_lastModified": 1331679590805,
+        "_createdBy": "admin",
+        "_path": "k1SOy3oaa/activity",
+        "2012-03-13-17-30250adbd32eb68093b37fe11d4eb2a577038d39": {
+            "sling:resourceType": "sakai/activity-post",
+            "_created": 1331679590836,
+            "sakai:activity-source": "k1SOy3oaa",
+            "_id": "PStHQG1gEeG5yK0hwKgBZA+",
+            "sakai:activity-appid": "default",
+            "sakai:activity-type": "pooled content",
+            "_lastModifiedBy": "admin",
+            "_lastModified": 1331679590864,
+            "sakai:activity-actor": "zach",
+            "sakai:activityMessage": "UPDATED_CONTENT",
+            "_createdBy": "admin",
+            "_path": "k1SOy3oaa/activity/2012-03-13-17-30250adbd32eb68093b37fe11d4eb2a577038d39"
+        }
+    },
+    "activityFeed": {
+        "_created": 1331679590824,
+        "_id": "PSlygG1gEeG5yK0hwKgBZA+",
+        "_lastModifiedBy": "admin",
+        "_lastModified": 1331679590824,
+        "_createdBy": "admin",
+        "_path": "k1SOy3oaa/activityFeed",
+        "2012-03-13-17-30250adbd32eb68093b37fe11d4eb2a577038d39": {
+            "sling:resourceType": "sakai/activity",
+            "_created": 1331679590897,
+            "sakai:activity-source": "k1SOy3oaa",
+            "_id": "PTSWEG1gEeG5yK0hwKgBZA+",
+            "_lastModifiedBy": "admin",
+            "sakai:activity-type": "pooled content",
+            "sakai:activity-appid": "default",
+            "_lastModified": 1331679590897,
+            "sakai:activity-actor": "zach",
+            "sakai:activityMessage": "UPDATED_CONTENT",
+            "_createdBy": "admin",
+            "_path": "k1SOy3oaa/activityFeed/2012-03-13-17-30250adbd32eb68093b37fe11d4eb2a577038d39"
+        }
+    }
+}

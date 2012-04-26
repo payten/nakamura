@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'nakamura/users'
 include SlingUsers
@@ -64,16 +66,20 @@ class TC_Kern2113Test < Test::Unit::TestCase
     res = @s.execute_get(@s.url_for("var/message/boxcategory-all.tidy.json"), props)
     assert_equal('200', res.code, "Should be able to fetch messages: #{res}\n#{res.body}")
     json = JSON.parse(res.body)
-    # This is a lie, but it's the lie we expect.
-    assert_equal(100, json["total"])
+    assert_equal(101, json["total"])
     assert_equal(50, json["results"].length)
     props["page"] = "1"
     res = @s.execute_get(@s.url_for("var/message/boxcategory-all.tidy.json"), props)
     assert_equal('200', res.code, "Should be able to fetch messages: #{res}\n#{res.body}")
     json = JSON.parse(res.body)
-    # The truth can now be told.
     assert_equal(101, json["total"])
     assert_equal(50, json["results"].length)
+    props["page"] = "2"
+    res = @s.execute_get(@s.url_for("var/message/boxcategory-all.tidy.json"), props)
+    assert_equal('200', res.code, "Should be able to fetch messages: #{res}\n#{res.body}")
+    json = JSON.parse(res.body)
+    assert_equal(101, json["total"])
+    assert_equal(1, json["results"].length)
   end
   
   def send_message(from, to, count)

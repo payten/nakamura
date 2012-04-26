@@ -49,8 +49,9 @@ public class Resources extends Serialize {
       if (resourceArray != null) {
         for (int i = 0; i < resourceArray.length(); i++) {
           JSONObject object = resourceArray.optJSONObject(i);
-          if (object != null) 
+          if (object != null) {
             addResource(new Resource(object));
+          }
         }
       }
     } else {
@@ -65,14 +66,16 @@ public class Resources extends Serialize {
   }
 
   public void addResource(Resource r) {
-    if (resources == null)
+    if (resources == null) {
       resources = new ArrayList<Resource>();
+    }
     resources.add(r);
   }
   
   public void addResource(Resource r, int index) {
-    if (resources == null)
+    if (resources == null) {
       resources = new ArrayList<Resource>();
+    }
     resources.add(index, r);
   }
   
@@ -80,9 +83,11 @@ public class Resources extends Serialize {
     if (resources == null || id == null || "".equals(id)) {
       return null;
     }
-    for (Resource r : resources)
-      if (id.equalsIgnoreCase(r.getIdentifier()))
+    for (Resource r : resources) {
+      if (id.equalsIgnoreCase(r.getIdentifier())) {
         return r;
+      }
+    }
     return null;
   }
   

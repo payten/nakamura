@@ -4,10 +4,9 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>1.1</version>
+    <version>1.2.0</version>
     <relativePath>../../../pom.xml</relativePath>
   </parent>
-  <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.profile.impl</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: Profile Impl Bundle</name>
@@ -105,29 +104,29 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.profile.api</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.resource</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.connections</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>      
     </dependency>    
     <dependency>
@@ -137,7 +136,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.user</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <!--  OSGI  -->

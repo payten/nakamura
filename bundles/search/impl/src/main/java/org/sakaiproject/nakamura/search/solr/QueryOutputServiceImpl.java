@@ -99,7 +99,7 @@ public class QueryOutputServiceImpl implements QueryOutputService {
     private int indent = 0;
 
 
-    private void newline_indent(StringBuilder sb) {
+    private void newlineIndent(StringBuilder sb) {
         sb.append("\n");
         for (int i = 0; i < (indent * tabwidth); i++) {
           sb.append(" ");
@@ -116,25 +116,25 @@ public class QueryOutputServiceImpl implements QueryOutputService {
         if (ch == '{') {
           sb.append(ch);
           indent++;
-          newline_indent(sb);
+          newlineIndent(sb);
         } else if (ch == '[') {
           sb.append(ch);
           indent++;
-          newline_indent(sb);
+          newlineIndent(sb);
         } else if (ch == ']') {
           indent--;
-          newline_indent(sb);
+          newlineIndent(sb);
           sb.append(ch);
         } else if (ch == ',') {
           sb.append(ch);
-          newline_indent(sb);
+          newlineIndent(sb);
           if (s.charAt(i + 1) == ' ') {
             // Eat the space following the comma too.
             i++;
           }
         } else if (ch == '}') {
           indent--;
-          newline_indent(sb);
+          newlineIndent(sb);
           sb.append(ch);
         } else {
           sb.append(ch);
@@ -304,10 +304,20 @@ public class QueryOutputServiceImpl implements QueryOutputService {
       String paramName = param.getKey();
       String[] paramVals = param.getValue();
       if (!IGNORE_PARAMS.contains(paramName)) {
+        String[] saveVal = null;
         if (paramVals.length == 1) {
-          opts.put(paramName, paramVals[0]);
+          if (!StringUtils.isBlank(paramVals[0])) {
+            saveVal = paramVals;
+          }
         } else {
-          opts.put(paramName, paramVals);
+          saveVal = paramVals;
+        }
+        // add the option if the value was acceptible
+        if (saveVal != null) {
+          opts.put(paramName, saveVal);
+          if (solrQuery != null) {
+            solrQuery.add(paramName, saveVal);
+          }
         }
       }
     }

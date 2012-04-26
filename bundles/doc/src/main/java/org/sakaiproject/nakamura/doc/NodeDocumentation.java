@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.nakamura.doc;
 
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
-
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.nakamura.api.doc.DocumentationConstants;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -139,9 +137,8 @@ public class NodeDocumentation {
    * @param description
    *          the description to set
    */
-  @SuppressWarnings(justification = "Annotations fields are immutable", value = { "EI_EXPOSE_REP2" })
   public void setDescription(String[] description) {
-    this.description = description;
+    this.description = description.clone();
   }
 
   /**
@@ -159,7 +156,7 @@ public class NodeDocumentation {
     return versionOk;
   }
   private void setVersions(String[] versions) {
-    this.versions = versions;
+    this.versions = versions.clone();
     versionOk = false;
     for ( String version : versions) {
       if ( ServiceDocumentation.VERSION.equals(version)) {
@@ -187,9 +184,8 @@ public class NodeDocumentation {
    * @param parameters
    *          the parameters to set
    */
-  @SuppressWarnings(justification = "Annotations fields are immutable", value = { "EI_EXPOSE_REP2" })
   public void setParameters(NodeDocumentationParameter[] parameters) {
-    this.parameters = parameters;
+    this.parameters = parameters.clone();
   }
 
   /**
@@ -208,9 +204,8 @@ public class NodeDocumentation {
    * @param response
    *          the response to set
    */
-  @SuppressWarnings(justification = "Annotations fields are immutable", value = { "EI_EXPOSE_REP2" })
   public void setResponse(String[] response) {
-    this.response = response;
+    this.response = response.clone();
   }
 
   /**

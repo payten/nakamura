@@ -50,8 +50,9 @@ public class Organizations extends Serialize {
       if (orgArray != null) {
         for (int i = 0; i < orgArray.length(); i++) {
           JSONObject object = orgArray.optJSONObject(i);
-          if (object != null)
+          if (object != null) {
             addOrganization(new Organization(object));
+          }
         }
       }
     } else {
@@ -87,22 +88,26 @@ public class Organizations extends Serialize {
   }
   
   public Organization getOrganization(String id) {
-    if (organizations == null || id == null || "".equals(id))
+    if (organizations == null || id == null || "".equals(id)) {
       return null;
+    }
     for (Organization o : organizations) {
-      if (id.equals(o.getIdentifier())) 
+      if (id.equals(o.getIdentifier())) {
         return o;
+      }
     }
     return null;
   }
   
   public Item searchItem(String id) {
-    if (organizations == null || id == null || "".equals(id))
+    if (organizations == null || id == null || "".equals(id)) {
       return null;
+    }
     for (Organization o : organizations) {
       Item i = o.searchSubItem(id);
-      if (i != null) 
+      if (i != null) {
         return i;
+      }
     }
     return null;
   }

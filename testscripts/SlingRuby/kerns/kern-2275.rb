@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'test/unit.rb'
 include SlingUsers
@@ -37,8 +40,8 @@ class TC_Kern2275 < Test::Unit::TestCase
     # everyone and anonymous principal will have Read privilege granted
     response = set_visibility_pref "public"
     assert_equal("302", response.code)
-    
-    m = Time.now.to_f.to_s.gsub('.', '')
+
+    m = uniqueness()
     data = {}
     userid = "test_user_public.#{m}"
     data = {}
@@ -63,8 +66,8 @@ class TC_Kern2275 < Test::Unit::TestCase
     # anonymous principal will have Read privilege denied
     response = set_visibility_pref "logged_in"
     assert_equal("302", response.code)
-        
-    m = Time.now.to_f.to_s.gsub('.', '')
+
+    m = uniqueness()
     data = {}
     userid = "test_user_logged_in.#{m}"
     data = {}
@@ -89,8 +92,8 @@ class TC_Kern2275 < Test::Unit::TestCase
     # anonymous principal will have Read privilege denied
     response = set_visibility_pref "private"
     assert_equal("302", response.code)
-        
-    m = Time.now.to_f.to_s.gsub('.', '')
+
+    m = uniqueness()
     data = {}
     userid = "test_user_logged_in.#{m}"
     data = {}
@@ -117,8 +120,8 @@ class TC_Kern2275 < Test::Unit::TestCase
     # everyone and anonymous principals will have Read privilege granted
     response = set_visibility_pref "public"
     assert_equal("302", response.code)
-    
-    m = Time.now.to_f.to_s.gsub('.', '')
+
+    m = uniqueness()
     data = {}
     userid = "test_user_toggle.#{m}"
     data = {}

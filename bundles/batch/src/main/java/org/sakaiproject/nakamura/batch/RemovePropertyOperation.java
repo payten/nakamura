@@ -31,7 +31,7 @@ import java.util.List;
 
 import javax.jcr.RepositoryException;
 
-@ServiceDocumentation(name = "RemovePropertyOperation documentation", okForVersion = "1.1",
+@ServiceDocumentation(name = "RemovePropertyOperation documentation", okForVersion = "1.2",
   shortDescription = "Allows removing a property or properties from one or more resources.",
   description = "Allows removing a property or properties from one or more resources.",
   methods = {

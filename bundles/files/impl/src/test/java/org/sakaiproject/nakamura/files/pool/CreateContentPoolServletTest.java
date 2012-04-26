@@ -22,8 +22,6 @@ import static org.apache.jackrabbit.JcrConstants.NT_RESOURCE;
 import static org.mockito.Mockito.when;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_MEMBERS_NODE;
 
-import org.sakaiproject.nakamura.api.files.FileUploadHandler;
-
 import com.google.common.collect.ImmutableMap;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
@@ -48,11 +46,13 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
+import org.sakaiproject.nakamura.api.files.FileUploadHandler;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.user.AuthorizableCountChanger;
 import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
 import org.sakaiproject.nakamura.lite.RepositoryImpl;
 import org.sakaiproject.nakamura.lite.jackrabbit.SparseMapUserManager;
@@ -61,7 +61,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -133,6 +132,8 @@ public class CreateContentPoolServletTest {
   private SparseMapUserManager sparseMapUserManager;
   @Mock
   private EventAdmin eventAdmin;
+  @Mock
+  private AuthorizableCountChanger authorizableCountChanger;
   private RepositoryImpl repository;
 
   CreateContentPoolServlet cp;
@@ -247,6 +248,7 @@ public class CreateContentPoolServletTest {
     cp.eventAdmin = eventAdmin;
     cp.clusterTrackingService = clusterTrackingService;
     cp.sparseRepository = repository;
+    cp.authorizableCountChanger = authorizableCountChanger;
   }
 
 
@@ -295,7 +297,7 @@ public class CreateContentPoolServletTest {
         }
       });
 
-    final ArrayList notifiedFiles = new ArrayList();
+    final ArrayList<String> notifiedFiles = new ArrayList<String>();
     cp.bindFileUploadHandler(new FileUploadHandler() {
         public void handleFile(Map<String, Object> results, String poolId, InputStream fileInputStream,
                                String userId, boolean isNew) throws IOException {

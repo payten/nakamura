@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.api.resource.lite;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.sling.commons.json.JSONArray;
@@ -35,6 +34,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification.Operation;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
 import org.sakaiproject.nakamura.lite.RepositoryImpl;
@@ -52,6 +52,11 @@ public class LiteJsonImporterTest {
     "testimport/test4.json",
     "testimport/test5.json"
     };
+  private static final String TEST_IGNORE_BASE_FILE = "testimport/test-ignore-base.json";
+  private static final String TEST_IGNORE_IMPORT_FILE = "testimport/test-ignore-import.json";
+  private static final String TEST_IGNORE_IMPORT_ARRAY_FILE = "testimport/test-ignore-import-array.json";
+  private static final String TEST_IGNORE_IMPORT_PRIM_FILE = "testimport/test-ignore-import-primitive.json";
+  
   private RepositoryImpl repository;
 
   public LiteJsonImporterTest() throws AccessDeniedException, StorageClientException,
@@ -213,5 +218,106 @@ public class LiteJsonImporterTest {
       JSONObject json = new JSONObject(IOUtils.toString(getClass().getClassLoader().getResourceAsStream(testFile)));
       liteJsonImporter.importContent(contentManager, json, testFile, true, true, true, accessControlManager);
     }
+  }
+  
+  /**
+   * Verify that the @Ignore suffix of an imported JSON key is respected, when the value assigned
+   * to it is an object.
+   * 
+   * @throws Exception
+   */
+  @Test
+  public void testImportObjectContentWithIgnore() throws Exception {
+    doTestIgnoreWithImportFile(TEST_IGNORE_IMPORT_FILE);
+  }
+  
+
+  /**
+   * Verify that the @Ignore suffix of an imported JSON key is respected, when the value assigned
+   * to it is a primitive.
+   * 
+   * @throws Exception
+   */
+  @Test
+  public void testImportPrimitiveContentWithIgnore() throws Exception {
+    doTestIgnoreWithImportFile(TEST_IGNORE_IMPORT_PRIM_FILE);
+  }
+  
+
+  /**
+   * Verify that the @Ignore suffix of an imported JSON key is respected, when the value assigned
+   * to it is an array.
+   * 
+   * @throws Exception
+   */
+  @Test
+  public void testImportArrayContentWithIgnore() throws Exception {
+    doTestIgnoreWithImportFile(TEST_IGNORE_IMPORT_ARRAY_FILE);
+  }
+  
+  /**
+   * Validate that the import file does not wipe away the
+   * {@code id3973361/comments/message/inbox/7a050dcb7ec347ff509103f2b5f08ddcf6cbb203} node,
+   * as this should be specified as @Ignore in the specified import file.
+   * 
+   * @param importFile
+   * @throws Exception
+   */
+  private void doTestIgnoreWithImportFile(String importFile) throws Exception {
+    LiteJsonImporter liteJsonImporter = new LiteJsonImporter();
+    Session session = repository.loginAdministrative();
+    ContentManager cm = session.getContentManager();
+    AccessControlManager am = session.getAccessControlManager();
+    
+    //first load the tree that will be replaced
+    JSONObject json = new JSONObject(IOUtils.toString(getClass().getClassLoader()
+        .getResourceAsStream(TEST_IGNORE_BASE_FILE)));
+    liteJsonImporter.importContent(cm, json, TEST_IGNORE_BASE_FILE, true, true, true, am);
+    
+    //now import the content ontop of it (do not enable removeTree, @Ignore is not safe from that)
+    json = new JSONObject(IOUtils.toString(getClass().getClassLoader().getResourceAsStream(importFile)));
+    liteJsonImporter.importContent(cm, json, TEST_IGNORE_BASE_FILE, true, true, false, false, am, true);
+    
+    String messagePath = String.format("%s/%s", TEST_IGNORE_BASE_FILE,
+        "id3973361/comments/message/inbox/7a050dcb7ec347ff509103f2b5f08ddcf6cbb203");
+    
+    Assert.assertTrue(cm.exists(String.format("%s/%s", TEST_IGNORE_BASE_FILE, "id3973361")));
+    Assert.assertTrue(cm.exists(String.format("%s/%s", TEST_IGNORE_BASE_FILE,
+        "id3973361/comments")));
+    Assert.assertTrue(cm.exists(String.format("%s/%s", TEST_IGNORE_BASE_FILE,
+        "id3973361/comments/message")));
+    Assert.assertTrue(cm.exists(String.format("%s/%s", TEST_IGNORE_BASE_FILE,
+        "id3973361/comments/message/inbox")));
+    
+    // this one verifies that the message beneath "inbox", which should have been ignored, still exists
+    Assert.assertTrue(cm.exists(messagePath));
+    
+    // verify that the import wasn't a complete flop, by ensuring other things were deleted
+    Assert.assertFalse(cm.exists(String.format("%s/%s", TEST_IGNORE_BASE_FILE, "rows")));
+    Assert.assertFalse(cm.exists(String.format("%s/%s", TEST_IGNORE_BASE_FILE, "editing")));
+    Assert.assertFalse(cm.exists(String.format("%s/%s", TEST_IGNORE_BASE_FILE, "editor")));
+    
+    // spot-check message properties
+    Content message = cm.get(messagePath);
+    Assert.assertEquals("id3973361", message.getProperty("sakai:marker"));
+    Assert.assertEquals("another comment!", message.getProperty("sakai:body"));
+  }
+
+  @Test
+  public void testSlingTypeHint() throws Exception {
+    JSONObject json = new JSONObject("{\"beAwesome\":true, \"beAwesome@TypeHint\":\"Boolean\"}");
+    LiteJsonImporter liteJsonImporter = new LiteJsonImporter();
+    Session session = repository.loginAdministrative();
+    ContentManager contentManager = session.getContentManager();
+    AccessControlManager accessControlManager = session.getAccessControlManager();
+
+
+    String awesomePath = "/p/awesome-hint";
+    liteJsonImporter.importContent(contentManager, json, awesomePath, true, true, false, true, accessControlManager, Boolean.FALSE);
+    Content content = contentManager.get(awesomePath);
+    final String beAwesome = "beAwesome";
+    Object awesomeProperty = content.getProperty(beAwesome);
+    Assert.assertTrue(awesomeProperty instanceof Boolean);
+    Assert.assertEquals(Boolean.TRUE, content.getProperty(beAwesome));
   }
 }

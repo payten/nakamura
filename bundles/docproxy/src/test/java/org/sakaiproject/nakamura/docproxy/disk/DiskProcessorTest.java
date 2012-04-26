@@ -82,7 +82,7 @@ import javax.jcr.ValueFormatException;
  */
 public class DiskProcessorTest {
 
-  public static final String TEST_STRING = "K2 docProxy test resource";
+  public static final String TEST_STRING = "Nakamura docProxy test resource";
   private DiskProcessor diskProcessor;
   private String currPath;
   private MockNode proxyNode;

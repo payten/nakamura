@@ -58,7 +58,7 @@ public final class SakaiSearchRowIterator extends ValidatingRowIterator {
     super(iterator);
     if (blacklistedPaths != null) {
       Arrays.sort(blacklistedPaths);
-      this.blacklistedPaths = blacklistedPaths;
+      this.blacklistedPaths = blacklistedPaths.clone();
     }
     loadNextRow();
   }

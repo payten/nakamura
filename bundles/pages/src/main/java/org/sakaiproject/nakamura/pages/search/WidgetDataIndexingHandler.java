@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.pages.search;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -30,17 +31,15 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.osgi.service.event.Event;
+import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
-import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
-import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
-import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,46 +103,50 @@ public class WidgetDataIndexingHandler implements IndexingHandler {
           return docs;
         }
 
-        String authId = PathUtils.getAuthorizableId(content.getPath());
-        if (authId == null) {
-          logger.warn("Unable to find auth (user,group) container for widget data [{}]; not indexing widget data", path);
-          return docs;
-        }
+        // TODO get the path to the document where the widget lives
+        String[] pathParts = StringUtils.split(path, "/", 2);
+        String docPath = pathParts[0];
 
         Object fields = content.getProperty(INDEXED_FIELDS);
-        String[] indexedFields = null;
+        Set<String> uniqFields = null;
         if (fields instanceof String) {
-          indexedFields = StringUtils.split(String.valueOf(fields), ",");
+          uniqFields = ImmutableSet.copyOf(StringUtils.split(String.valueOf(fields), ","));
         } else if (fields instanceof String[]) {
-          indexedFields = (String[]) fields;
+          uniqFields = ImmutableSet.copyOf((String[]) fields);
         }
 
         // concatenate the fields requested to be indexed.
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < indexedFields.length; i++) {
-          Object propVal = content.getProperty(indexedFields[i]);
-          if (propVal != null) {
-            sb.append(propVal).append(' ');
+        if (uniqFields != null) {
+          for (String uniqField : uniqFields) {
+            Object propVal = content.getProperty(uniqField);
+            if (propVal != null) {
+              sb.append(propVal).append(' ');
+            }
           }
         }
 
-        SolrInputDocument doc = new SolrInputDocument();
-        AuthorizableManager am = session.getAuthorizableManager();
-        Authorizable auth = am.findAuthorizable(authId);
-        if (auth.isGroup()) {
-          doc.setField("type", "g");
-        } else {
-          doc.setField("type", "u");
-        }
-        // set the path here so that it's the first path found when rendering to the
-        // client. the resource indexing service will all nodes of the path and we want
-        // this one first.
-        doc.setField(FIELD_PATH, authId);
 
+        SolrInputDocument doc = new SolrInputDocument();
+        // set the path here so that it's the first path found when rendering to
+        // the client. we want this one first, so we don't have to create a
+        // special result processor
+        doc.setField(FIELD_PATH, docPath);
+
+        // grab the parent document's filename to use for general sorting
+        Content parentContent = cm.get(docPath);
+        Map<String, Object> parentProperties = parentContent.getProperties();
+        Object parentFilenameObj = parentProperties
+            .get(FilesConstants.POOLED_CONTENT_FILENAME);
+        if (parentFilenameObj != null) {
+          doc.addField("general_sort", String.valueOf(parentFilenameObj));
+        }
+        
         // set the return to a single value field so we can group it
-        doc.setField("returnpath", authId);
+        doc.setField("returnpath", docPath);
         doc.setField("widgetdata", sb.toString());
         doc.addField(_DOC_SOURCE_OBJECT, content);
+
         docs.add(doc);
       } catch (StorageClientException e) {
         logger.warn(e.getMessage(), e);

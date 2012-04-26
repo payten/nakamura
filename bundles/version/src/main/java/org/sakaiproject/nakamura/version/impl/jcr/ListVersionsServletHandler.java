@@ -88,10 +88,6 @@ public class ListVersionsServletHandler extends AbstractSafeMethodsServletResour
   */
   public static final String PARAMS_PAGE = "page";
 
-  /**
-   *
-   */
-  private static final long serialVersionUID = 764192946800357626L;
   private static final Logger LOGGER = LoggerFactory.getLogger(ListVersionsServletHandler.class);
 
   public void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)

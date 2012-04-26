@@ -155,8 +155,9 @@ public class RelatedContentSearchBatchResultProcessor extends
       }
     }
     long endTicks = System.currentTimeMillis();
-    if (LOG.isDebugEnabled())
+    if (LOG.isDebugEnabled()) {
       LOG.debug("writeResults() took {} seconds",
           new Object[] { (float) (endTicks - startTicks) / 1000 });
+    }
   }
 }

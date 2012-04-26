@@ -66,7 +66,6 @@ public abstract class AbstractSolrSearchServletHelperTracker<T> {
     }
   }
 
-  @SuppressWarnings({"UnusedParameters"})
   protected void removeHelper(T helper, Map<?, ?> props) {
     String[] helperNames = getSetting(props.get(this.helperNameOsgiProp), new String[0]);
     for (String name : helperNames) {

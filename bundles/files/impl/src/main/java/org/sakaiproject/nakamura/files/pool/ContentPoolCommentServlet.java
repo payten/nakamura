@@ -72,7 +72,8 @@ import javax.servlet.http.HttpServletResponse;
  * Servlet endpoint for comments associated to a piece of pooled content.
  */
 @SlingServlet(methods = { "GET", "POST", "DELETE" }, extensions = "comments", resourceTypes = { "sakai/pooled-content" })
-@ServiceDocumentation(name = "ContentPoolCommentServlet", okForVersion = "1.1", shortDescription = "Read/Write/Delete comments on a content item.",
+@ServiceDocumentation(name = "ContentPoolCommentServlet", okForVersion = "1.2",
+    shortDescription = "Read/Write/Delete comments on a content item.",
     description = "Read, write, and delete comments associated to a piece of pooled content.",
     bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/pooled-content",
                 extensions = @ServiceExtension(name = "comments", description = "Accesses the comments on a piece of content.")),
@@ -277,7 +278,7 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
       // KERN-1536 allow arbitrary properties to be stored on a comment
       for (String parameterName : request.getRequestParameterMap().keySet()) {
         // commentId is not meant to be stored
-        if ("commentId" == parameterName) {
+        if ("commentId".equals(parameterName)) {
           continue;
         }
         String[] parameterValues = request.getParameterValues(parameterName);
@@ -315,7 +316,9 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
       throw new ServletException(e.getMessage(), e);
     } finally {
       try {
-        adminSession.logout();
+        if (adminSession != null) {
+          adminSession.logout();
+        }
       } catch (ClientPoolException e) {
         LOGGER.warn(e.getMessage(), e);
       }

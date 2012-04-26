@@ -121,7 +121,7 @@ public class DefaultPostProcessorTest {
     DefaultPostProcessor defaultPostProcessor = new DefaultPostProcessor();
 
     // call the object under test
-    defaultPostProcessor.process(null, funGroup, session, mockChange, parameters);
+    defaultPostProcessor.process(funGroup, session, mockChange, parameters);
 
     // make sure zach lost access, but should still be able to read
     Authorizable zach = session.getAuthorizableManager().findAuthorizable("zach");
@@ -149,7 +149,7 @@ public class DefaultPostProcessorTest {
     defaultPostProcessor.modified(ImmutableMap.of("visibility.preference", "logged_in"));
 
     // call the object under test with funGroup
-    defaultPostProcessor.process(null, funGroup, session, mockChange, parameters);
+    defaultPostProcessor.process(funGroup, session, mockChange, parameters);
 
     // logged_in means anonymous cannot read, but everyone can
     assertFalse(adminAccessControlManager.can(adminAuthorizableManager.findAuthorizable(User.ANON_USER), "CO", "a:fun-group", Permissions.CAN_READ));
@@ -172,7 +172,7 @@ public class DefaultPostProcessorTest {
     Authorizable secretGroup = session.getAuthorizableManager().findAuthorizable("secret-group");
     when(mockChange.getType()).thenReturn(ModificationType.CREATE);
     // process now to establish a different group
-    defaultPostProcessor.process(null, secretGroup, session, mockChange, parameters);
+    defaultPostProcessor.process(secretGroup, session, mockChange, parameters);
 
     // private means anonymous cannot read and neither can everyone
     assertFalse(adminAccessControlManager.can(adminAuthorizableManager.findAuthorizable(User.ANON_USER), "CO", "a:secret-group", Permissions.CAN_READ));
@@ -198,7 +198,7 @@ public class DefaultPostProcessorTest {
     Authorizable openGroup = session.getAuthorizableManager().findAuthorizable("open-group");
     when(mockChange.getType()).thenReturn(ModificationType.CREATE);
     // process now to establish a different group
-    defaultPostProcessor.process(null, openGroup, session, mockChange, parameters);
+    defaultPostProcessor.process(openGroup, session, mockChange, parameters);
 
     // public means anonymous and everyone can both read
     assertTrue(adminAccessControlManager.can(adminAuthorizableManager.findAuthorizable(User.ANON_USER), "CO", "a:open-group", Permissions.CAN_READ));

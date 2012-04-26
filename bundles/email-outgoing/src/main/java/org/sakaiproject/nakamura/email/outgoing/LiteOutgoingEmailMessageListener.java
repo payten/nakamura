@@ -52,6 +52,9 @@ import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FilterOutputStream;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Date;
@@ -74,8 +77,10 @@ import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
 import javax.jms.Queue;
 import javax.jms.Session;
+import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 
 @Component(immediate = true, metatype = true)
 public class LiteOutgoingEmailMessageListener implements MessageListener {
@@ -202,7 +207,11 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
                         sparseSession);
 
                     setOptions(email);
-
+                    if (LOGGER.isDebugEnabled()) {
+                      // build wrapped meesage in order to log it
+                      email.buildMimeMessage();
+                      logEmail(email);
+                    }
                     email.send();
                   } catch (EmailException e) {
                     String exMessage = e.getMessage();
@@ -493,7 +502,7 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
             Properties eventProps = new Properties();
             eventProps.put(NODE_PATH_PROPERTY, config.get(NODE_PATH_PROPERTY));
 
-            Event retryEvent = new Event(QUEUE_NAME, (Map) eventProps);
+            Event retryEvent = new Event(QUEUE_NAME, (Map<Object, Object>) eventProps);
             eventAdmin.postEvent(retryEvent);
 
           }
@@ -638,6 +647,23 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
       diff = false;
     }
     return diff;
+  }
+  
+  private void logEmail(MultiPartEmail multiPartMessage) {
+    if (multiPartMessage != null) {
+      MimeMessage mimeMessage = multiPartMessage.getMimeMessage();
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      try {
+        mimeMessage.writeTo(new FilterOutputStream(baos));
+        LOGGER.debug("Email content = \n" + baos.toString());
+      } catch (IOException e) {
+        LOGGER.error("failed to log email", e);
+      } catch (MessagingException e) {
+        LOGGER.error("failed to log email", e);
+      }      
+    } else {
+      LOGGER.error("Email is null");
+    }
   }
 
 }

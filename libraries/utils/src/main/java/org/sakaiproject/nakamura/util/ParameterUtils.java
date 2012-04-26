@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.util;
 
 import org.sakaiproject.nakamura.util.parameters.ContainerRequestParameter;
 import org.sakaiproject.nakamura.util.parameters.ParameterMap;
-import org.sakaiproject.nakamura.util.parameters.Util;
 
 import java.util.Map;
 

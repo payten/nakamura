@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 include SlingUsers
 
@@ -9,7 +11,7 @@ class TC_Kern1154Test < Test::Unit::TestCase
 
   # Cause of SAKIII-1099.
   def test_profile_does_not_override_access
-    m = Time.now.to_nsec
+    m = uniqueness()
     user = create_user("user-#{m}")
     home = user.home_path_for(@s)
     public = user.public_path_for(@s)
@@ -31,7 +33,7 @@ class TC_Kern1154Test < Test::Unit::TestCase
 
   # Cause of KERN-1159.
   def test_home_access_not_overwritten
-    m = Time.now.to_nsec
+    m = uniqueness()
     user = create_user("user-#{m}")
     home = user.home_path_for(@s)
     public = user.public_path_for(@s)

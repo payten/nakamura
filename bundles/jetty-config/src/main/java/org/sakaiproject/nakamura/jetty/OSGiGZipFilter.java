@@ -18,9 +18,18 @@
 package org.sakaiproject.nakamura.jetty;
 
 import org.apache.felix.http.api.ExtHttpService;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 
 import java.io.IOException;
-import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Map;
 
@@ -31,17 +40,44 @@ import javax.servlet.ServletResponse;
 
 /**
  * This class that operates as a managed service.
+ *
+ * <p>The annotations on this class are just to generate the xml files saved in src/main/resources/OSGI-INF.
+ * This differs from normal behavior because this bundle doesn't use the `bundle` packaging,
+ * so that it can unwrap some other bundles.
  */
+@Component(immediate = true, metatype = true)
+@Service
+@Properties({
+  @Property(name="service.description", value="Nakamura GZip Filter"),
+  @Property(name="service.vendor", value="The Sakai Foundation"),
+  @Property(name="bufferSize", intValue=8192),
+  @Property(name="minGzipSize", intValue=8192),
+  // regex string:  (?:Mozilla[^\(]*\(compatible;\s*+([^;]*);.*)|(?:.*?([^\s]+/[^\s]+).*)
+  // java string: (?:Mozilla[^\\(]*\\(compatible;\\s*+([^;]*);.*)|(?:.*?([^\\s]+/[^\\s]+).*)
+  @Property(name="userAgent", value="SEE SOURCE FOR CORRECT VALUE"),
+  @Property(name="mimeTypes", value="text/html,text/plain,text/css,text/javascript,text/xml,application/xml,application/xhtml+xml,application/rss+xml,application/javascript,application/x-javascript,application/json"), 
+  @Property(name="excludedAgents", value=""),
+  @Property(name="enabled", boolValue=false)
+  // don't include a "pattern" property because we want to control whether the service is registered during activation
+})
+@Reference(name="extHttpService",
+    referenceInterface=org.apache.felix.http.api.ExtHttpService.class,
+    cardinality=ReferenceCardinality.MANDATORY_UNARY,
+    policy=ReferencePolicy.STATIC)
 public class OSGiGZipFilter extends GzipFilter {
-
   protected ExtHttpService extHttpService;
 
-  @SuppressWarnings("rawtypes")
-  public void activate(Map<String, Object> properties) throws ServletException {
-    Hashtable<String, Object> props = new Hashtable<String, Object>();
-    props.putAll(properties);
-    extHttpService.registerFilter(this, ".*", (Dictionary) properties, 100, null);
+  private boolean enabled = false;
 
+  @SuppressWarnings("rawtypes")
+  @Activate
+  public void activate(Map<String, Object> properties) throws ServletException {
+    enabled = PropertiesUtil.toBoolean(properties.get("enabled"), false);
+    if (enabled) {
+      Hashtable<String, Object> props = new Hashtable<String, Object>();
+      props.putAll(properties);
+      extHttpService.registerFilter(this, ".*", props, 100, null);
+    }
   }
 
   @Override
@@ -50,8 +86,11 @@ public class OSGiGZipFilter extends GzipFilter {
     super.doFilter(arg0, arg1, arg2);
   }
 
+  @Deactivate
   public void deactivate(Map<String, Object> properties) {
-    extHttpService.unregisterFilter(this);
+    if (enabled) {
+      extHttpService.unregisterFilter(this);
+    }
   }
 
   protected void bind(ExtHttpService extHttpService) {

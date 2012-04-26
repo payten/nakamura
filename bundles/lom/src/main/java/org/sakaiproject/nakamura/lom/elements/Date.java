@@ -32,8 +32,9 @@ public class Date extends DateTimeType {
   
   @Override
   public String generateXML() {
-    if (super.generateXML().equals(""))
+    if (super.generateXML().equals("")) {
       return "";
+    }
     return new String("<date>" + super.generateXML() + "</date>");
   }
 }

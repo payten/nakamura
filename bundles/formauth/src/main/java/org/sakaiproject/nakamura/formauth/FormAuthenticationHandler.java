@@ -79,10 +79,6 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
    */
   final class FormAuthentication {
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = 8019850707623762839L;
     private boolean valid;
     private SimpleCredentials credentials;
 

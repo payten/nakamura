@@ -84,12 +84,17 @@ public class ProfileServiceImpl implements ProfileService {
   static final String EMAIL_LOCATION = "sakai.profile.email.location";
   private String emailLocation;
 
+  @Property(boolValue = false)
+  static final String SCAN_PROVIDER = "should-scan-for-providers";
+  private Boolean shouldScanForProviders;
+
   @Reference
   private BasicUserInfoService basicUserInfoService;
 
   @Activate @Modified
   protected void activate(Map<?, ?> props) {
     emailLocation = PropertiesUtil.toString(props.get(EMAIL_LOCATION), null);
+    shouldScanForProviders = PropertiesUtil.toBoolean(props.get(SCAN_PROVIDER), false);
   }
 
   public String getEmailLocation() {
@@ -278,6 +283,9 @@ public class ProfileServiceImpl implements ProfileService {
   private Map<String, List<ProviderSettings>> scanForProviders(Content profileContent, Session jcrSession)
       throws RepositoryException {
     Map<String, List<ProviderSettings>> providerMap = new HashMap<String, List<ProviderSettings>>();
+    if (!shouldScanForProviders){
+      return providerMap;
+    }
     return scanForProviders("", profileContent, providerMap, jcrSession);
   }
 

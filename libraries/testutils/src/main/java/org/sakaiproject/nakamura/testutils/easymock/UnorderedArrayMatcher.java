@@ -36,7 +36,7 @@ public class UnorderedArrayMatcher<T> implements IArgumentMatcher {
 
   @edu.umd.cs.findbugs.annotations.SuppressWarnings(value={"EI_EXPOSE_REP2"})
   public UnorderedArrayMatcher(T[] expected) {
-    this.expected = expected;
+    this.expected = expected.clone();
   }
 
   public static <V> V[] aryUnorderedEq(V[] arg) {

@@ -18,13 +18,14 @@
 package org.sakaiproject.nakamura.message.search;
 
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_BODY;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_CREATED;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_SUBJECT;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
@@ -50,8 +51,12 @@ import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,13 +69,26 @@ import java.util.Set;
 public class MessageIndexingHandler implements IndexingHandler, QoSIndexHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(MessageIndexingHandler.class);
 
+  /* 
+   * TODO: This conversion is currently a work-around due to data-type inconsistency found in the
+   * sakai:message property. When a message is first created the property is serialized as a
+   * Calendar, but some time later it ends up being changed to a string. To handle this inconsistency
+   * we need a secondary check (if it is not a Calendar object) to convert it to date from String.
+   * This formatter is the default Calendar.toString() format that ends up being persisted.
+   * 
+   * e.g., Tue Apr 10 2012 13:39:50 GMT-0400
+   * 
+   * This is only to side-step data-migration for the 1.2.0 release.
+   */
+  private static final SimpleDateFormat SAKAI_CREATED_DATE_CONVERSION = new SimpleDateFormat(
+      "EEE MMM dd yyyy HH:mm:ss 'GMT'Z");
+  
   private static final Map<String, String> WHITELISTED_PROPS;
   static {
     Builder<String,String> propBuilder = ImmutableMap.builder();
     propBuilder.put("sakai:messagestore", "messagestore");
     propBuilder.put("sakai:messagebox", "messagebox");
     propBuilder.put("sakai:type", "type");
-    propBuilder.put(Content.CREATED_FIELD, Content.CREATED_FIELD);
     propBuilder.put("sakai:category", "category");
     propBuilder.put("sakai:from", "from");
     propBuilder.put("sakai:to", "to");
@@ -82,9 +100,6 @@ public class MessageIndexingHandler implements IndexingHandler, QoSIndexHandler 
     propBuilder.put(PROP_SAKAI_BODY, "content");
     WHITELISTED_PROPS = propBuilder.build();
   }
-
-  private static final Logger logger = LoggerFactory
-      .getLogger(MessageIndexingHandler.class);
 
   private static final String AUTH_SUFFIX = "-auth";
 
@@ -130,7 +145,7 @@ public class MessageIndexingHandler implements IndexingHandler, QoSIndexHandler 
     String path = (String) event.getProperty(IndexingHandler.FIELD_PATH);
 
     List<SolrInputDocument> documents = Lists.newArrayList();
-    if (!StringUtils.isBlank(path)) {
+    if (!StringUtils.isBlank(path) && !isTemporaryContent(path)) {
       try {
         Session session = repositorySession.adaptTo(Session.class);
         ContentManager cm = session.getContentManager();
@@ -150,12 +165,38 @@ public class MessageIndexingHandler implements IndexingHandler, QoSIndexHandler 
             }
           }
 
+          // Use sakai:created field as the indexed created field. The internal _created content
+          // field is pretty much useless.
+          Object createdObj = content.getProperty(PROP_SAKAI_CREATED);
+          Calendar created = null;
+          if (createdObj instanceof Calendar) {
+            created = (Calendar) createdObj;
+          } else {
+            LOGGER.info("Parsing string created date for message at path '{}' because it's stored as string", path);
+            try {
+              Date date = SAKAI_CREATED_DATE_CONVERSION.parse(String.valueOf(createdObj));
+              if (date != null) {
+                created = Calendar.getInstance();
+                created.setTime(date);
+              }
+            } catch (ParseException e) {
+            }
+          }
+          
+          if (created != null) {
+            doc.addField(Content.CREATED_FIELD, created.getTimeInMillis());
+          } else {
+            LOGGER.warn("Did not index message creation date due to no suitable sakai:message value.");
+          }
+          
           //index sender's first and last name
           AuthorizableManager am = session.getAuthorizableManager();
           String senderAuthId = (String)content.getProperty("sakai:from");
           Authorizable senderAuth = am.findAuthorizable(senderAuthId);
-          doc.addField("firstName", senderAuth.getProperty("firstName"));
-          doc.addField("lastName", senderAuth.getProperty("lastName"));
+          if (senderAuth != null) {
+            doc.addField("firstName", senderAuth.getProperty("firstName"));
+            doc.addField("lastName", senderAuth.getProperty("lastName"));
+          }
 
           doc.addField(IndexingHandler._DOC_SOURCE_OBJECT, content);
           documents.add(doc);
@@ -164,7 +205,7 @@ public class MessageIndexingHandler implements IndexingHandler, QoSIndexHandler 
           String authId = PathUtils.getAuthorizableId(content.getPath());
           Authorizable auth = am.findAuthorizable(authId);
           if (auth == null) {
-            LOGGER.warn("Unable to find auth (user,group) container for message [{}]; not indexing message for user,group searching", path);
+            LOGGER.info("Unable to find auth (user,group) container for message [{}]; not indexing message for user,group searching", path);
           } else {
             doc = new SolrInputDocument();
             doc.addField("title", content.getProperty("sakai:subject"));
@@ -190,12 +231,12 @@ public class MessageIndexingHandler implements IndexingHandler, QoSIndexHandler 
           }
         }
       } catch (StorageClientException e) {
-        logger.warn(e.getMessage(), e);
+        LOGGER.warn(e.getMessage(), e);
       } catch (AccessDeniedException e) {
-        logger.warn(e.getMessage(), e);
+        LOGGER.warn(e.getMessage(), e);
       }
     }
-    logger.debug("Got documents {} ", documents);
+    LOGGER.debug("Got documents {} ", documents);
     return documents;
   }
 
@@ -208,7 +249,7 @@ public class MessageIndexingHandler implements IndexingHandler, QoSIndexHandler 
   public Collection<String> getDeleteQueries(RepositorySession repositorySession,
       Event event) {
     List<String> retval = Collections.emptyList();
-    logger.debug("GetDelete for {} ", event);
+    LOGGER.debug("GetDelete for {} ", event);
     String path = (String) event.getProperty(IndexingHandler.FIELD_PATH);
     String resourceType = (String) event.getProperty("resourceType");
     if (CONTENT_TYPES.contains(resourceType)) {
@@ -218,4 +259,13 @@ public class MessageIndexingHandler implements IndexingHandler, QoSIndexHandler 
     return retval;
   }
 
+  /**
+   * Given the path of a piece of content, determine if the content is "temporary".
+   * 
+   * @param path The path of the content
+   * @return Whether or not the content is stored in a "temporary" path.
+   */
+  private boolean isTemporaryContent(String path) {
+    return !StringUtils.isEmpty(path) && path.contains("/tmp_");
+  }
 }

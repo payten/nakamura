@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura'
 require 'nakamura/test'
 require 'nakamura/authz'
@@ -14,7 +16,7 @@ class TC_Kern563Test < Test::Unit::TestCase
   include SlingTest
   
   def test_default_locale
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     userid = "testuser-#{m}"
     user = create_user(userid)
     @s.switch_user(user)
@@ -38,7 +40,7 @@ class TC_Kern563Test < Test::Unit::TestCase
   
   
   def test_malformed_locale
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     userid = "testuser-#{m}"
     user = create_user(userid)
     @s.switch_user(user)

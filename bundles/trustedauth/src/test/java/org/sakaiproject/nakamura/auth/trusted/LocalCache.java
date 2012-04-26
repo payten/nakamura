@@ -30,10 +30,6 @@ import java.util.List;
 public class LocalCache<T>  implements Cache<Object> {
 
   private HashMap<String, T> m = new HashMap<String, T>();
-  /**
-   * 
-   */
-  private static final long serialVersionUID = -7727054985595135527L;
 
   /**
    * {@inheritDoc}

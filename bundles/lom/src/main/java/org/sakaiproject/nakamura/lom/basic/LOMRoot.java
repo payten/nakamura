@@ -64,8 +64,9 @@ public class LOMRoot extends Serialize{
     String annotationName = "annotation";
     String classificationName = "classification";
     JSONObject generalJSON = JSONUtil.getJSONObject(json, generalName);
-    if (generalJSON != null)
+    if (generalJSON != null) {
       general = new General(generalJSON);
+    }
     
     JSONObject lifeCycleObject = JSONUtil.getJSONObject(json, lifeCycleName);
     if (lifeCycleObject != null){
@@ -73,8 +74,9 @@ public class LOMRoot extends Serialize{
     }
     
     JSONObject technicalJSON = JSONUtil.getJSONObject(json, technicalName);
-    if (technicalJSON != null)
+    if (technicalJSON != null) {
       technical = new Technical(technicalJSON);
+    }
     
     JSONObject metaMetadataJSON = JSONUtil.getJSONObject(json, metaMetadataName);
     if (metaMetadataJSON != null) {
@@ -98,8 +100,9 @@ public class LOMRoot extends Serialize{
     }
     
     JSONObject rightsJSON = JSONUtil.getJSONObject(json, rightsName);
-    if (rightsJSON != null)
+    if (rightsJSON != null) {
       rights = new Rights(rightsJSON);
+    }
     
     JSONObject relationJSON = JSONUtil.getJSONObject(json, relationName);
     if (relationJSON == null) {
@@ -107,8 +110,9 @@ public class LOMRoot extends Serialize{
       if (relationArray != null) {
         for (int i = 0; i < relationArray.length(); i++) {
           JSONObject object = relationArray.optJSONObject(i);
-          if (object != null)
+          if (object != null) {
             addRelation(new Relation(object));
+          }
         }
       }
     } else {
@@ -121,8 +125,9 @@ public class LOMRoot extends Serialize{
       if (annotationArray != null) {
         for (int i = 0; i < annotationArray.length(); i++) {
           JSONObject object = annotationArray.optJSONObject(i);
-          if (object != null)
+          if (object != null) {
             addAnnotation(new Annotation(object));
+          }
         }
       }
     } else {
@@ -135,8 +140,9 @@ public class LOMRoot extends Serialize{
       if (classificationArray != null) {
         for (int i = 0; i < classificationArray.length(); i++) {
           JSONObject object = classificationArray.optJSONObject(i);
-          if (object != null)
+          if (object != null) {
             addClassification(new Classification(object));
+          }
         }
       }
     } else {
@@ -189,8 +195,9 @@ public class LOMRoot extends Serialize{
   }
 
   public void addEducational(Educational e) {
-    if (educational == null)
+    if (educational == null) {
       educational = new ArrayList<Educational>();
+    }
     educational.add(e);
   }
   
@@ -211,8 +218,9 @@ public class LOMRoot extends Serialize{
   }
   
   public void addRelation(Relation r) {
-    if (relation == null)
+    if (relation == null) {
       relation = new ArrayList<Relation>();
+    }
     relation.add(r);
   }
 
@@ -253,29 +261,41 @@ public class LOMRoot extends Serialize{
   @Override
   public String generateXML() {
     StringBuilder sb = new StringBuilder("");
-    if (this.getGeneral() != null)
+    if (this.getGeneral() != null) {
       sb.append(this.getGeneral().generateXML());
-    if (this.getLifeCycle() != null)
-      sb.append(this.getLifeCycle().generateXML());
-    if (this.getMetaMetadata() != null)
-      sb.append(this.getMetaMetadata().generateXML());
-    if (this.getTechnical() != null)
-      sb.append(this.getTechnical().generateXML());
-    if (this.getEducational() != null) {
-      for (int i = 0; i < this.getEducational().size(); i++)
-        sb.append(this.getEducational().get(i).generateXML());
     }
-    if (this.getRights() != null)
+    if (this.getLifeCycle() != null) {
+      sb.append(this.getLifeCycle().generateXML());
+    }
+    if (this.getMetaMetadata() != null) {
+      sb.append(this.getMetaMetadata().generateXML());
+    }
+    if (this.getTechnical() != null) {
+      sb.append(this.getTechnical().generateXML());
+    }
+    if (this.getEducational() != null) {
+      for (int i = 0; i < this.getEducational().size(); i++) {
+        sb.append(this.getEducational().get(i).generateXML());
+      }
+    }
+    if (this.getRights() != null) {
       sb.append(this.getRights().generateXML());
-    if (this.getRelation() != null)
-      for (int i = 0; i < this.getRelation().size(); i++)
+    }
+    if (this.getRelation() != null) {
+      for (int i = 0; i < this.getRelation().size(); i++) {
         sb.append(this.getRelation().get(i).generateXML());
-    if (this.getAnnotation() != null)
-      for (int i = 0; i < this.getAnnotation().size(); i++)
+      }
+    }
+    if (this.getAnnotation() != null) {
+      for (int i = 0; i < this.getAnnotation().size(); i++) {
         sb.append(this.getAnnotation().get(i).generateXML());
-    if (this.getClassification() != null)
-      for (int i = 0; i < this.getClassification().size(); i++)
+      }
+    }
+    if (this.getClassification() != null) {
+      for (int i = 0; i < this.getClassification().size(); i++) {
         sb.append(this.getClassification().get(i).generateXML());
+      }
+    }
     return new String("<lom>" + sb.toString() + "</lom>");
   }
 }

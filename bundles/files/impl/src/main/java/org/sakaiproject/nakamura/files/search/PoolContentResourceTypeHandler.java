@@ -198,9 +198,10 @@ public class PoolContentResourceTypeHandler implements IndexingHandler, QoSIndex
               }
             } else {
               try {
+                // tika handles the closing of the input stream
                 InputStream contentStream = contentManager.getInputStream(path);
                 if (contentStream != null) {
-                  String extracted = tika.parseToString(contentManager.getInputStream(path));
+                  String extracted = tika.parseToString(contentStream);
                   doc.addField("content", extracted);
                 }
               } catch (TikaException e) {
@@ -208,6 +209,8 @@ public class PoolContentResourceTypeHandler implements IndexingHandler, QoSIndex
               }
             }
 
+            // set 'returnpath' so we can group by it in searches including widget data
+            doc.setField("returnpath", path);
             doc.addField(_DOC_SOURCE_OBJECT, content);
             documents.add(doc);
           }

@@ -174,12 +174,15 @@ public class LiteFileSearchBatchResultProcessor implements SolrSearchBatchResult
       final JSONWriter write, final int depth) throws JSONException,
       StorageClientException {
 
+    write.object();
     final String type = (String) content.getProperty(SLING_RESOURCE_TYPE_PROPERTY);
     if (FilesConstants.RT_SAKAI_LINK.equals(type)) {
-      FileUtils.writeLinkNode(content, session, write);
+      FileUtils.writeLinkNode(content, session, write, true);
     } else {
-      FileUtils.writeFileNode(content, session, write, depth);
+      FileUtils.writeFileNode(content, session, write, depth, true);
     }
+    FileUtils.writeComments(content, session, write);
+    write.endObject();
   }
 
 }

@@ -44,12 +44,14 @@ public class Rights extends Serialize {
     String copyrightAndOtherRestrictionsName = "copyrightAndOtherRestrictions";
     String descriptionName = "description";
     JSONObject costJSON = JSONUtil.getJSONObject(json, costName);
-    if (costJSON != null) 
+    if (costJSON != null) {
       cost = new Cost(costJSON);
+    }
     
     JSONObject copyrightAndOtherRestrictionsJSON = JSONUtil.getJSONObject(json, copyrightAndOtherRestrictionsName);
-    if (copyrightAndOtherRestrictionsJSON != null)
+    if (copyrightAndOtherRestrictionsJSON != null) {
       copyrightAndOtherRestrictions = new CopyrightAndOtherRestrictions(copyrightAndOtherRestrictionsJSON);
+    }
     
     JSONObject descriptionJSON = JSONUtil.getJSONObject(json, descriptionName);
     if (descriptionJSON != null) {
@@ -85,14 +87,18 @@ public class Rights extends Serialize {
   @Override
   public String generateXML() {
     StringBuilder sb = new StringBuilder("");
-    if (this.getCopyrightAndOtherRestrictions() != null)
+    if (this.getCopyrightAndOtherRestrictions() != null) {
       sb.append(this.getCopyrightAndOtherRestrictions().generateXML());
-    if (this.getCost() != null)
+    }
+    if (this.getCost() != null) {
       sb.append(this.getCost().generateXML());
-    if (this.getDescription() != null)
+    }
+    if (this.getDescription() != null) {
       sb.append(this.getDescription().generateXML());    
-    if (sb.toString().equals(""))
+    }
+    if (sb.toString().equals("")) {
       return "";
+    }
     return new String("<rights>" + sb.toString() + "</rights>");
   }
 }

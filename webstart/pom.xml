@@ -17,7 +17,7 @@
     <parent>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>base</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
     </parent>
 
     <artifactId>org.sakaiproject.nakamura.webstart</artifactId>
@@ -27,7 +27,7 @@
     <description> Webstart Package </description>
 
     <properties>
-       <finalhostlocation>http://source.sakaiproject.org/release/oae/1.0.2/webstart/</finalhostlocation>
+       <finalhostlocation>http://source.sakaiproject.org/release/oae/1.2.0/webstart</finalhostlocation>
     </properties>
   <build>
     <plugins>
@@ -111,7 +111,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.app</artifactId>
-      <version>1.1</version>
+      <version>1.2.0</version>
       <scope>runtime</scope>
     </dependency>
   </dependencies>

@@ -434,7 +434,7 @@ public class JcrUtils {
 
     // only set the values if we collected fewer than are already set
     if (valueList.size() < values.length) {
-      node.setProperty(propertyName, valueList.toArray(new Value[0]));
+      node.setProperty(propertyName, valueList.toArray(new Value[valueList.size()]));
     }
   }
 

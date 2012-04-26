@@ -65,7 +65,6 @@ import java.util.Set;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import javax.jcr.Node;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -96,6 +95,11 @@ import javax.servlet.http.HttpServletResponse;
  * anything under /dev, /devwidgets, /index.html, all other GET operations are assumed to
  * be raw user content.
  * </p>
+ * <p>
+ * There is a distinct difference in what is required when calling each of the
+ * <pre>is*Safe</pre> methods. Please check the javadoc on each method to see what
+ * resource expectations there are.
+ * </p>
  */
 @Component(immediate = true, metatype = true)
 @Service(value = ServerProtectionService.class)
@@ -103,48 +107,17 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   private static final String HMAC_SHA512 = "HmacSHA512";
   private static final String HMAC_PARAM = ":hmac";
   private static final String[] DEFAULT_TRUSTED_HOSTS = { "localhost:8080 = http://localhost:8082" };
-  private static final String[] DEFAULT_TRUSTED_PATHS = { "/dev", "/devwidgets", "/system", "/logout" };
-  private static final String[] DEFAULT_TRUSTED_EXACT_PATHS = { "/", 
-    "/index.html", 
-    "/index",
-    "/403", 
-    "/404", 
-    "/500", 
-    "/acknowledgements", 
-    "/categories", 
-    "/category", 
-    "/content",
-    "/favicon.ico",
-    "/logout",
-    "/me.html",
-    "/me",
-    "/register",
-    "/s2site",
-    "/search/sakai2",
-    "/search"  };
+  private static final String[] DEFAULT_TRUSTED_PATHS = { "/dev", "/devwidgets", "/system", "/logout", "/var" };
+  private static final String[] DEFAULT_TRUSTED_EXACT_PATHS = { };
   private static final String DEFAULT_TRUSTED_SECRET_VALUE = "This Must Be set in production";
   private static final String[] DEFAULT_WHITELIST_POST_PATHS = {"/system/console"};
   private static final String[] DEFAULT_ANON_WHITELIST_POST_PATHS = {"/system/userManager/user.create"};
 
   @Property(boolValue=false)
   private static final String DISABLE_XSS_PROTECTION_FOR_UI_DEV = "disable.protection.for.dev.mode";
-  @Property(value = { "/dev", "/devwidgets", "/system", "/logout" })
+  @Property(value = { "/dev", "/devwidgets", "/system", "/logout", "/var" })
   private static final String TRUSTED_PATHS_CONF = "trusted.paths";
-  @Property(value = { "/", 
-      "/index.html", 
-      "/403", 
-      "/404", 
-      "/500", 
-      "/acknowledgements", 
-      "/categories", 
-      "/category", 
-      "/content",
-      "/favicon.ico",
-      "/logout",
-      "/me",
-      "/register",
-      "/search/sakai2",
-      "/search"  })
+  @Property(value = { })
   private static final String TRUSTED_EXACT_PATHS_CONF = "trusted.exact.paths";
   @Property(value = { "localhost:8080 = http://localhost:8082" }, cardinality = 9999999)
   protected static final String TRUSTED_HOSTS_CONF = "trusted.hosts";
@@ -208,7 +181,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
     Dictionary<String, Object> properties = componentContext.getProperties();
     disableProtectionForDevMode = PropertiesUtil.toBoolean(properties.get(DISABLE_XSS_PROTECTION_FOR_UI_DEV), false);
     if ( disableProtectionForDevMode ) {
-      LOGGER.warn("XSS Protection is disabled");
+      LOGGER.warn("XSS Protection is disabled [modified]");
       return;
     }
     String[] trustedHosts = PropertiesUtil.toStringArray(
@@ -335,7 +308,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   @Deactivate
   public void destroy(ComponentContext c) {
     if ( disableProtectionForDevMode ) {
-      LOGGER.warn("XSS Protection is disabled");
+      LOGGER.warn("XSS Protection is disabled [destroy]");
       return;
     }
     BundleContext bc = c.getBundleContext();
@@ -347,11 +320,21 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
     serverProtectionValidators = null;
   }
 
+  /**
+   * {@inheritDoc}
+   * 
+   * This method requires a resource to operate successfully and is best used by a Sling
+   * Filter rather than a Servlet Filter, so that Sling will have made the appropriate
+   * resource resolution.
+   *
+   * @see org.sakaiproject.nakamura.api.http.usercontent.ServerProtectionService#isRequestSafe(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.api.SlingHttpServletResponse)
+   */
   public boolean isRequestSafe(SlingHttpServletRequest srequest,
       SlingHttpServletResponse sresponse) throws UnsupportedEncodingException,
       IOException {
     if ( disableProtectionForDevMode ) {
-      LOGGER.warn("XSS Protection is disabled");
+      LOGGER.warn("XSS Protection is disabled [isRequestSafe]");
       return true;
     }
     // if the method is not safe, the request can't be safe.
@@ -385,43 +368,33 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
         // this is going to stream
         String path = srequest.getRequestURI();
         LOGGER.debug("Checking [{}] RequestPathInfo {}", path, requestPathInfo);
-        safeToStream = safeToStreamExactPaths.contains(path);
+        safeToStream = isMatchToSafePath(path);
         if (!safeToStream) {
-          LOGGER.debug("Checking [{}] looks like not safe to stream ", path );
-          for (String safePath : safeToStreamPaths) {
-            if (path.startsWith(safePath)) {
-              safeToStream = true;
-              LOGGER.debug("Safe To stream becuase starts with {} ",safePath);
-              break;
+          Resource resource = srequest.getResource();
+          if ( resource != null ) {
+            if ("sling:nonexisting".equals(resource.getResourceType())) {
+              // Trust a "GET" of non-existing content so that the 404 comes from
+              // the right port (KERN-2001)
+              LOGGER.debug("Non existing resource {}", resource.getPath());
+              return true;
             }
-          }
-          if (!safeToStream) {
-            Resource resource = srequest.getResource();
-            if ( resource != null ) {
-              Node node = resource.adaptTo(Node.class);
-              if (node != null || "sling:nonexisting".equals(resource.getResourceType())) {
-                // JCR content is trusted, as users dont have write to the JCR, lets hope thats true!
-                // KERN-1930 and list discussion.
-                // Also trust a "GET" of non-existing content so that the 404 comes from
-                // the right port (KERN-2001)
-                LOGGER.debug("Node not null  or non existing {} {} ",node, resource.getResourceType());
-                return true;
-              }
-              String resourcePath = resource.getPath();
-              LOGGER.debug("Checking Resource Path [{}]",resourcePath);
-              if (!safeToStream) {
-                for (ServerProtectionValidator serverProtectionValidator : serverProtectionValidators) {
-                  if ( serverProtectionValidator.safeToStream(srequest, resource)) {
-                    LOGGER.debug(" {} said this {} is safe to stream ",serverProtectionValidator,resourcePath);
-                    safeToStream = true;
-                    break;
-                  }
+            // The original unrecognized URI might be a mapping to a trusted resource.
+            // Check again now that any aliases have been resolved.
+            String resourcePath = resource.getPath();
+            LOGGER.debug("Checking Resource Path [{}]",resourcePath);
+            safeToStream = isMatchToSafePath(resourcePath);
+            if (!safeToStream) {
+              for (ServerProtectionValidator serverProtectionValidator : serverProtectionValidators) {
+                if ( serverProtectionValidator.safeToStream(srequest, resource)) {
+                  LOGGER.debug(" {} said this {} is safe to stream ",serverProtectionValidator,resourcePath);
+                  safeToStream = true;
+                  break;
                 }
               }
             }
-          } else {
-              LOGGER.debug("Content was safe to stream ");
           }
+        } else {
+          LOGGER.debug("Content was safe to stream ");
         }
       } else {
         safeToStream = true;
@@ -443,6 +416,21 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
       LOGGER.debug("Request will be sent from this host, no redirect {}", srequest.getRequestURL().toString());
     }
     return true;
+  }
+
+  private boolean isMatchToSafePath(String path) {
+    boolean safeToStream = safeToStreamExactPaths.contains(path);
+    if (!safeToStream) {
+      LOGGER.debug("Checking [{}] looks like not safe to stream ", path );
+      for (String safePath : safeToStreamPaths) {
+        if (path.startsWith(safePath)) {
+          safeToStream = true;
+          LOGGER.debug("Safe To stream becuase starts with {} ",safePath);
+          break;
+        }
+      }
+    }
+    return safeToStream;
   }
 
   private void redirectToContent(HttpServletRequest request, HttpServletResponse response)
@@ -539,7 +527,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   public String getTransferUserId(HttpServletRequest request) {
     // only ever get a user ID in this way on a non trusted safe host.
     if ( disableProtectionForDevMode ) {
-      LOGGER.warn("XSS Protection is disabled");
+      LOGGER.warn("XSS Protection is disabled [getTransferUserId]");
       return null;
     }
     // the host must not be safe to decode the user transfer UserID, and the method must be a GET or HEAD
@@ -591,10 +579,19 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
     return null;
   }
 
+  /**
+   * {@inheritDoc}
+   * 
+   * This method has no resource requirements to operate successfully allowing for it to
+   * be called by a filter without any cost to resource resolution.
+   * 
+   * @see org.sakaiproject.nakamura.api.http.usercontent.ServerProtectionService#isMethodSafe(javax.servlet.http.HttpServletRequest,
+   *      javax.servlet.http.HttpServletResponse)
+   */
   public boolean isMethodSafe(HttpServletRequest hrequest, HttpServletResponse hresponse)
       throws IOException {
     if ( disableProtectionForDevMode ) {
-      LOGGER.warn("XSS Protection is disabled");
+      LOGGER.warn("XSS Protection is disabled [isMethodSafe]");
       return true;
     }
     String method = hrequest.getMethod();
@@ -659,9 +656,17 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
     return true;
   }
 
+  /**
+   * {@inheritDoc}
+   * 
+   * This method has no resource requirements to operate successfully allowing for it to
+   * be called by a filter without any cost to resource resolution.
+   * 
+   * @see org.sakaiproject.nakamura.api.http.usercontent.ServerProtectionService#isSafeHost(javax.servlet.http.HttpServletRequest)
+   */
   public boolean isSafeHost(HttpServletRequest hrequest) {
     if ( disableProtectionForDevMode ) {
-      LOGGER.warn("XSS Protection is disabled");
+      LOGGER.warn("XSS Protection is disabled [isSafeHost]");
       return true;
     }    
     return applicationReferrerHeaders.containsKey(buildTrustedHostHeader(hrequest));

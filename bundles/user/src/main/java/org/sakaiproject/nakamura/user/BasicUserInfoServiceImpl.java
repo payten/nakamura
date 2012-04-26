@@ -17,17 +17,21 @@
  */
 package org.sakaiproject.nakamura.user;
 
-import static org.sakaiproject.nakamura.api.user.UserConstants.CONTACTS_PROP;
-import static org.sakaiproject.nakamura.api.user.UserConstants.CONTENT_ITEMS_PROP;
+import static org.sakaiproject.nakamura.api.user.UserConstants.AUTHZ_COUNTS_PROPS;
 import static org.sakaiproject.nakamura.api.user.UserConstants.COUNTS_PROP;
-import static org.sakaiproject.nakamura.api.user.UserConstants.SAKAI_CATEGORY;
+import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_COUNTS_PROPS;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_DESCRIPTION_PROPERTY;
-import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_MEMBERSHIPS_PROP;
-import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_MEMBERS_PROP;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_TITLE_PROPERTY;
 import static org.sakaiproject.nakamura.api.user.UserConstants.PREFERRED_NAME;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_PARENT_GROUP_ID;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_PARENT_GROUP_TITLE;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_PSEUDO_GROUP;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_ROLE_TITLE;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_ROLE_TITLE_PLURAL;
+import static org.sakaiproject.nakamura.api.user.UserConstants.SAKAI_CATEGORY;
 import static org.sakaiproject.nakamura.api.user.UserConstants.USER_BASIC;
 import static org.sakaiproject.nakamura.api.user.UserConstants.USER_COLLEGE;
+import static org.sakaiproject.nakamura.api.user.UserConstants.USER_COUNTS_PROPS;
 import static org.sakaiproject.nakamura.api.user.UserConstants.USER_DATEOFBIRTH;
 import static org.sakaiproject.nakamura.api.user.UserConstants.USER_DEPARTMENT;
 import static org.sakaiproject.nakamura.api.user.UserConstants.USER_EMAIL_PROPERTY;
@@ -37,12 +41,6 @@ import static org.sakaiproject.nakamura.api.user.UserConstants.USER_LASTNAME_PRO
 import static org.sakaiproject.nakamura.api.user.UserConstants.USER_PICTURE;
 import static org.sakaiproject.nakamura.api.user.UserConstants.USER_ROLE;
 import static org.sakaiproject.nakamura.api.user.UserConstants.USER_TAGS;
-import static org.sakaiproject.nakamura.api.user.UserConstants.COUNTS_LAST_UPDATE_PROP;
-import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_PARENT_GROUP_ID;
-import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_PARENT_GROUP_TITLE;
-import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_PSEUDO_GROUP;
-import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_ROLE_TITLE;
-import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_ROLE_TITLE_PLURAL;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
@@ -55,9 +53,13 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
@@ -67,6 +69,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Map.Entry;
 
 @Component(immediate=true, metatype=true)
 @Service(value=BasicUserInfoService.class)
@@ -83,14 +86,14 @@ public class BasicUserInfoServiceImpl implements BasicUserInfoService {
 
 
   private static String[] basicUserInfoElements = DEFAULT_BASIC_USER_INFO_ELEMENTS;
-  
-  private final static String[] USER_COUNTS_PROPS = new String[] {CONTACTS_PROP, GROUP_MEMBERSHIPS_PROP, CONTENT_ITEMS_PROP, GROUP_MEMBERS_PROP, COUNTS_LAST_UPDATE_PROP};
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BasicUserInfoServiceImpl.class);
 
   @Reference
   protected CountProvider countProvider;
 
+  @Reference
+  protected Repository repository;
 
   @Activate
   protected void activated(Map<String, Object> properties ) {
@@ -133,11 +136,32 @@ public class BasicUserInfoServiceImpl implements BasicUserInfoService {
 
   private Map<String, Object> countsMapforAuthorizable(Authorizable authorizable) {
     Builder<String, Object> propertyBuilder = ImmutableMap.builder();
-    for (String countPropName : USER_COUNTS_PROPS) {     
-      if (authorizable.hasProperty(countPropName)) {
-        propertyBuilder.put(countPropName, authorizable.getProperty(countPropName));
+    Session adminSession = null;
+    try {
+      adminSession = this.repository.loginAdministrative();
+      buildCountsMap(AUTHZ_COUNTS_PROPS, authorizable, propertyBuilder, adminSession);
+      if (authorizable instanceof User) {
+        buildCountsMap(USER_COUNTS_PROPS, authorizable, propertyBuilder, adminSession);
+      }
+      if (authorizable instanceof Group) {
+        buildCountsMap(GROUP_COUNTS_PROPS, authorizable, propertyBuilder, adminSession);
+      }
+    } catch (AccessDeniedException e) {
+      LOGGER.error("Error getting map of authorizable's counts", e);
+    } catch (ClientPoolException e) {
+      LOGGER.error("Error getting map of authorizable's counts", e);
+    } catch (StorageClientException e) {
+      LOGGER.error("Error getting map of authorizable's counts", e);
+    } finally {
+      if ( adminSession != null ) {
+        try {
+          adminSession.logout();
+        } catch (ClientPoolException e) {
+          LOGGER.error("Error logging out of admin session", e);
+        }
       }
     }
+
     Map<String, Object> allCounts = propertyBuilder.build();
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("counts map: {} for authorizableId: {}", new Object[]{allCounts, authorizable.getId()});
@@ -145,6 +169,17 @@ public class BasicUserInfoServiceImpl implements BasicUserInfoService {
     return allCounts;
   }
 
+  private void buildCountsMap(String[] properties, Authorizable authorizable, Builder<String,
+      Object> propertyBuilder, Session session) throws StorageClientException, AccessDeniedException {
+    for (String countPropName : properties) {
+      if (!authorizable.hasProperty(countPropName)) {
+        countProvider.updateCountProperty(authorizable, countPropName, session);
+      }
+      if ( authorizable.getProperty(countPropName) != null ) {
+        propertyBuilder.put(countPropName, authorizable.getProperty(countPropName));
+      }
+    }
+  }
 
   private void addUserProperties(Authorizable user, Map<String, Object> basicInfo) {
     // Backward compatible reasons.
@@ -200,8 +235,8 @@ public class BasicUserInfoServiceImpl implements BasicUserInfoService {
   private  Map<String, Object> basicInfo(Map<String, Object> elementsMap) {
     Map<String, Object> basic = Maps.newHashMap();
     Map<String, Object> elements = Maps.newHashMap();
-    for (String key : elementsMap.keySet()) {
-      elements.put(key, ImmutableMap.of("value", (Object) elementsMap.get(key)));
+    for (Entry<String, Object> entry : elementsMap.entrySet()) {
+      elements.put(entry.getKey(), ImmutableMap.of("value", entry.getValue()));
     }
     basic.put("elements", elements);
     return basic;

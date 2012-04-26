@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'nakamura/search'
 require 'nakamura/contacts'
@@ -11,7 +13,7 @@ class TC_Kern345Test < Test::Unit::TestCase
   include SlingTest
 
   def test_asymmetric_relationships
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     u1 = create_user("testuser1#{m}")
     u2 = create_user("otheruser1#{m}")
     cm = ContactManager.new(@s)
@@ -24,7 +26,7 @@ class TC_Kern345Test < Test::Unit::TestCase
   end
 
   def test_shared_and_asymmetric_relationships
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     u1 = create_user("testuser2#{m}")
     u2 = create_user("otheruser2#{m}")
     cm = ContactManager.new(@s)
@@ -40,7 +42,7 @@ class TC_Kern345Test < Test::Unit::TestCase
   end
 
   def test_removed_and_revised_relationships
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     u1 = create_user("testuser3#{m}")
     u2 = create_user("otheruser3#{m}")
     cm = ContactManager.new(@s)

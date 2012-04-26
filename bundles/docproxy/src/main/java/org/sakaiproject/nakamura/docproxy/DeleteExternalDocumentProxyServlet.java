@@ -49,7 +49,7 @@ import javax.servlet.http.HttpServletResponse;
 
 @ServiceDocumentation(
   name = "Delete External Document Proxy Servlet",
-  okForVersion = "1.1",
+  okForVersion = "1.2",
   description = "The servlet for requesting to delete an external repository document",
   shortDescription = "The servlet for requesting to delete an external repository document",
   bindings = {

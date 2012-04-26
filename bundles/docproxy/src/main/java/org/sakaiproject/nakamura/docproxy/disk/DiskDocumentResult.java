@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.docproxy.disk;
 
+import org.apache.commons.logging.Log;
 import org.apache.sling.commons.json.JSONObject;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
@@ -51,15 +52,21 @@ public class DiskDocumentResult implements ExternalDocumentResult {
    * @see org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult#getDocumentInputStream(long)
    */
   public InputStream getDocumentInputStream(long startingAt, String userId) throws DocProxyException {
+    FileInputStream in = null;
     try {
-      FileInputStream in = new FileInputStream(file);
+      in = new FileInputStream(file);
       in.skip(startingAt);
       return in;
     } catch (FileNotFoundException e) {
       return null;
     } catch (IOException e) {
+      try {
+        in.close();
+      } catch (IOException e1) {
+        return null;
+      }
       return null;
-    }
+    } 
   }
 
   /**

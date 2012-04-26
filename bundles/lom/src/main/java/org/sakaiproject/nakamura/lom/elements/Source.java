@@ -32,8 +32,9 @@ public class Source extends LangStringType {
   
   @Override
   public String generateXML() {
-    if (this.getLangString().generateXML().equals(""))
+    if (this.getLangString().generateXML().equals("")) {
       return "";
+    }
     return new String("<source>" + this.getLangString().generateXML() + "</source>");
   }
 }

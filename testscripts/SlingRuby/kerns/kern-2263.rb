@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'test/unit.rb'
 include SlingUsers
@@ -10,7 +12,7 @@ class TC_Kern2263 < Test::Unit::TestCase
   include SlingTest
 
   def test_group_is_really_deleted
-      m = Time.now.to_nsec
+      m = uniqueness()
       
       @s.switch_user(User.admin_user())
       
@@ -43,7 +45,7 @@ class TC_Kern2263 < Test::Unit::TestCase
     end
     
     def test_group_in_me_feed
-      m = Time.now.to_nsec
+      m = uniqueness()
       
       @s.switch_user(User.admin_user())
       
@@ -88,7 +90,7 @@ class TC_Kern2263 < Test::Unit::TestCase
     end
   
   def test_pseudo_group_delete
-    m = Time.now.to_nsec
+    m = uniqueness()
     
     @s.switch_user(User.admin_user())
     

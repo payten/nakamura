@@ -33,22 +33,16 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.solr.SolrServerService;
-import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
+import static org.sakaiproject.nakamura.api.user.UserConstants.*;
+
 @Component(metatype = true)
 @Service
 public class CountProviderImpl implements CountProvider {
-
-  /**
-   * This marks the nodename for the contact store's folder.
-   */
-  // copied from ConnectionsConstants, can't use that class because it creates cyclical
-  // dependency between connections and user
-  public static final String CONTACT_STORE_NAME = "contacts";
 
   private static final Logger LOG = LoggerFactory.getLogger(CountProviderImpl.class);
 
@@ -76,40 +70,74 @@ public class CountProviderImpl implements CountProvider {
     if (authorizable == null || IGNORE_AUTHIDS.contains(authorizable.getId())) {
       return;
     }
+
+    internalUpdateCountProperty(authorizable, CONTENT_ITEMS_PROP, session, false);
+    if (authorizable instanceof User) {
+      internalUpdateCountProperty(authorizable, CONTACTS_PROP, session, false);
+      internalUpdateCountProperty(authorizable, GROUP_MEMBERSHIPS_PROP, session, false);
+    } else if (authorizable instanceof Group) {
+      internalUpdateCountProperty(authorizable, GROUP_MEMBERS_PROP, session, true);
+    }
+
+  }
+
+  @Override
+  public void updateCountProperty(Authorizable authorizable, String propertyName, Session session)
+      throws AccessDeniedException, StorageClientException {
+    if (authorizable == null || IGNORE_AUTHIDS.contains(authorizable.getId())) {
+      return;
+    }
+    internalUpdateCountProperty(authorizable, propertyName, session, true);
+  }
+
+  private void internalUpdateCountProperty(Authorizable authorizable, String propertyName,
+                                           Session session, boolean saveChanges)
+      throws AccessDeniedException,
+      StorageClientException {
+    if (authorizable == null || IGNORE_AUTHIDS.contains(authorizable.getId())) {
+      return;
+    }
     AuthorizableManager authorizableManager = session.getAuthorizableManager();
-    if (authorizable != null) {
-      int contentCount = getContentCount(authorizable);
-      authorizable.setProperty(UserConstants.CONTENT_ITEMS_PROP, contentCount);
-      if (authorizable instanceof User) {
-        int contactsCount = getContactsCount(authorizable, authorizableManager);
-        int groupsContact = getGroupsCount(authorizable, authorizableManager);
-        authorizable.setProperty(UserConstants.CONTACTS_PROP, contactsCount);
-        authorizable.setProperty(UserConstants.GROUP_MEMBERSHIPS_PROP, groupsContact);
-        if (LOG.isDebugEnabled())
-          LOG.debug("update User authorizable: {} with {}={}, {}={}, {}={}",
-              new Object[] { authorizable.getId(), UserConstants.CONTENT_ITEMS_PROP,
-                  contentCount, UserConstants.CONTACTS_PROP, contactsCount,
-                  UserConstants.GROUP_MEMBERSHIPS_PROP, groupsContact });
-      } else if (authorizable instanceof Group) {
-        int membersCount = getMembersCount((Group) authorizable, authorizableManager);
-        authorizable.setProperty(UserConstants.GROUP_MEMBERS_PROP, membersCount);
-        if (LOG.isDebugEnabled())
-          LOG.debug("update Group authorizable: {} with {}={}, {}={}", new Object[] {
-              authorizable.getId(), UserConstants.CONTENT_ITEMS_PROP, contentCount,
-              UserConstants.GROUP_MEMBERS_PROP, membersCount });
-      }
-      long lastUpdate = System.currentTimeMillis();
-      authorizable.setProperty(UserConstants.COUNTS_LAST_UPDATE_PROP, lastUpdate);
-      if (LOG.isDebugEnabled())
-        LOG.debug("update authorizable: {} with {}={}", new Object[] {
-            authorizable.getId(), UserConstants.COUNTS_LAST_UPDATE_PROP, lastUpdate});      
-      authorizableManager.updateAuthorizable(authorizable, false);
+
+    if (CONTENT_ITEMS_PROP.equals(propertyName)) {
+      authorizable.setProperty(CONTENT_ITEMS_PROP, getContentCount(authorizable, authorizableManager));
     } else {
-      LOG.warn("update could not get authorizable: {} from session",
-          new Object[] { authorizable.getId() });
+      if (authorizable instanceof User) {
+        if (CONTACTS_PROP.equals(propertyName)) {
+          authorizable.setProperty(CONTACTS_PROP, getContactsCount(authorizable, authorizableManager));
+        } else if (GROUP_MEMBERSHIPS_PROP.equals(propertyName)) {
+          authorizable.setProperty(GROUP_MEMBERSHIPS_PROP, getGroupsCount(authorizable, authorizableManager));
+        }
+      } else if (authorizable instanceof Group) {
+        if (GROUP_MEMBERS_PROP.equals(propertyName)) {
+          authorizable.setProperty(GROUP_MEMBERS_PROP, getMembersCount((Group) authorizable, authorizableManager));
+        }
+      }
+    }
+
+    if (saveChanges) {
+      long lastUpdate = System.currentTimeMillis();
+      authorizable.setProperty(COUNTS_LAST_UPDATE_PROP, lastUpdate);
+      if (LOG.isDebugEnabled()) {
+        if (authorizable instanceof User) {
+          LOG.debug("update User authorizable: {} with {}={}, {}={}, {}={}",
+              new Object[]{authorizable.getId(),
+                  CONTENT_ITEMS_PROP, authorizable.getProperty(CONTENT_ITEMS_PROP),
+                  CONTACTS_PROP, authorizable.getProperty(CONTACTS_PROP),
+                  GROUP_MEMBERSHIPS_PROP, authorizable.getProperty(GROUP_MEMBERSHIPS_PROP),
+                  COUNTS_LAST_UPDATE_PROP, lastUpdate});
+        } else if (authorizable instanceof Group) {
+          LOG.debug("update Group authorizable: {} with {}={}, {}={}", new Object[]{
+              authorizable.getId(),
+              CONTENT_ITEMS_PROP, authorizable.getProperty(CONTENT_ITEMS_PROP),
+              GROUP_MEMBERS_PROP, authorizable.getProperty(GROUP_MEMBERS_PROP),
+              COUNTS_LAST_UPDATE_PROP, lastUpdate});
+        }
+      }
+      authorizableManager.updateAuthorizable(authorizable, false);
     }
   }
-  
+
   public long getUpdateIntervalMinutes() {
     return this.updateIntervalMinutes;
   }
@@ -121,17 +149,17 @@ public class CountProviderImpl implements CountProvider {
 
   private int getGroupsCount(Authorizable au, AuthorizableManager authorizableManager)
       throws AccessDeniedException, StorageClientException {
-    return groupMembershipCounter.count(au,authorizableManager);
+    return groupMembershipCounter.count(au, authorizableManager);
   }
 
-  private int getContentCount(Authorizable au) throws AccessDeniedException,
+  private int getContentCount(Authorizable au, AuthorizableManager authorizableManager) throws AccessDeniedException,
       StorageClientException {
-    return contentCounter.countExact(au, solrSearchService);
+    return contentCounter.countExact(au, authorizableManager, solrSearchService);
   }
 
   private int getContactsCount(Authorizable au, AuthorizableManager authorizableManager)
       throws AccessDeniedException, StorageClientException {
-    return contactsCounter.count(au,authorizableManager);
+    return contactsCounter.count(au, authorizableManager);
   }
 
 
@@ -141,6 +169,7 @@ public class CountProviderImpl implements CountProvider {
       AccessDeniedException {
     modify(properties);
   }
+
   @Modified
   public void modify(Map<String, Object> properties) throws StorageClientException,
       AccessDeniedException {

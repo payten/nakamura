@@ -1,0 +1,221 @@
+{
+  "_created": 1334613157525,
+  "safeToEdit": true,
+  "_id": "fE_0wIgOEeG4WfQRwKgBAw+",
+  "_lastModifiedBy": "admin",
+  "_lastModified": 1334613159072,
+  "_previousVersion": "eyxcUIgOEeG4WfQRwKgBAw+",
+  "_createdBy": "admin",
+  "_path": "l6yabccQGq/id9487514",
+  "version": "{\"safeToEdit\":true,\"rows\":[{\"id\":\"id30786818\",\"columns\":[{\"width\":1,\"elements\":[{\"id\":\"id3973361\",\"type\":\"comments\"}]}]}],\"editor\":{\"sling:resourceType\":\"sakai/user-profile\",\"hash\":\"admin\",\"rep:userId\":\"admin\",\"userid\":\"admin\",\"sakai:excludeSearch\":false,\"homePath\":\"/~admin\",\"aboutme\":{\"init\":\"true\"},\"publications\":{\"init\":\"true\"},\"basic\":{\"access\":\"everybody\",\"elements\":{\"lastName\":{\"value\":\"User\"},\"email\":{\"value\":\"admin@sakai.invalid\"},\"firstName\":{\"value\":\"Admin\"}}},\"counts\":{}},\"id3973361\":{\"comments\":{\"sakai:notificationaddress\":\"admin\",\"sakai:marker\":\"id3973361\",\"sakai:allowanonymous\":false,\"sakai:type\":\"comment\",\"direction\":\"comments_FirstUp\",\"perPage\":10,\"sling:resourceType\":\"sakai/settings\",\"comments\":\"\",\"message\":{\"sling:resourceType\":\"sakai/messagestore\",\"inbox\":{\"7a050dcb7ec347ff509103f2b5f08ddcf6cbb203\":{\"sakai:marker\":\"id3973361\",\"sakai:created\":\"Mon Apr 16 2012 17:52:17 GMT-0400\",\"sakai:type\":\"comment\",\"sakai:to\":\"internal:/p/l6yabccQGq/id9487514/id3973361/comments/message\",\"sakai:messagestore\":\"l6yabccQGq/id9487514/id3973361/comments/message/\",\"sling:resourceType\":\"sakai/message\",\"sakai:sendstate\":\"notified\",\"sakai:body\":\"another comment!\",\"sakai:subject\":\"Comment\",\"sling:resourceSuperType\":\"sparse/Content\",\"sakai:id\":\"7a050dcb7ec347ff509103f2b5f08ddcf6cbb203\",\"sakai:read\":false,\"sakai:messagebox\":\"inbox\",\"sakai:from\":\"admin\"}}}}},\"editing\":{\"time\":1334627500978,\"sakai:modifierid\":\"id9240094\"}}",
+  "_versionHistoryId": "hJVdUIgJEeG4WfQRwKgBAw+",
+  "rows": {
+    "_created": 1334613157547,
+    "_id": "ey-3sIgOEeG4WfQRwKgBAw+",
+    "_lastModifiedBy": "admin",
+    "_lastModified": 1334613157547,
+    "_createdBy": "admin",
+    "_path": "l6yabccQGq/id9487514/rows",
+    "__array__0__": {
+      "id": "id30786818",
+      "_created": 1334613157557,
+      "_id": "ezE-UIgOEeG4WfQRwKgBAw+",
+      "_lastModifiedBy": "admin",
+      "_lastModified": 1334613157598,
+      "_createdBy": "admin",
+      "_path": "l6yabccQGq/id9487514/rows/__array__0__",
+      "columns": {
+        "_created": 1334613157564,
+        "_id": "ezJPwIgOEeG4WfQRwKgBAw+",
+        "_lastModifiedBy": "admin",
+        "_lastModified": 1334613157564,
+        "_createdBy": "admin",
+        "_path": "l6yabccQGq/id9487514/rows/__array__0__/columns",
+        "__array__0__": {
+          "_created": 1334613157571,
+          "_id": "ezNhMIgOEeG4WfQRwKgBAw+",
+          "_lastModifiedBy": "admin",
+          "width": 1,
+          "_lastModified": 1334613157596,
+          "_createdBy": "admin",
+          "_path": "l6yabccQGq/id9487514/rows/__array__0__/columns/__array__0__",
+          "elements": {
+            "_created": 1334613157578,
+            "_id": "ezRyoIgOEeG4WfQRwKgBAw+",
+            "_lastModifiedBy": "admin",
+            "_lastModified": 1334613157578,
+            "_createdBy": "admin",
+            "_path": "l6yabccQGq/id9487514/rows/__array__0__/columns/__array__0__/elements",
+            "__array__0__": {
+              "id": "id3973361",
+              "_created": 1334613157585,
+              "_id": "ezWEEIgOEeG4WfQRwKgBAw+",
+              "_lastModifiedBy": "admin",
+              "_lastModified": 1334613157585,
+              "type": "comments",
+              "_createdBy": "admin",
+              "_path": "l6yabccQGq/id9487514/rows/__array__0__/columns/__array__0__/elements/__array__0__"
+            }
+          }
+        }
+      }
+    }
+  },
+  "editing": {
+    "time": 1334627500978,
+    "_created": 1334613157603,
+    "_id": "ezhDMIgOEeG4WfQRwKgBAw+",
+    "_lastModifiedBy": "admin",
+    "sakai:modifierid": "id9240094",
+    "_lastModified": 1334613157603,
+    "_createdBy": "admin",
+    "_path": "l6yabccQGq/id9487514/editing"
+  },
+  "editor": {
+    "sling:resourceType": "sakai/user-profile",
+    "_created": 1334613157625,
+    "_id": "ezuekIgOEeG4WfQRwKgBAw+",
+    "hash": "admin",
+    "_lastModifiedBy": "admin",
+    "rep:userId": "admin",
+    "_lastModified": 1334613157780,
+    "userid": "admin",
+    "sakai:excludeSearch": false,
+    "_createdBy": "admin",
+    "homePath": "/~admin",
+    "_path": "l6yabccQGq/id9487514/editor",
+    "aboutme": {
+      "_created": 1334613157635,
+      "_id": "ez0lMIgOEeG4WfQRwKgBAw+",
+      "_lastModifiedBy": "admin",
+      "_lastModified": 1334613157635,
+      "init": "true",
+      "_createdBy": "admin",
+      "_path": "l6yabccQGq/id9487514/editor/aboutme"
+    },
+    "publications": {
+      "_created": 1334613157642,
+      "_id": "ez42oIgOEeG4WfQRwKgBAw+",
+      "_lastModifiedBy": "admin",
+      "_lastModified": 1334613157642,
+      "init": "true",
+      "_createdBy": "admin",
+      "_path": "l6yabccQGq/id9487514/editor/publications"
+    },
+    "basic": {
+      "_created": 1334613157656,
+      "_id": "e0BZgIgOEeG4WfQRwKgBAw+",
+      "_lastModifiedBy": "admin",
+      "_lastModified": 1334613157762,
+      "access": "everybody",
+      "_createdBy": "admin",
+      "_path": "l6yabccQGq/id9487514/editor/basic",
+      "elements": {
+        "_created": 1334613157673,
+        "_id": "e0LxkIgOEeG4WfQRwKgBAw+",
+        "_lastModifiedBy": "admin",
+        "_lastModified": 1334613157673,
+        "_createdBy": "admin",
+        "_path": "l6yabccQGq/id9487514/editor/basic/elements",
+        "lastName": {
+          "_created": 1334613157685,
+          "_id": "e0TGUIgOEeG4WfQRwKgBAw+",
+          "_lastModifiedBy": "admin",
+          "_lastModified": 1334613157685,
+          "value": "User",
+          "_createdBy": "admin",
+          "_path": "l6yabccQGq/id9487514/editor/basic/elements/lastName"
+        },
+        "email": {
+          "_created": 1334613157696,
+          "_id": "e0ZM8IgOEeG4WfQRwKgBAw+",
+          "_lastModifiedBy": "admin",
+          "_lastModified": 1334613157696,
+          "value": "admin@sakai.invalid",
+          "_createdBy": "admin",
+          "_path": "l6yabccQGq/id9487514/editor/basic/elements/email"
+        },
+        "firstName": {
+          "_created": 1334613157713,
+          "_id": "e0kMEIgOEeG4WfQRwKgBAw+",
+          "_lastModifiedBy": "admin",
+          "_lastModified": 1334613157713,
+          "value": "Admin",
+          "_createdBy": "admin",
+          "_path": "l6yabccQGq/id9487514/editor/basic/elements/firstName"
+        }
+      }
+    },
+    "counts": {
+      "_created": 1334613157771,
+      "_id": "e1HlsIgOEeG4WfQRwKgBAw+",
+      "_lastModifiedBy": "admin",
+      "_lastModified": 1334613157771,
+      "_createdBy": "admin",
+      "_path": "l6yabccQGq/id9487514/editor/counts"
+    }
+  },
+  "id3973361": {
+    "_created": 1334613157786,
+    "_id": "e1QvoIgOEeG4WfQRwKgBAw+",
+    "_lastModifiedBy": "admin",
+    "_lastModified": 1334613157786,
+    "_createdBy": "admin",
+    "_path": "l6yabccQGq/id9487514/id3973361",
+    "comments": {
+      "sakai:notificationaddress": "admin",
+      "sakai:marker": "id3973361",
+      "_lastModifiedBy": "admin",
+      "sakai:allowanonymous": false,
+      "sakai:type": "comment",
+      "direction": "comments_FirstUp",
+      "perPage": 10,
+      "_createdBy": "admin",
+      "_path": "l6yabccQGq/id9487514/id3973361/comments",
+      "sling:resourceType": "sakai/settings",
+      "_created": 1334613157799,
+      "_id": "e1YrcIgOEeG4WfQRwKgBAw+",
+      "_lastModified": 1334613157864,
+      "comments": "",
+      "message": {
+        "sling:resourceType": "sakai/messagestore",
+        "_created": 1334613157826,
+        "_id": "e1pKIIgOEeG4WfQRwKgBAw+",
+        "_lastModifiedBy": "admin",
+        "_lastModified": 1334613157859,
+        "_createdBy": "admin",
+        "_path": "l6yabccQGq/id9487514/id3973361/comments/message",
+        "inbox": {
+          "_created": 1334613157835,
+          "_id": "e1upsIgOEeG4WfQRwKgBAw+",
+          "_lastModifiedBy": "admin",
+          "_lastModified": 1334613157835,
+          "_createdBy": "admin",
+          "_path": "l6yabccQGq/id9487514/id3973361/comments/message/inbox",
+          "7a050dcb7ec347ff509103f2b5f08ddcf6cbb203": {
+            "sakai:marker": "id3973361",
+            "sakai:created": "Mon Apr 16 2012 17:52:17 GMT-0400",
+            "_lastModifiedBy": "admin",
+            "sakai:type": "comment",
+            "sakai:to": "internal:/p/l6yabccQGq/id9487514/id3973361/comments/message",
+            "_createdBy": "admin",
+            "_path": "l6yabccQGq/id9487514/id3973361/comments/message/inbox/7a050dcb7ec347ff509103f2b5f08ddcf6cbb203",
+            "sakai:messagestore": "l6yabccQGq/id9487514/id3973361/comments/message/",
+            "sling:resourceType": "sakai/message",
+            "_created": 1334613157850,
+            "_id": "e13zoIgOEeG4WfQRwKgBAw+",
+            "sakai:sendstate": "notified",
+            "sakai:body": "another comment!",
+            "_lastModified": 1334613157850,
+            "sakai:subject": "Comment",
+            "sling:resourceSuperType": "sparse/Content",
+            "sakai:messagebox": "inbox",
+            "sakai:read": false,
+            "sakai:id": "7a050dcb7ec347ff509103f2b5f08ddcf6cbb203",
+            "sakai:from": "admin"
+          }
+        }
+      }
+    }
+  }
+}

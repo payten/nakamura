@@ -669,9 +669,6 @@ LOGGER.info("Got Target Node as "+targetNode);
       updateGroupMembership(userManager, group, principal.getJSONArray(MEMBERS), changes);
 
       jcrContentHelper.fireEvent(Operation.create, session, group, changes); // create
-    } else {
-      // update
-      // ignore.
     }
   }
 
@@ -817,19 +814,25 @@ LOGGER.info("Got Target Node as "+targetNode);
   private Node getTargetNode(Session session, String path) throws RepositoryException {
     LOGGER.info("Getting node "+path);
 
-    // not specyfied path directive
-    if (path == null)
+    // not specified path directive
+    if (path == null) {
       return session.getRootNode();
+    }
 
-    int firstSlash = path.indexOf("/");
+    int firstSlash = path.indexOf('/');
+
+    final String abspath;
 
     // it's a relative path
-    if (firstSlash != 0)
-      path = "/" + path;
+    if (firstSlash != 0) {
+      abspath = "/" + path;
+    } else {
+      abspath = path;
+    }
 
-    if (!session.itemExists(path)) {
+    if (!session.itemExists(abspath)) {
       Node currentNode = session.getRootNode();
-      final StringTokenizer st = new StringTokenizer(path.substring(1), "/");
+      final StringTokenizer st = new StringTokenizer(abspath.substring(1), "/");
       while (st.hasMoreTokens()) {
         final String name = st.nextToken();
         if (!currentNode.hasNode(name)) {
@@ -839,7 +842,7 @@ LOGGER.info("Got Target Node as "+targetNode);
       }
       return currentNode;
     }
-    Item item = session.getItem(path);
+    Item item = session.getItem(abspath);
     return (item.isNode()) ? (Node) item : null;
   }
 
@@ -875,7 +878,7 @@ LOGGER.info("Got Target Node as "+targetNode);
       }
     }
     values.add(session.getValueFactory().createValue(value));
-    parent.setProperty(name, values.toArray(new Value[0]));
+    parent.setProperty(name, values.toArray(new Value[values.size()]));
     changes.add(Modification.onModified(parentPath + "/" + name));
 
   }

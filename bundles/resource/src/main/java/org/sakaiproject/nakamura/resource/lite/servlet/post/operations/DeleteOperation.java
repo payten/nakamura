@@ -46,8 +46,7 @@ public class DeleteOperation extends AbstractSparsePostOperation {
 
       Resource resource = request.getResource();
       if (contentPath == null) {
-        response.setStatus(HttpServletResponse.SC_NOT_FOUND, "Missing source " + contentPath
-            + " for delete");
+        response.setStatus(HttpServletResponse.SC_NOT_FOUND, "Missing source contentPath for delete");
         return;
       }
       StorageClientUtils.deleteTree(contentManager, contentPath);

@@ -92,7 +92,6 @@ public class LiteDeleteSakaiAuthorizableServletTest  {
     List<Modification> changes = new ArrayList<Modification>();
 
     LiteAuthorizablePostProcessServiceImpl authorizablePostProcessService = new LiteAuthorizablePostProcessServiceImpl();
-    authorizablePostProcessService.repository = repository;
     ComponentContext componentContext = Mockito.mock(ComponentContext.class);
     when(componentContext.getProperties()).thenReturn(new Hashtable<String, Object>());
     authorizablePostProcessService.defaultPostProcessor = new DefaultPostProcessor();

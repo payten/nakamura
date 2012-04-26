@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 include SlingUsers
 
@@ -9,7 +11,7 @@ class TC_Kern929Test < Test::Unit::TestCase
 
   def test_import_content_from_json_to_profile
     # create a new user
-    m = Time.now.to_nsec
+    m = uniqueness()
     userid = "testuser-#{m}"
     password = "testuser"
     @s.switch_user(User.admin_user())
@@ -19,7 +21,7 @@ class TC_Kern929Test < Test::Unit::TestCase
       "pwdConfirm" => password,
       "_charset_" => "UTF-8"
     })
-    assert_equal("200", res.code, "Should have created user as admin")
+    assert_equal("201", res.code, "Should have created user as admin")
     testuser = User.new(userid)
     public = testuser.public_path_for(@s)
 

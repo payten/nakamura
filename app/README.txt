@@ -1,11 +1,12 @@
-This is the Apache Sling-based Sakai K2 that uses OSGi.
+This is the Apache Sling-based Sakai Nakamura that uses OSGi.
  
 To run
-mvn clean install
-. tools/version
-java -jar app/target/org.sakaiproject.nakamura.app-${K2VERSION}.jar
+   mvn clean install
+   . tools/version
+   java -Dfile.encoding=UTF8 -jar app/target/org.sakaiproject.nakamura.app-${NAKAMURA_VERSION}.jar
  
-This will start Apach Felix configured with Sling and the Sakai K2 bundles.
+This will start Apach Felix configured with Sling and the Sakai Nakamura
+bundles.
  
-You will find the bundles under /bundles and some libraries under /libraries.
-
+You will find the core bundles under /bundles, non-core bundles under
+contrib/ and some libraries under libraries/.

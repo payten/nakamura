@@ -42,7 +42,7 @@ public class DefaultNodeNameGenerator implements NodeNameGenerator {
         if (parameterNames == null) {
             this.parameterNames = new String[0];
         } else {
-            this.parameterNames = parameterNames;
+      this.parameterNames = parameterNames.clone();
         }
 
         this.maxLength = (maxNameLength > 0)

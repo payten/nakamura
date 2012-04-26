@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'test/unit.rb'
 include SlingSearch
@@ -26,7 +28,7 @@ class TC_Kern740Test < Test::Unit::TestCase
   end
 
   def test_change_password_basicAuth
-    m = Time.now.to_nsec
+    m = uniqueness()
     @s.trustedauth = false
 	@s.execute_get(@s.url_for("/var/cluster/user.json?Starting_Basic_AuthTest"))
 	@log.info("Changing Admin Password with Basic Auth")
@@ -36,7 +38,7 @@ class TC_Kern740Test < Test::Unit::TestCase
   end
 
   def test_change_password_basicAuthNewUser
-    m = Time.now.to_nsec
+    m = uniqueness()
     @s.trustedauth = false
 
 	u = "user"+m
@@ -77,7 +79,7 @@ class TC_Kern740Test < Test::Unit::TestCase
 
 
   def test_change_password_basicAuthNewUser
-    m = Time.now.to_nsec
+    m = uniqueness()
     @s.trustedauth = false
 
 	u = "userbasic"+m
@@ -86,7 +88,7 @@ class TC_Kern740Test < Test::Unit::TestCase
   end
 
   def test_change_password_trustedAuthNewUser
-    m = Time.now.to_nsec
+    m = uniqueness()
     @s.trustedauth = true
 
 	u = "usertrusted"+m
@@ -95,7 +97,7 @@ class TC_Kern740Test < Test::Unit::TestCase
   end
 
   def test_change_password_trustedAuth
-    m = Time.now.to_nsec
+    m = uniqueness()
     @s.trustedauth = true
 	@s.execute_get(@s.url_for("/var/cluster/user.json?Starting_Trusted_AuthTest"))
 
@@ -142,7 +144,7 @@ class TC_Kern740Test < Test::Unit::TestCase
 	# check basic node update functionallity and make certain that the user we think is performing the operation.
 	# this should check that the session is correctly authenticated inside JCR since if not the lastModifiedBy wont be
 	# correct.
-        m = Time.now.to_nsec
+        m = uniqueness()
 	homeFolderTestFile = "/testarea/"+m+v
 	res = @s.execute_post(@s.url_for(homeFolderTestFile),"testprop" => "testvalue",  "jcr:mixinTypes" => "mix:lastModified" )
 	assert_equal("201",res.code, res.body+"\n Failed to create a node logged in as admin, must be a problem with the login, ie not really admin ?")

@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura'
 require 'nakamura/test'
 require 'nakamura/authz'
@@ -92,7 +94,7 @@ class Kern356Test < Test::Unit::TestCase
   
   def test_NodeAuthZChildPrivate
   
-	m = Time.now.to_i.to_s
+	m = uniqueness()
 	@authz = SlingAuthz::Authz.new(@s)
 	
 	path = "test/authztest/node"+m
@@ -113,7 +115,7 @@ class Kern356Test < Test::Unit::TestCase
   end
   
   def test_GetAllProfiles
-	m = Time.now.to_i.to_s
+	m = uniqueness()
 	@authz = SlingAuthz::Authz.new(@s)
 	user1 = "user1-"+m
 	user2 = "user2-"+m

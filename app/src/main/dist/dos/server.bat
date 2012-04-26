@@ -57,6 +57,7 @@ setlocal
 ::* Additional JVM Options
 ::
 ::  set JVM_OPTS=-Djava.security.auth.login.config=etc/jaas.config
+    set JVM_OPTS=-Dfile.encoding=UTF8
 
 ::* Debug Port (only if started with -debug socket)
 ::

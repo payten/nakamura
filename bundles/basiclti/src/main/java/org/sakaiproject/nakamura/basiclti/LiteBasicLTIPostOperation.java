@@ -35,6 +35,7 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestParameterMap;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.HtmlResponse;
+import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -68,6 +69,7 @@ import java.io.IOException;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -140,44 +142,74 @@ public class LiteBasicLTIPostOperation extends AbstractSparsePostOperation {
     try {
       final Map<String, String> sensitiveData = new HashMap<String, String>(
           sensitiveKeys.size());
-      // loop through request parameters
-      final RequestParameterMap requestParameterMap = request.getRequestParameterMap();
-      for (final Entry<String, RequestParameter[]> entry : requestParameterMap.entrySet()) {
-        final String key = entry.getKey();
-        if (key.endsWith("@TypeHint")) {
-          continue;
-        }
-        final RequestParameter[] requestParameterArray = entry.getValue();
-        if (requestParameterArray == null || requestParameterArray.length == 0) {
-          // maybe this should be removed if not needed or breaks contract
-          // removeProperty(node, key);
-        } else {
-          if (requestParameterArray.length > 1) {
-            throw new ServletException("Multi-valued parameters are not supported");
-          } else {
-            final String value = requestParameterArray[0].getString("UTF-8");
-            if ("".equals(value)) {
-              removeProperty(node, key);
-            } else { // has a valid value
-              if (sensitiveKeys.contains(key)) {
-                sensitiveData.put(key, value);
-              } else {
-                if (!unsupportedKeys.contains(key)) {
-                  final String typeHint = key + "@TypeHint";
-                  if (requestParameterMap.containsKey(typeHint)
-                      && "Boolean".equals(requestParameterMap.get(typeHint)[0]
-                          .getString())) {
-                    node.setProperty(key,
-                        Boolean.valueOf(value));
-                  } else {
-                    node.setProperty(key, value);
-                  }
+      final String content = request.getParameter(":content");
+      if (content != null
+          && "json".equalsIgnoreCase(request.getParameter(":contentType"))) {
+        // SAKIII-5295 use ImportOperation semantics (argh!)
+        final JSONObject json = new JSONObject(content);
+        final Iterator<String> keys = json.keys();
+        // loop through content parameters
+        while (keys.hasNext()) {
+          final String key = keys.next();
+          // ignore TypeHints for now; will be consulted later
+          if (key.endsWith("@TypeHint")) {
+            continue;
+          }
+          final String value = json.getString(key);
+          if (value == null || "".equals(value)) {
+            removeProperty(node, key);
+          } else { // has a valid value
+            if (sensitiveKeys.contains(key)) {
+              sensitiveData.put(key, value);
+            } else {
+              if (!unsupportedKeys.contains(key)) {
+                final String typeHint = key + "@TypeHint";
+                if (json.has(typeHint) && "Boolean".equals(json.getString(typeHint))) {
+                  node.setProperty(key, Boolean.valueOf(value));
+                } else {
+                  node.setProperty(key, value);
                 }
               }
             }
           }
         }
-      } // end request parameters loop
+      } else {
+        // loop through request parameters
+        final RequestParameterMap requestParameterMap = request.getRequestParameterMap();
+        for (final Entry<String, RequestParameter[]> entry : requestParameterMap
+            .entrySet()) {
+          final String key = entry.getKey();
+          if (key.endsWith("@TypeHint")) {
+            continue;
+          }
+          final RequestParameter[] requestParameterArray = entry.getValue();
+          if (requestParameterArray != null && requestParameterArray.length != 0) {
+            if (requestParameterArray.length > 1) {
+              throw new ServletException("Multi-valued parameters are not supported");
+            } else {
+              final String value = requestParameterArray[0].getString("UTF-8");
+              if ("".equals(value)) {
+                removeProperty(node, key);
+              } else { // has a valid value
+                if (sensitiveKeys.contains(key)) {
+                  sensitiveData.put(key, value);
+                } else {
+                  if (!unsupportedKeys.contains(key)) {
+                    final String typeHint = key + "@TypeHint";
+                    if (requestParameterMap.containsKey(typeHint)
+                        && "Boolean".equals(requestParameterMap.get(typeHint)[0]
+                            .getString())) {
+                      node.setProperty(key, Boolean.valueOf(value));
+                    } else {
+                      node.setProperty(key, value);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } // end request parameters loop
+      }
       // safety precaution - just to be safe
       for (String skey : sensitiveKeys) {
         removeProperty(node, skey);

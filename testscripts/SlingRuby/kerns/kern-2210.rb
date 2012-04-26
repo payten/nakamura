@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'nakamura/contacts'
 require 'nakamura/file'
@@ -14,11 +17,11 @@ class TC_Kern2210Test < Test::Unit::TestCase
     super
     @um = SlingUsers::UserManager.new @s
     @cm = SlingContacts::ContactManager.new @s
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = uniqueness()
     @user1 = create_user "test-user1-#{m}"
     @group = create_group "g-test-group-#{m}"
     sleep 0.1
-    m = Time.now.to_f.to_s.gsub('.', '')
+    m = uniqueness()
     @user2 = create_user "test-user2-#{m}"
 
     response = @group.add_members @s, [@user1.name, @user2.name]

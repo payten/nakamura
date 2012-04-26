@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura'
 require 'nakamura/test'
 require 'nakamura/message'
@@ -18,7 +20,7 @@ class TC_MyMessageTest < Test::Unit::TestCase
   end
 
   def test_create_message
-    m = Time.now.to_f.to_s.gsub('.', '_')
+    m = uniqueness()
     @log.info("Creating user aaron"+m)
     a = create_user("aaron"+m)
     @log.info("Creating user nico"+m)

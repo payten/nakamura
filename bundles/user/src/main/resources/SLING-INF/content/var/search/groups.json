@@ -1,11 +1,9 @@
 {
   "sling:resourceType": "sakai/solr-search",
-  "sakai:query-template": "(name:(${q}) OR title:(${q}) OR description:(${q}) OR content:(${q}) OR widgetdata:(${q}) OR ngram:(${q}) OR edgengram:(${q}) OR tag:(${q}))${_categoryAnd}",
+  "sakai:query-template": "((name:(${q}) OR title:(${q}) OR description:(${q}) OR content:(${q}) OR ngram:(${q}) OR edgengram:(${q}) OR tag:(${q}))${_categoryAnd}) ${_tags}",
   "sakai:query-template-options": {
       "fq": ["type:g", "resourceType:authorizable"],
       "sort": "${sortOn} ${sortOrder}",
-      "group": true,
-      "group.field": "returnpath",
       "facet" : true,
       "facet.field" : "tagname",
       "facet.mincount" : 1
@@ -15,7 +13,7 @@
     "sortOrder": "desc",
     "_categoryAnd": ""
   },
-  "sakai:propertyprovider" : ["CategoryPropertyProvider"],
+  "sakai:propertyprovider" : ["CategoryPropertyProvider","TagRefined"],
   "sakai:resultprocessor": "Profile",
   "sakai:title": "Groups",
   "sakai:shortDescription": "Get the group profile nodes out of the repository.",

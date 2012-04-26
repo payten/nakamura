@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'test/unit.rb'
 include SlingUsers
@@ -10,7 +13,7 @@ class TC_Kern2274 < Test::Unit::TestCase
 
   def setup
     super
-    @m = Time.now.to_f.to_s.gsub('.', '')
+    @m = uniqueness()
 
     @u = create_test_user("kern2274")
 
@@ -30,10 +33,10 @@ class TC_Kern2274 < Test::Unit::TestCase
 
   end
 
-  def test_paramless_post_is_a_bad_request
-    result = @s.execute_post(@world_service, {})
-    assert_equal(400, result.code.to_i)
-  end
+  # def test_paramless_post_is_a_bad_request
+  #   result = @s.execute_post(@world_service, {})
+  #   assert_equal(400, result.code.to_i)
+  # end
 
   def test_valid_post
     group_id = "testgroup" + @m
@@ -127,7 +130,7 @@ class TC_Kern2274 < Test::Unit::TestCase
     json = JSON.parse(result.body)
     assert_equal("Group Title", json["properties"]["sakai:group-title"])
     assert_equal(1, json["properties"]["rep:group-managers"].length)
-    assert_equal(3, json["properties"]["membersCount"])
+    assert_equal(2, json["members"].length)
     assert_equal(4, json["properties"]["rep:group-viewers"].length)
     assert_includes(json["properties"]["rep:group-viewers"], "everyone")
     assert_includes(json["properties"]["rep:group-viewers"], "anonymous")
@@ -161,7 +164,7 @@ class TC_Kern2274 < Test::Unit::TestCase
 
   def test_duplicate_creation_forbidden
     group_id = "redundantgroup" + @m
-
+  
     # create it once
     result = @s.execute_post(@world_service, {
         "data" => '{
@@ -175,7 +178,7 @@ class TC_Kern2274 < Test::Unit::TestCase
     })
     @log.info(result.body)
     assert_equal(200, result.code.to_i)
-
+  
     # create it again, should produce an error
     result = @s.execute_post(@world_service, {
         "data" => '{
@@ -191,10 +194,10 @@ class TC_Kern2274 < Test::Unit::TestCase
     json = JSON.parse(result.body)
     assert_equal(json["results"][0]["error"], "Group already exists")
   end
-
+  
   def test_members_only_group
     group_id = "private" + @m
-
+  
     result = @s.execute_post(@world_service, {
         "data" => '{
           "id": "' + group_id + '",
@@ -216,12 +219,12 @@ class TC_Kern2274 < Test::Unit::TestCase
           "joinability": "yes"
         }'
     })
-
+  
     @log.info(result.body)
     assert_equal(200, result.code.to_i)
-
+  
     @s.switch_user(User.admin_user)
-
+  
     # check the main group's data
     result = @s.execute_get(@s.url_for("/system/userManager/group/" + group_id + ".json"))
     json = JSON.parse(result.body)
@@ -232,7 +235,7 @@ class TC_Kern2274 < Test::Unit::TestCase
     refute_includes(json["properties"]["rep:group-viewers"], "anonymous")
     assert_equal("members-only", json["properties"]["sakai:group-visible"])
     assert_equal("yes", json["properties"]["sakai:group-joinable"])
-
+  
     # check for subgroups (-manager and -member)
     result = @s.execute_get(@s.url_for("/system/userManager/group/" + group_id + "-member.json"))
     assert_equal(200, result.code.to_i)
@@ -240,28 +243,30 @@ class TC_Kern2274 < Test::Unit::TestCase
     assert_equal("MEMBER", json["properties"]["sakai:role-title"])
     assert_equal(1, json["properties"]["rep:group-managers"].length)
     assert_equal(@third_user.name + ";" + @fourth_user.name, json["properties"]["members"])
+    assert_includes(json["properties"]["rep:group-viewers"], group_id)
     refute_includes(json["properties"]["rep:group-viewers"], "everyone")
     refute_includes(json["properties"]["rep:group-viewers"], "anonymous")
     assert_equal("members-only", json["properties"]["sakai:group-visible"])
     assert_equal("yes", json["properties"]["sakai:group-joinable"])
-
+  
     result = @s.execute_get(@s.url_for("/system/userManager/group/" + group_id + "-manager.json"))
     assert_equal(200, result.code.to_i)
     json = JSON.parse(result.body)
     assert_equal("MANAGER", json["properties"]["sakai:role-title"])
     assert_equal(1, json["properties"]["rep:group-managers"].length)
     assert_equal(@other_user.name, json["properties"]["members"])
+    assert_includes(json["properties"]["rep:group-viewers"], group_id)
     refute_includes(json["properties"]["rep:group-viewers"], "everyone")
     refute_includes(json["properties"]["rep:group-viewers"], "anonymous")
     assert_equal("members-only", json["properties"]["sakai:group-visible"])
     assert_equal("yes", json["properties"]["sakai:group-joinable"])
-
+  
   end
-
-
+  
+  
   def test_logged_in_only_group
     group_id = "loggedinonlygroup" + @m
-
+  
     result = @s.execute_post(@world_service, {
         "data" => '{
           "id": "' + group_id + '",
@@ -283,10 +288,10 @@ class TC_Kern2274 < Test::Unit::TestCase
           "joinability": "withauth"
         }'
     })
-
+  
     @log.info(result.body)
     assert_equal(200, result.code.to_i)
-
+  
     # check the main group's data
     result = @s.execute_get(@s.url_for("/system/userManager/group/" + group_id + ".json"))
     json = JSON.parse(result.body)
@@ -297,7 +302,7 @@ class TC_Kern2274 < Test::Unit::TestCase
     refute_includes(json["properties"]["rep:group-viewers"], "anonymous")
     assert_equal("logged-in-only", json["properties"]["sakai:group-visible"])
     assert_equal("withauth", json["properties"]["sakai:group-joinable"])
-
+  
     # check for subgroups (-manager and -member)
     result = @s.execute_get(@s.url_for("/system/userManager/group/" + group_id + "-member.json"))
     assert_equal(200, result.code.to_i)
@@ -309,7 +314,7 @@ class TC_Kern2274 < Test::Unit::TestCase
     refute_includes(json["properties"]["rep:group-viewers"], "anonymous")
     assert_equal("logged-in-only", json["properties"]["sakai:group-visible"])
     assert_equal("withauth", json["properties"]["sakai:group-joinable"])
-
+  
     result = @s.execute_get(@s.url_for("/system/userManager/group/" + group_id + "-manager.json"))
     assert_equal(200, result.code.to_i)
     json = JSON.parse(result.body)
@@ -320,7 +325,7 @@ class TC_Kern2274 < Test::Unit::TestCase
     refute_includes(json["properties"]["rep:group-viewers"], "anonymous")
     assert_equal("logged-in-only", json["properties"]["sakai:group-visible"])
     assert_equal("withauth", json["properties"]["sakai:group-joinable"])
-
+  
   end
 
   def create_template

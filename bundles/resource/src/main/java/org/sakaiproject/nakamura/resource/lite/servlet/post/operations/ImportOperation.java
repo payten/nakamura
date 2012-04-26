@@ -24,6 +24,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.NodeNameGenerator;
 import org.apache.sling.servlets.post.SlingPostConstants;
@@ -87,11 +88,19 @@ public class ImportOperation extends AbstractSparseCreateOperation {
     }
 
     // import options passed as request parameters.
-    final boolean replace = "true".equalsIgnoreCase(request
+    // the original implementation treated the :replace parameter as
+    // "continue if node exists". this semantic is widely used when using
+    // :operation=import, so we have to continue using it in that way.
+    final boolean continueIfExists = Boolean.parseBoolean(request
         .getParameter(SlingPostConstants.RP_REPLACE));
-    final boolean replaceProperties = "true".equalsIgnoreCase(request
+    // :merge was added as a response to the use of :replace as "continue if node exists".
+    // :merge dictates whether the new data is merged with existing data or if it replaces
+    // the existing content. default to true as this was the default action before this
+    // parameter was added.
+    final boolean merge = PropertiesUtil.toBoolean(request.getParameter(":merge"), true);
+    final boolean replaceProperties = Boolean.parseBoolean(request
         .getParameter(SlingPostConstants.RP_REPLACE_PROPERTIES));
-    final boolean removeTree = "true".equalsIgnoreCase(request
+    final boolean removeTree =  Boolean.parseBoolean(request
         .getParameter(":removeTree"));
 
     String basePath = getItemPath(request);
@@ -127,7 +136,8 @@ public class ImportOperation extends AbstractSparseCreateOperation {
         LiteJsonImporter simpleJsonImporter = new LiteJsonImporter();
         Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
         AccessControlManager accessControlManager = session.getAccessControlManager();
-        simpleJsonImporter.importContent(contentManager, json, basePath, replace, replaceProperties, removeTree, accessControlManager);
+        simpleJsonImporter.importContent(contentManager, json, basePath, continueIfExists,
+            replaceProperties, removeTree, merge, accessControlManager, true);
           response.setLocation(externalizePath(request, basePath));
           response.setPath(basePath);
           int lastSlashIndex = basePath.lastIndexOf('/');

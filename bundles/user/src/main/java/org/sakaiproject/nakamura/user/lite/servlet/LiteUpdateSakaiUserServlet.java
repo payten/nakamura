@@ -86,7 +86,7 @@ import java.util.Map;
  * 
  *
  */
-@ServiceDocumentation(name="Update User Servlet", okForVersion = "1.1",
+@ServiceDocumentation(name="Update User Servlet", okForVersion = "1.2",
     description="Updates a user's properties. Maps on to nodes of resourceType sparse/user " +
     		"like /~suzy " +
     		"/system/userManager/user/suzy . This servlet responds at " +

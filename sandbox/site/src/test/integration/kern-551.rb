@@ -24,7 +24,7 @@ class TC_Kern551Test < Test::Unit::TestCase
   end
 
   def test_collaborators_add_members
-    m = "1"+Time.now.to_i.to_s
+    m = "1"+uniqueness()
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
     siteurl = @s.url_for("/sites/#{siteid}.json")
@@ -101,7 +101,7 @@ class TC_Kern551Test < Test::Unit::TestCase
   end
 
   def test_groupchanges
-    m = "1a"+Time.now.to_i.to_s
+    m = "1a"+uniqueness()
     viewer = create_user("testviewer#{m}")
     collaborator = create_user("testcollaborator#{m}")
     nonmember = create_user("testnonmember#{m}")
@@ -124,7 +124,7 @@ class TC_Kern551Test < Test::Unit::TestCase
   end
 
   def test_access_schemes
-    m = "2"+Time.now.to_i.to_s
+    m = "2"+uniqueness()
     siteid = "testsite2#{m}"
     sitename = "Test Site #{m}"
     siteurl = @s.url_for("/sites/#{siteid}.json")
@@ -202,7 +202,7 @@ class TC_Kern551Test < Test::Unit::TestCase
   end
 
   def test_retain_default_groups
-    m = "3"+Time.now.to_i.to_s
+    m = "3"+uniqueness()
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
     sitecreator = create_user("testuser#{m}")
@@ -236,7 +236,7 @@ class TC_Kern551Test < Test::Unit::TestCase
   end
 
   def test_creator_membership
-    m = "4"+Time.now.to_i.to_s
+    m = "4"+uniqueness()
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
     sitecreator = create_user("testuser#{m}")
@@ -250,7 +250,7 @@ class TC_Kern551Test < Test::Unit::TestCase
   end
 
   def test_site_properties_on_create
-    m = "5"+Time.now.to_i.to_s
+    m = "5"+uniqueness()
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
     sitecreator = create_user("testuser#{m}")
@@ -267,7 +267,7 @@ class TC_Kern551Test < Test::Unit::TestCase
   end
 
   def test_is_maintainer
-    m = "6"+Time.now.to_i.to_s
+    m = "6"+uniqueness()
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
     siteurl = @s.url_for("/sites/#{siteid}.json")
@@ -302,7 +302,7 @@ class TC_Kern551Test < Test::Unit::TestCase
   end
 
   def test_delete_site
-    m = "7"+Time.now.to_i.to_s
+    m = "7"+uniqueness()
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
     sitecreator = create_user("testuser#{m}")
@@ -329,7 +329,7 @@ class TC_Kern551Test < Test::Unit::TestCase
   end
 
   def test_membership_servlet
-    m = "8"+Time.now.to_i.to_s
+    m = "8"+uniqueness()
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
     siteurl = @s.url_for("/sites/#{siteid}.json")
@@ -376,7 +376,7 @@ class TC_Kern551Test < Test::Unit::TestCase
   end
 
   def test_site_name_duplication
-    m = "9"+Time.now.to_i.to_s
+    m = "9"+uniqueness()
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
     sitecreator1 = create_user("testuser#{m}")

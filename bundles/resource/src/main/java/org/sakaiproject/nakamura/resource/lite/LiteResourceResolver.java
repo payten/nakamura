@@ -58,7 +58,7 @@ public class LiteResourceResolver implements ResourceResolver {
     this.session = session;
     this.userId = userId;
     if (authnInfo == null) {
-      authnInfo = Collections.emptyMap();
+      this.authnInfo = Collections.emptyMap();
     } else {
       this.authnInfo = authnInfo;
     }

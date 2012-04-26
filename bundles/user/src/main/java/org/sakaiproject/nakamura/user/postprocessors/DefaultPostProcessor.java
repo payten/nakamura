@@ -31,9 +31,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.PropertyOption;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.JcrConstants;
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.Resource;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.osgi.PropertiesUtil;
@@ -41,6 +38,7 @@ import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.nakamura.api.activity.ActivityUtils;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -59,30 +57,17 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessor;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.util.ActivityUtils;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import javax.jcr.Node;
-import javax.jcr.NodeIterator;
-import javax.jcr.PropertyIterator;
-import javax.jcr.PropertyType;
-import javax.jcr.RepositoryException;
-import javax.jcr.Value;
-import javax.jcr.nodetype.PropertyDefinition;
 
 /**
  * 
@@ -139,12 +124,7 @@ import javax.jcr.nodetype.PropertyDefinition;
  *     + deny all for anon and everyone
  *       grants user all, except anon
  *     + creates a private group of viewers that only the current user can view (could be delayed as not used then)
- * 
- *  Pages post processor
- *  a:userId/pages
- *      Copies a template content tree verbatum from a uder defined location into the pages folder
- * 
- * 
+ *
  * Profile post Processor
  * a:userId/profile
  *     - sling:resourceType = sakai/group-profile | sakai/user-profile
@@ -163,10 +143,6 @@ import javax.jcr.nodetype.PropertyDefinition;
 @Service(value = LiteAuthorizablePostProcessor.class)
 @Properties(value = { @Property(name = "default", value = "true") })
 public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
-
-  private static final String PAGES_FOLDER = "/pages";
-
-  private static final String PAGES_DEFAULT_FILE = "/pages/index.html";
 
   private static final String CONTACTS_FOLDER = "/contacts";
 
@@ -198,23 +174,22 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
   private static final String SAKAI_USER_PROFILE_RT = "sakai/user-profile";
 
-  private static final String SAKAI_PAGES_RT = "sakai/pages";
-
   private static final String SLING_RESOURCE_TYPE = "sling:resourceType";
   public static final String VISIBILITY_PRIVATE = "private";
   public static final String VISIBILITY_LOGGED_IN = "logged_in";
   public static final String VISIBILITY_PUBLIC = "public";
 
   public static final String PROFILE_JSON_IMPORT_PARAMETER = ":sakai:profile-import";
-  /**
-   * Optional parameter containing the path of a Pages source that should be used instead
-   * of the default template.
-   */
-  public static final String PAGES_TEMPLATE_PARAMETER = ":sakai:pages-template";
 
   public static final String PARAM_ADD_TO_MANAGERS_GROUP = ":sakai:manager";
   public static final String PARAM_REMOVE_FROM_MANAGERS_GROUP = PARAM_ADD_TO_MANAGERS_GROUP
       + SlingPostConstants.SUFFIX_DELETE;
+
+  /**
+   * Restrict behavior as closely as possible to Sling's original client-server Authorizable
+   * API, avoiding action on OAE Home folders and related functionality.
+   */
+  public static final String PARAM_AUTHORIZABLE_ONLY = ":sakai:authorizableOnly";
   
   static final String VISIBILITY_PREFERENCE_DEFAULT = VISIBILITY_PUBLIC;
   @Property(value = VISIBILITY_PREFERENCE_DEFAULT, options = {
@@ -297,14 +272,14 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
           "lastName", new Object[]{"User"},
           "sakai:search-exclude-tree", new Object[]{true},
           ":sakai:profile-import", new Object[]{"{'basic': {'access': 'everybody', 'elements': {'email': {'value': 'admin@sakai.invalid'}, 'firstName': {'value': 'Admin'}, 'lastName': {'value': 'User'}}}}"});
-      process(null, admin, session, Modification.onCreated("admin"), adminMap);
+      process(admin, session, Modification.onCreated("admin"), adminMap);
       Authorizable anon = authorizableManager.findAuthorizable(User.ANON_USER);
       Map<String, Object[]> anonMap = ImmutableMap.of("email", new Object[]{"anon@sakai.invalid"},
           "firstName", new Object[]{"Anon"},
           "lastName", new Object[]{"User"},
           "sakai:search-exclude-tree", new Object[]{true},
           ":sakai:profile-import", new Object[]{"{'basic': {'access': 'everybody', 'elements': {'email': {'value': 'anon@sakai.invalid'}, 'firstName': {'value': 'Anon'}, 'lastName': {'value': 'User'}}}}"});
-      process(null, anon, session, Modification.onCreated("anon"), anonMap);
+      process(anon, session, Modification.onCreated("anon"), anonMap);
     } finally {
       if (session != null) {
         try {
@@ -316,10 +291,19 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     }
   }
 
-  public void process(SlingHttpServletRequest request, Authorizable authorizable,
+  public void process(Authorizable authorizable,
       Session session, Modification change, Map<String, Object[]> parameters)
       throws Exception {
     LOGGER.debug("Default Post processor on {} with {} ", authorizable.getId(), change);
+
+    if (parameters.containsKey(PARAM_AUTHORIZABLE_ONLY)) {
+      String paramAuthorizableOnly = (String) parameters.get(PARAM_AUTHORIZABLE_ONLY)[0];
+      if ("true".equalsIgnoreCase(paramAuthorizableOnly)) {
+        LOGGER.info("Authorizable-only mode specified; skipping Home folder post-processing for {}",
+            authorizable.getId());
+        return;
+      }
+    }
 
     Session adminSession = null;
     try {
@@ -327,16 +311,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       AccessControlManager accessControlManager = session.getAccessControlManager();
       AuthorizableManager authorizableManager = session.getAuthorizableManager();
       adminSession = session.getRepository().loginAdministrative();
-      AuthorizableManager adminAuthorizableManager = adminSession.getAuthorizableManager();
       boolean isGroup = authorizable instanceof Group;
-
-  //    if (ModificationType.DELETE.equals(change.getType())) {
-  //      LOGGER.debug("Performing delete operation on {} ", authorizable.getId());
-  //      if (isGroup) {
-  //        deleteManagersGroup(authorizable, authorizableManager);
-  //      }
-  //      return; // do not
-  //    }
 
       // WARNING: Creation and Update requests are more disjunct than is usual.
       //
@@ -451,15 +426,6 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
               contentManager, accessControlManager, null);
           authorizableManager.createGroup("g-contacts-" + authorizable.getId(), "g-contacts-"
               + authorizable.getId(), null);
-          // Pages
-          boolean createdPages = createPath(authId, homePath + PAGES_FOLDER, SAKAI_PAGES_RT,
-              false, contentManager, accessControlManager, null);
-          createPath(authId, homePath + PAGES_DEFAULT_FILE, SAKAI_PAGES_RT, false,
-              contentManager, accessControlManager, null);
-          if (createdPages) {
-            intitializeContent(request, authorizable, session, homePath + PAGES_FOLDER,
-                parameters);
-          }
           // Profile
           String profileType = (authorizable instanceof Group) ? SAKAI_GROUP_PROFILE_RT
                                                               : SAKAI_USER_PROFILE_RT;
@@ -488,13 +454,15 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
           // profileType, false, contentManager, accessControlManager, null);
 
           Map<String, Object> profileProperties = processProfileParameters(
-              defaultProfileTemplate, authorizable, parameters);
+            authorizable, parameters);
           createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC,
               "nt:unstructured", false, contentManager, accessControlManager, null);
-          for (String propName : profileProperties.keySet()) {
+          for (Entry<String, Object> property : profileProperties.entrySet()) {
+            String propName = property.getKey();
             createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC + "/" + propName,
-                "nt:unstructured", false, contentManager, accessControlManager, ImmutableMap.of("value", profileProperties.get(propName)));
-            authorizable.setProperty(propName, profileProperties.get(propName));
+ "nt:unstructured", false, contentManager,
+                accessControlManager, ImmutableMap.of("value", property.getValue()));
+            authorizable.setProperty(propName, property.getValue());
           }
           authorizableManager.updateAuthorizable(authorizable);
           if ( isCreate ) {
@@ -542,33 +510,6 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
         accessControlManager.setAcl(Security.ZONE_AUTHORIZABLES, authorizable.getId(),
             aclModifications.toArray(new AclModification[aclModifications.size()]));
-
-        // FIXME BL120 this is another hackaround for KERN-1584.
-        // authprofile missing sakai:group-joinable and sakai:group-visible.
-        if (parameters != null) {
-          final Content authprofile = contentManager.get(LitePersonalUtils
-              .getPublicPath(authId) + PROFILE_FOLDER);
-          if (authprofile != null) {
-            boolean modified = false;
-            for (final Entry<String, Object[]> entry : parameters.entrySet()) {
-              final String key = entry.getKey();
-              if ("sakai:group-joinable".equals(key)
-                  || "sakai:group-visible".equals(key)
-                  || "sakai:pages-visible".equals(key)) {
-                authprofile.setProperty(entry.getKey(), entry.getValue()[0]);
-                modified = true;
-              }
-            }
-            if (modified) {
-              contentManager.update(authprofile);
-            }
-          } else {
-            IllegalStateException e = new IllegalStateException(
-                "Could not locate group profile");
-            LOGGER.error(e.getLocalizedMessage(), e);
-          }
-        }
-        // end KERN-1584 hackaround
       }
     } finally {
       if (adminSession != null) {
@@ -576,145 +517,6 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       }
     }
 
-  }
-
-  private void intitializeContent(SlingHttpServletRequest request,
-      Authorizable authorizable, Session session, String pagesPath,
-      Map<String, Object[]> parameters) throws StorageClientException,
-      AccessDeniedException, IOException {
-    String templatePath = null;
-
-    // Check for an explicit pages template path.
-    Object[] templateParameterValues = parameters.get(PAGES_TEMPLATE_PARAMETER);
-    if (templateParameterValues != null) {
-      if ((templateParameterValues.length == 1)
-          && templateParameterValues[0] instanceof String) {
-        String templateParameterValue = (String) templateParameterValues[0];
-        if (templateParameterValue.length() > 0) {
-          templatePath = templateParameterValue;
-        }
-      } else {
-        LOGGER.warn("Unexpected {} value = {}. Using defaults instead.",
-            PAGES_TEMPLATE_PARAMETER, templateParameterValues);
-      }
-    }
-
-    // If no template was specified, use the default.
-    if (templatePath == null) {
-      if (authorizable instanceof Group) {
-        templatePath = defaultGroupPagesTemplate;
-      } else {
-        templatePath = defaultUserPagesTemplate;
-      }
-    }
-
-    if (request != null) {
-      Resource resource = request.getResourceResolver().resolve(templatePath);
-      Node node = resource.adaptTo(Node.class);
-      if (node != null) {
-        try {
-          recursiveCopy(node, pagesPath, session.getContentManager());
-        } catch (RepositoryException e) {
-          LOGGER.warn("Failed to Copy JCR Template ", e);
-          throw new StorageClientException(e.getMessage(), e);
-        }
-      } else {
-        session.getContentManager().copy(templatePath, pagesPath, true);
-      }
-    }
-  }
-
-  private void recursiveCopy(Node node, String thisPath, ContentManager contentManager)
-      throws RepositoryException, StorageClientException, AccessDeniedException,
-      IOException {
-    Builder<String, Object> builder = ImmutableMap.builder();
-    PropertyIterator pi = node.getProperties();
-    while (pi.hasNext()) {
-      javax.jcr.Property p = pi.nextProperty();
-      LOGGER.debug("Setting property {}:{} ", thisPath, p.getName());
-      PropertyDefinition pd = p.getDefinition();
-      int type = pd.getRequiredType();
-      if (pd.isMultiple()) {
-        Value[] v = p.getValues();
-        switch (type) {
-        case PropertyType.DATE: {
-          Calendar[] s = new Calendar[v.length];
-          for (int i = 0; i < v.length; i++) {
-            s[i] = v[i].getDate();
-          }
-          builder.put(p.getName(), s);
-          break;
-        }
-        default: {
-          String[] s = new String[v.length];
-          for (int i = 0; i < v.length; i++) {
-            s[i] = v[i].getString();
-          }
-          builder.put(p.getName(), s);
-          break;
-        }
-        }
-
-      } else {
-        Value v = p.getValue();
-        switch (type) {
-        case PropertyType.BOOLEAN:
-          builder.put(p.getName(), v.getBoolean());
-          break;
-        case PropertyType.DATE:
-          builder.put(p.getName(), v.getDate());
-          break;
-        case PropertyType.DECIMAL:
-          builder.put(p.getName(), v.getDecimal());
-          break;
-        case PropertyType.LONG:
-          builder.put(p.getName(), v.getLong());
-          break;
-        case PropertyType.STRING:
-          builder.put(p.getName(), v.getString());
-          break;
-        default:
-          builder.put(p.getName(), v.getString());
-          break;
-        }
-      }
-    }
-    Content content = contentManager.get(thisPath);
-    if (content == null) {
-      contentManager.update(new Content(thisPath, builder.build()));
-    } else {
-      Map<String, Object> props = builder.build();
-      for (Entry<String, Object> e : props.entrySet()) {
-        content.setProperty(e.getKey(), e.getValue());
-      }
-    }
-
-    if (JcrConstants.NT_FILE.equals(node.getPrimaryNodeType().getName())) {
-      Node contentNode = node.getNode(JcrConstants.JCR_CONTENT);
-      javax.jcr.Property data = contentNode.getProperty(JcrConstants.JCR_DATA);
-      contentManager.writeBody(thisPath, data.getBinary().getStream());
-      if (content == null) {
-        content = contentManager.get(thisPath);
-        if (contentNode.hasProperty(JcrConstants.JCR_MIMETYPE)) {
-          content.setProperty(Content.MIMETYPE_FIELD,
-              contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
-        }
-        if (contentNode.hasProperty(JcrConstants.JCR_LASTMODIFIED)) {
-          content.setProperty(Content.LASTMODIFIED_FIELD,
-              contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getLong());
-        }
-      }
-    }
-    if (content != null) {
-      contentManager.update(content);
-    }
-    NodeIterator ni = node.getNodes();
-    while (ni.hasNext()) {
-      Node n = ni.nextNode();
-      if (!JcrConstants.NT_FILE.equals(n.getPrimaryNodeType().getName())) {
-        recursiveCopy(n, thisPath + "/" + n.getName(), contentManager);
-      }
-    }
   }
 
   /**
@@ -809,8 +611,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     }
   }
 
-  private Map<String, Object> processProfileParameters(String profileTemplate,
-      Authorizable authorizable, Map<String, Object[]> parameters) throws JSONException {
+  private Map<String, Object> processProfileParameters(Authorizable authorizable, Map<String, Object[]> parameters) throws JSONException {
     Map<String, Object> retval = new HashMap<String, Object>();
     // default profile values
     // may be overwritten by the PROFILE_JSON_IMPORT_PARAMETER
@@ -904,7 +705,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     } else {
       managerSettings = ImmutableSet.of();
     }
-    Set<String> viewerSettings = null;
+    Set<String> viewerSettings;
     if (authorizable.hasProperty(UserConstants.PROP_GROUP_VIEWERS)) {
       viewerSettings = ImmutableSet.copyOf((String[]) authorizable
           .getProperty(UserConstants.PROP_GROUP_VIEWERS));

@@ -20,7 +20,7 @@ class TC_Kern485Test < Test::Unit::TestCase
   end
 
   def test_site_creator_access
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     @authz = SlingAuthz::Authz.new(@s)
     creatorid = "testuser_creator#{m}"
     creator = create_user(creatorid)

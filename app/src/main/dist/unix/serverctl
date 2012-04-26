@@ -370,6 +370,7 @@ case "$SLING_COMMAND" in
     fi
     
     # assemble the startup param
+    jvmOpts="-Dfile.encoding=UTF8"
     SLING_JAVA_VERSION=`javaVersion`
     if [ -n "$SLING_JVM_JAAS" ]; then
     	jvmOpts="$jvmOpts -Djava.security.auth.login.config=$SLING_JVM_JAAS_CONFIG"

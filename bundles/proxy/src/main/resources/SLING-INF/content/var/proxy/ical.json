@@ -1,0 +1,20 @@
+{
+    "sling:resourceType": "sakai/proxy",
+    "sakai:request-proxy-endpoint": "${feedurl}",
+    "sakai:request-proxy-method": "GET",
+    "sakai:postprocessor": "iCal",
+    "sakai:title": "iCalendar Proxy",
+    "sakai:shortDescription": "Get the content of a remote iCalendar feed and convert it to JSON.",
+    "sakai:parameters" : [
+        "{\"name\" : \"feedurl\", \"description\" : \"The URL of the iCalendar feed to retrieve.\"}",
+        "{\"name\" : \"responsetype\", \"description\" : \"The type of data to return. Either 'json' or 'ical' may be specified. json is the default. Note that when outputting ical the data is always validated, so feeds with even small infractions of the iCalendar spec will be rejected. This requirement may be loosened in the future.\"}",
+        "{\"name\" : \"validate\", \"description\" : \"Whether to strictly validate the calendar before outputting data. ical output is always validated regardless of this, but json may be validated if desired. By default it's not.\"}"
+    ],
+    "sakai:description": [
+        "Will retrieve an iCalendar feed from a remote URL and return it converted into a JSON document."
+    ],
+    "sakai:response": [
+        "Example: GET: http://localhost:8080/var/proxy/ical.json?feedurl=http://talks.cam.ac.uk/show/ics/5606",
+        "Example: GET: http://localhost:8080/var/proxy/ical.json?feedurl=http://icalshare.s3.amazonaws.com/production/webcal/allical.ics.vcs"
+    ]
+}

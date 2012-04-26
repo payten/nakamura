@@ -17,9 +17,9 @@
  */
 package org.sakaiproject.nakamura.user.lite.servlet;
 
+import static org.sakaiproject.nakamura.api.user.UserConstants.CONTENT_ITEMS_PROP;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -36,22 +36,20 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
+import org.sakaiproject.nakamura.api.user.AuthorizableUtil;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.api.user.UserConstants.Joinable;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.jcr.RepositoryException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import javax.jcr.PathNotFoundException;
-import javax.jcr.RepositoryException;
-import javax.jcr.ValueFormatException;
 
 
 
@@ -91,6 +89,7 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
         SlingPostConstants.RP_PREFIX + "member", changes, toSave);
   }
 
+  @SuppressWarnings("unchecked")
   protected void updateGroupMembership(SlingHttpServletRequest request, Session session,
       Authorizable authorizable, String paramName, List<Modification> changes, Map<String, Object> toSave) throws AccessDeniedException, StorageClientException  {
     if (authorizable instanceof Group) {
@@ -101,20 +100,37 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
       boolean changed = false;
 
       AuthorizableManager authorizableManager = session.getAuthorizableManager();
-      Joinable groupJoin = getJoinable(group);
+      Joinable groupJoin = Joinable.no;
+      Session adminSession = null;
+      try {
+        adminSession = getSession();
+        AuthorizableUtil.getJoinable(group, adminSession.getAuthorizableManager());
+      } finally {
+        ungetSession(adminSession);
+      }
+
+      // the group's count of members changed
+      this.authorizableCountChanger.notify(UserConstants.GROUP_MEMBERS_PROP, group.getId());
+
+      // if this is a special contacts group, then change the contact count for the user it points at
+      if (group.getId().startsWith("g-contacts-")) {
+        String userId = group.getId().substring("g-contacts-".length());
+        this.authorizableCountChanger.notify(UserConstants.CONTACTS_PROP, userId);
+      }
 
       // first remove any members posted as ":member@Delete"
       String[] membersToDelete = request.getParameterValues(paramName + SlingPostConstants.SUFFIX_DELETE);
       if (membersToDelete != null) {
         toSave.put(group.getId(), group);
         LOGGER.info("Members to delete {} ",membersToDelete);
+        this.authorizableCountChanger.notify(UserConstants.GROUP_MEMBERSHIPS_PROP, Arrays.asList(membersToDelete));
         for (String member : membersToDelete) {
           String memberId = getAuthIdFromParameter(member);
           group.removeMember(memberId);
           if(!User.ADMIN_USER.equals(session.getUserId()) && !User.ANON_USER.equals(session.getUserId())
               && Joinable.yes.equals(groupJoin)
               && memberId.equals(session.getUserId())) {
-            Session adminSession = getSession();
+            adminSession = getSession();
             try{
               AuthorizableManager adminAuthorizableManager = adminSession.getAuthorizableManager();
               adminAuthorizableManager.updateAuthorizable(group);
@@ -130,6 +146,7 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
       String[] membersToAdd = request.getParameterValues(paramName);
       if (membersToAdd != null) {
         LOGGER.info("Members to add {} ",membersToAdd);
+        this.authorizableCountChanger.notify(UserConstants.GROUP_MEMBERSHIPS_PROP, Arrays.asList(membersToAdd));
         Group peerGroup = getPeerGroupOf(group, authorizableManager, toSave);
         List<Authorizable> membersToRemoveFromPeer = new ArrayList<Authorizable>();
         for (String member : membersToAdd) {
@@ -139,13 +156,18 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
             memberAuthorizable = authorizableManager.findAuthorizable(memberId);
           }
           if (memberAuthorizable != null) {
+            // reset the count for top-level collection groups
+            if (AuthorizableUtil.isCollection(memberAuthorizable, true)) {
+              this.authorizableCountChanger.notify(CONTENT_ITEMS_PROP, memberAuthorizable.getId());
+            }
+
             if(!User.ADMIN_USER.equals(session.getUserId()) && !UserConstants.ANON_USERID.equals(session.getUserId())
                 && Joinable.yes.equals(groupJoin)
                 && memberAuthorizable.getId().equals(session.getUserId())
                 && !hasWriteAccess(memberAuthorizable, authorizable, session)){
               LOGGER.debug("Is Joinable {} {} ",groupJoin,session.getUserId());
               //we can grab admin session since group allows all users to join
-              Session adminSession = getSession();
+              adminSession = getSession();
               try{
                 AuthorizableManager adminAuthorizableManager = adminSession.getAuthorizableManager();
                 Group adminAuthGroup = (Group) adminAuthorizableManager.findAuthorizable(group.getId());
@@ -173,7 +195,7 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
               }
               changed = true;
             }
-            if (peerGroup != null && peerGroup.getId() != group.getId()) {
+            if (peerGroup != null && peerGroup.getId().equals(group.getId())) {
               Set<String> members = ImmutableSet.copyOf(peerGroup.getMembers());
               if (members.contains(memberAuthorizable.getId())) {
                 membersToRemoveFromPeer.add(memberAuthorizable);
@@ -405,29 +427,6 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
         LOGGER.error("Unable to log out of session: " + t.getMessage(), t);
       }
     }
-  }
-
-  /**
-   * @return true if the authz group is joinable
-   * @throws RepositoryException
-   * @throws PathNotFoundException
-   * @throws ValueFormatException
-   */
-  public Joinable getJoinable(Authorizable authorizable) {
-      if (authorizable instanceof Group && authorizable.hasProperty(UserConstants.PROP_JOINABLE_GROUP)) {
-        try {
-          String joinable = (String) authorizable.getProperty(UserConstants.PROP_JOINABLE_GROUP);
-          LOGGER.info("Joinable Property on {} {} ", authorizable, joinable);
-          if (joinable != null) {
-            return Joinable.valueOf(joinable);
-          }
-        } catch (IllegalArgumentException e) {
-          LOGGER.info(e.getMessage(),e);
-        }
-      } else {
-        LOGGER.info("No Joinable Property on {} ", authorizable);
-      }
-    return Joinable.no;
   }
 
 }

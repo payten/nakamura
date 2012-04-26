@@ -14,7 +14,7 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>1.1</version>
+    <version>1.2.0</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
@@ -23,6 +23,17 @@
   <description>Adds configuration for Jetty.</description>
   <build>
     <plugins>
+      <!--
+      Enable this only when you are making specific changes to an annotated service.
+      The files generated will need to be copied to src/main/resources/OSGI-INF and
+      the build run again.
+      -->
+      <!--
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-scr-plugin</artifactId>
+      </plugin>
+      -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -44,7 +55,7 @@
             <configuration>
               <includeArtifactIds>org.apache.felix.http.jetty,jetty-ajp</includeArtifactIds>
               <excludeTransitive>true</excludeTransitive>
-              <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
+              <outputDirectory>${project.build.outputDirectory}</outputDirectory>
             </configuration>
           </execution>
         </executions>
@@ -77,6 +88,23 @@
                     <ignore />
                   </action>
                 </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>
+                      maven-scr-plugin
+                    </artifactId>
+                    <versionRange>
+                      [1.7.2,)
+                    </versionRange>
+                    <goals>
+                      <goal>scr</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
               </pluginExecutions>
             </lifecycleMappingMetadata>
           </configuration>
@@ -85,6 +113,14 @@
     </pluginManagement>
   </build>
   <dependencies>
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.apache.felix.scr.annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.commons.osgi</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.http.jetty</artifactId>

@@ -1,0 +1,90 @@
+{
+  "_created":1323451649542,
+  "_id":"Ef0KYCKLEeGLVa71rf_xsA+",
+  "structure0":"{\"profile\":{\"_title\":\"My profile\",\"_altTitle\":\"Chris's profile\",\"_order\":1,\"_canEdit\":true,\"_nonEditable\":true,\"_reorderOnly\":true,\"_canSubedit\":true,\"basic\":{\"_ref\":\"id1429040\",\"_order\":0,\"_altTitle\":\"Basic information\",\"_title\":\"Basic information\",\"_nonEditable\":true,\"_view\":\"anonymous\",\"_reorderOnly\":true,\"_canEdit\":true,\"_canSubedit\":true,\"_poolpath\":\"/~croby/public/pubspace\",\"_childCount\":0,\"_id\":\"basic\",\"_elements\":[]},\"aboutme\":{\"_ref\":\"id530294\",\"_order\":1,\"_altTitle\":\"About me\",\"_title\":\"About me\",\"_nonEditable\":true,\"_view\":\"anonymous\",\"_reorderOnly\":false,\"_canEdit\":true,\"_canSubedit\":true,\"_poolpath\":\"/~croby/public/pubspace\",\"_childCount\":0,\"_id\":\"aboutme\",\"_elements\":[]},\"publications\":{\"_ref\":\"id8363934\",\"_order\":2,\"_altTitle\":\"Publications\",\"_title\":\"Publications\",\"_nonEditable\":true,\"_view\":\"anonymous\",\"_reorderOnly\":false,\"_canEdit\":true,\"_canSubedit\":true,\"_poolpath\":\"/~croby/public/pubspace\",\"_childCount\":0,\"_id\":\"publications\",\"_elements\":[]},\"_ref\":\"\",\"_poolpath\":\"/~croby/public/pubspace\",\"_childCount\":3,\"_id\":\"profile\",\"_elements\":[{\"_ref\":\"id1429040\",\"_order\":0,\"_altTitle\":\"Basic information\",\"_title\":\"Basic information\",\"_nonEditable\":true,\"_view\":\"anonymous\",\"_reorderOnly\":true,\"_canEdit\":true,\"_canSubedit\":true,\"_poolpath\":\"/~croby/public/pubspace\",\"_childCount\":0,\"_id\":\"basic\",\"_elements\":[]},{\"_ref\":\"id530294\",\"_order\":1,\"_altTitle\":\"About me\",\"_title\":\"About me\",\"_nonEditable\":true,\"_view\":\"anonymous\",\"_reorderOnly\":false,\"_canEdit\":true,\"_canSubedit\":true,\"_poolpath\":\"/~croby/public/pubspace\",\"_childCount\":0,\"_id\":\"aboutme\",\"_elements\":[]},{\"_ref\":\"id8363934\",\"_order\":2,\"_altTitle\":\"Publications\",\"_title\":\"Publications\",\"_nonEditable\":true,\"_view\":\"anonymous\",\"_reorderOnly\":false,\"_canEdit\":true,\"_canSubedit\":true,\"_poolpath\":\"/~croby/public/pubspace\",\"_childCount\":0,\"_id\":\"publications\",\"_elements\":[]}]},\"library\":{\"_ref\":\"id19382710\",\"_order\":2,\"_title\":\"My library\",\"_altTitle\":\"Chris's library\",\"_reorderOnly\":true,\"_nonEditable\":true,\"_view\":\"anonymous\",\"main\":{\"_ref\":\"id19382710\",\"_order\":0,\"_title\":\"My library\",\"_canEdit\":true,\"_canSubedit\":true,\"_poolpath\":\"/~croby/public/pubspace\",\"_childCount\":0,\"_id\":\"main\",\"_elements\":[]},\"_canEdit\":true,\"_canSubedit\":true,\"_count\":33,\"_poolpath\":\"/~croby/public/pubspace\",\"_childCount\":1,\"_id\":\"library\",\"_elements\":[{\"_ref\":\"id19382710\",\"_order\":0,\"_title\":\"My library\",\"_canEdit\":true,\"_canSubedit\":true,\"_poolpath\":\"/~croby/public/pubspace\",\"_childCount\":0,\"_id\":\"main\",\"_elements\":[]}]},\"memberships\":{\"_title\":\"My memberships\",\"_order\":0,\"_ref\":\"id19382711\",\"_altTitle\":\"Chris's memberships\",\"_reorderOnly\":true,\"_nonEditable\":true,\"_view\":\"anonymous\",\"main\":{\"_ref\":\"id19382711\",\"_order\":0,\"_title\":\"My memberships\",\"_canEdit\":true,\"_canSubedit\":true,\"_poolpath\":\"/~croby/public/pubspace\",\"_childCount\":0,\"_id\":\"main\",\"_elements\":[]},\"_canEdit\":true,\"_canSubedit\":true,\"_count\":3,\"_poolpath\":\"/~croby/public/pubspace\",\"_childCount\":1,\"_id\":\"memberships\",\"_elements\":[{\"_ref\":\"id19382711\",\"_order\":0,\"_title\":\"My memberships\",\"_canEdit\":true,\"_canSubedit\":true,\"_poolpath\":\"/~croby/public/pubspace\",\"_childCount\":0,\"_id\":\"main\",\"_elements\":[]}]},\"contacts\":{\"_title\":\"My contacts\",\"_order\":3,\"_ref\":\"id19382712\",\"_altTitle\":\"Chris's contacts\",\"_reorderOnly\":true,\"_nonEditable\":true,\"_view\":\"anonymous\",\"main\":{\"_ref\":\"id19382712\",\"_order\":0,\"_title\":\"My contacts\",\"_canEdit\":true,\"_canSubedit\":true,\"_poolpath\":\"/~croby/public/pubspace\",\"_childCount\":0,\"_id\":\"main\",\"_elements\":[]},\"_canEdit\":true,\"_canSubedit\":true,\"_count\":8,\"_poolpath\":\"/~croby/public/pubspace\",\"_childCount\":1,\"_id\":\"contacts\",\"_elements\":[{\"_ref\":\"id19382712\",\"_order\":0,\"_title\":\"My contacts\",\"_canEdit\":true,\"_canSubedit\":true,\"_poolpath\":\"/~croby/public/pubspace\",\"_childCount\":0,\"_id\":\"main\",\"_elements\":[]}]},\"_childCount\":4}",
+  "_lastModifiedBy":"croby",
+  "_lastModified":1323454402669,
+  "_createdBy":"croby",
+  "_path":"a:croby/public/pubspace",
+  "id8363934":{
+    "_created":1323451649792,
+    "_id":"EiMwACKLEeGLVa71rf_xsA+",
+    "_lastModifiedBy":"croby",
+    "page":"<div id='widget_displayprofilesection_id53058' class='widget_inline'/>",
+    "_lastModified":1323451649792,
+    "_createdBy":"croby",
+    "_path":"a:croby/public/pubspace/id8363934"
+  },
+  "id19382710":{
+    "_created":1323451649548,
+    "_id":"Ef30wCKLEeGLVa71rf_xsA+",
+    "_lastModifiedBy":"croby",
+    "page":"<div id='widget_mylibrary' class='widget_inline'><\/div>",
+    "_lastModified":1323451649548,
+    "_createdBy":"croby",
+    "_path":"a:croby/public/pubspace/id19382710"
+  },
+  "id530294":{
+    "_created":1323451649746,
+    "_id":"EhwrICKLEeGLVa71rf_xsA+",
+    "_lastModifiedBy":"croby",
+    "page":"<div id='widget_displayprofilesection_id5814326' class='widget_inline'/>",
+    "_lastModified":1323451649746,
+    "_createdBy":"croby",
+    "_path":"a:croby/public/pubspace/id530294"
+  },
+  "id1429040":{
+    "_created":1323451649682,
+    "_id":"EhJnICKLEeGLVa71rf_xsA+",
+    "_lastModifiedBy":"croby",
+    "page":"<div id='widget_displayprofilesection_id8340103' class='widget_inline'/>",
+    "_lastModified":1323451649682,
+    "_createdBy":"croby",
+    "_path":"a:croby/public/pubspace/id1429040"
+  },
+  "id8340103":{
+    "_created":1323451649714,
+    "_id":"EhdJICKLEeGLVa71rf_xsA+",
+    "_lastModifiedBy":"croby",
+    "_lastModified":1323451649714,
+    "sectionid":"basic",
+    "_createdBy":"croby",
+    "_path":"a:croby/public/pubspace/id8340103"
+  },
+  "id5814326":{
+    "_created":1323451649776,
+    "_id":"EiC_ACKLEeGLVa71rf_xsA+",
+    "_lastModifiedBy":"croby",
+    "_lastModified":1323451649776,
+    "sectionid":"aboutme",
+    "_createdBy":"croby",
+    "_path":"a:croby/public/pubspace/id5814326"
+  },
+  "id19382712":{
+    "_created":1323451649635,
+    "_id":"Egs7MCKLEeGLVa71rf_xsA+",
+    "_lastModifiedBy":"croby",
+    "page":"<div id='widget_contacts' class='widget_inline'><\/div>",
+    "_lastModified":1323451649635,
+    "_createdBy":"croby",
+    "_path":"a:croby/public/pubspace/id19382712"
+  },
+  "id53058":{
+    "_created":1323451649852,
+    "_id":"EixXwCKLEeGLVa71rf_xsA+",
+    "_lastModifiedBy":"croby",
+    "_lastModified":1323451649852,
+    "sectionid":"publications",
+    "_createdBy":"croby",
+    "_path":"a:croby/public/pubspace/id53058"
+  },
+  "id19382711":{
+    "_created":1323451649619,
+    "_id":"EgjKMCKLEeGLVa71rf_xsA+",
+    "_lastModifiedBy":"croby",
+    "page":"<div id='widget_joinrequestbuttons' class='widget_inline'><\/div> <div id='widget_tooltip' class='widget_inline'><\/div> <div id='widget_mymemberships' class='widget_inline'><\/div>",
+    "_lastModified":1323451649619,
+    "_createdBy":"croby",
+    "_path":"a:croby/public/pubspace/id19382711"
+  }
+}

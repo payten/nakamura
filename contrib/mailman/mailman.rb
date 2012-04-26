@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'mechanize'
 
 ## mmsitepass -c "Your password" to enable list creation

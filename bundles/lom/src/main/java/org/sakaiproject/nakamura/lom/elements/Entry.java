@@ -32,8 +32,9 @@ public class Entry extends LangStringType {
   
   @Override
   public String generateXML() {
-    if (this.getLangString().generateXML().equals(""))
+    if (this.getLangString().generateXML().equals("")) {
       return "";
+    }
     return new String("<entry>" + this.getLangString().generateXML() + "</entry>");
   }
 }

@@ -81,8 +81,9 @@ public class Requirement extends Serialize {
         sb.append(this.getOrComposite().get(i).generateXML());
       }
     }
-    if (sb.toString().equals(""))
+    if (sb.toString().equals("")) {
       return "";
+    }
     return new String("<requirement>" + sb.toString() + "</requirement>");
   }
 

@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.files.search;
 
 import com.google.common.collect.Lists;
+
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.solr.common.SolrInputDocument;
@@ -121,6 +122,9 @@ public class PageIndexingUtil {
   }
 
   public static class PageIndexException extends Exception {
+
+    private static final long serialVersionUID = 1704282214565619806L;
+
     public PageIndexException(String s) {
       super(s);
     }

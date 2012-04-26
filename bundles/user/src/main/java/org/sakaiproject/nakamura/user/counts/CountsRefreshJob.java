@@ -79,8 +79,10 @@ public class CountsRefreshJob implements Job {
         response = solrServer.query(solrQuery);
         SolrDocumentList results = response.getResults();
         long numResults = results.getNumFound();
-        if (LOGGER.isDebugEnabled()) LOGGER.debug("with query {}, found {} results", new Object[] { queryString,
-            numResults });
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("with query {}, found {} results", new Object[] { queryString,
+              numResults });
+        }
         if (numResults > 0) {
           batchSize = (int) (batchSize < numResults ? batchSize : numResults);
           LOGGER.info("will update counts on max of {} authorizables",
@@ -121,12 +123,13 @@ public class CountsRefreshJob implements Job {
     } catch (AccessDeniedException e) {
       LOGGER.warn(e.getMessage(), e);
     } finally {
-      if (adminSession != null)
+      if (adminSession != null) {
         try {
           adminSession.logout();
         } catch (ClientPoolException e) {
           LOGGER.warn(e.getMessage(), e);
         }
+      }
     }
   }
 }

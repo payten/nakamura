@@ -44,8 +44,9 @@ public class TaxonPath extends Serialize {
     String sourceName = "source";
     String taxonName = "taxon";
     JSONObject sourceJSON = JSONUtil.getJSONObject(json, sourceName);
-    if (sourceJSON != null) 
+    if (sourceJSON != null) {
       source = new Source(sourceJSON);
+    }
     
     JSONObject taxonJSON = JSONUtil.getJSONObject(json, taxonName);
     if (taxonJSON == null) {
@@ -76,8 +77,9 @@ public class TaxonPath extends Serialize {
   }
   
   public void addTaxon(Taxon t) {
-    if (taxon == null) 
+    if (taxon == null) {
       taxon = new ArrayList<Taxon> ();
+    }
     taxon.add(t);
   }
 
@@ -96,8 +98,9 @@ public class TaxonPath extends Serialize {
         sb.append(this.getTaxon().get(i).generateXML());
       }
     }
-    if (sb.toString().equals(""))
+    if (sb.toString().equals("")) {
       return "";
+    }
     return new String("<taxonPath>" + sb.toString() + "</taxonPath>");
   }
 }

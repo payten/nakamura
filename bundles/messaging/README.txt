@@ -4,25 +4,25 @@ This bundle manages messages.
 
 It stores messages under the users /_user/message space in a folder
 
-/_user/message/.../<userid>
+/~user/message/.../<userid>
 
 where ... is a BigStore hash.
 
 This is setup when the user is created, with a resourceType of sakai/messagestore, 
 
 Individual messages are stored within this subtree in the form
-/_user/message/.../<userid>/messages/.../<messageid>
+/~user/message/.../<userid>/messages/.../<messageid>
 
 These JCR storage paths are mapped to the URL space
 
-/_user/message/<messageid>
+/~user/message/<messageid>
 
 All the REST URL's request dispatch to the standard Sling servlets so respond 
 to all the form properties.
 
 Create a New Message
 POST to 
-/_user/message.create.html
+/~user/message.create.html
 with
 sakai:type - the message type.
 sakai:to - the recipient of the message
@@ -113,28 +113,28 @@ There is a chat cleaner which
 Listing Boxes.
 Listing of boxes is achieved by search operations.
 At the moment we have the following sets
-/_user/message/all.json  
+/var/message/all.json
    Lists all internal messages with sort order.
    parameter "sortOn" is the sort of the messages, defaults to jcr:created
    parameter "sortOrder" is the sort order, defaults to descending
-/_user/message/box.json
+/~user/message/box.json
    adds the parameter "box" which is the value of the sakai:messagebox
    (
      there is also a {path} parameter which does not make sense, IMHO should be {_userPrivate}
      also type = message which looks wrong
    )
-/_user/message/from.json
+/var/message/from.json
    as all.json, adds parameter "from" to search by the sender.
    (
      also type = message which looks wrong
    )
 
-/_user/message/messageFilter.json
+/var/message/messageFilter.json
    allows filtering on a property "prop" with a value of "val" 
    (
      there is also a {path} parameter which does not make sense, IMHO should be {_userPrivate}
    )
-/_user/message/to.json
+/var/message/to.json
    as all, allows searching for "to" 
 
 

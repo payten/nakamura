@@ -106,8 +106,9 @@ public class General extends Serialize{
       if (languageArray != null) {
         for (int i = 0; i < languageArray.length(); i++) {
           String lang = languageArray.optString(i);
-          if (lang != null) 
+          if (lang != null) {
             addLanguage(lang);
+          }
         }
       }
     } else {
@@ -217,8 +218,9 @@ public class General extends Serialize{
   }
   
   public void addKeyword(Keyword k) {
-    if (keyword == null) 
+    if (keyword == null) {
       keyword = new ArrayList<Keyword>();
+    }
     keyword.add(k);
   }
 
@@ -231,8 +233,9 @@ public class General extends Serialize{
   }
 
   public void addCoverage(Coverage c) {
-    if (coverage == null)
+    if (coverage == null) {
       coverage = new ArrayList<Coverage> ();
+    }
     coverage.add(c);
   }
   public void setCoverage(List<Coverage> coverage) {
@@ -259,30 +262,42 @@ public class General extends Serialize{
   public String generateXML() {
     StringBuilder sb = new StringBuilder("");
     if (this.getIdentifier() != null) {
-      for (int i = 0; i < this.getIdentifier().size(); i++)
+      for (int i = 0; i < this.getIdentifier().size(); i++) {
         sb.append(this.getIdentifier().get(i).generateXML());
+      }
     }
-    if (this.getTitle() != null)
+    if (this.getTitle() != null) {
       sb.append(this.getTitle().generateXML());
-    if (this.getKeyword() != null) 
-      for (int i = 0; i < this.getKeyword().size(); i++)
+    }
+    if (this.getKeyword() != null) {
+      for (int i = 0; i < this.getKeyword().size(); i++) {
         sb.append(this.getKeyword().get(i).generateXML());
-    if (this.getDescription() != null) 
-      for (int i = 0; i < this.getDescription().size(); i++)
+      }
+    }
+    if (this.getDescription() != null) {
+      for (int i = 0; i < this.getDescription().size(); i++) {
         sb.append(this.getDescription().get(i).generateXML());
-    if (this.getLanguage() != null)
-      for (int i = 0;i < this.getLanguage().size(); i++)
+      }
+    }
+    if (this.getLanguage() != null) {
+      for (int i = 0; i < this.getLanguage().size(); i++) {
         sb.append("<language>" + this.getLanguage().get(i)+ "</language>");
-    if (this.getStructure() != null)
+      }
+    }
+    if (this.getStructure() != null) {
       sb.append(this.getStructure().generateXML());
-    if (this.getAggregationLevel() != null)
+    }
+    if (this.getAggregationLevel() != null) {
       sb.append(this.getAggregationLevel().generateXML());
-    if (this.getCoverage() != null) 
-      for (int i = 0; i < this.getCoverage().size(); i++)
+    }
+    if (this.getCoverage() != null) {
+      for (int i = 0; i < this.getCoverage().size(); i++) {
         sb.append(this.getCoverage().get(i).generateXML());
-    
-    if (sb.toString().equals(""))
+      }
+    }
+    if (sb.toString().equals("")) {
       return "";
+    }
     return new String("<general>" + sb.toString() + "</general>");
   }
 }

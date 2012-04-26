@@ -14,7 +14,7 @@ class TC_Kern543Test < Test::Unit::TestCase
   include SlingTest
 
   def do_site_create
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     # the location of the site container
     sitecontainerid = "sites"
     # the name of the site (under the container)
@@ -39,7 +39,7 @@ class TC_Kern543Test < Test::Unit::TestCase
 
   def create_page(sitepath)
 
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     pageid = "id#{m}"
     title = "Page title#{m}"
 
@@ -70,7 +70,7 @@ class TC_Kern543Test < Test::Unit::TestCase
   end
 
   def test_versioning
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     # Create a user
     creatorid = "testuser_creator#{m}"
     creator = create_user(creatorid)

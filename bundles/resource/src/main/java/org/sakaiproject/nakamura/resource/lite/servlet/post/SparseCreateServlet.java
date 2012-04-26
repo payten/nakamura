@@ -104,8 +104,7 @@ public class SparseCreateServlet extends SlingAllMethodsServlet implements Optin
       Resource parentResource = null;
       // loop while we haven't found a parent resource and the parent path hasn't hit the
       // root yet
-      while (parentResource == null && !parentPath.equalsIgnoreCase("/")
-          && !StringUtils.isBlank(parentPath)) {
+      while (!parentPath.equalsIgnoreCase("/") && !StringUtils.isBlank(parentPath)) {
         parentResource = resourceResolver.getResource(parentPath);
         if (parentResource == null) {
           // get the next parent and loop again

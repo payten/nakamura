@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'nakamura/search'
 require 'test/unit.rb'
@@ -12,7 +14,7 @@ class TC_FormAuthTest < Test::Unit::TestCase
 
   def test_form_auth
     @s.trustedauth = true
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     u = create_user("testuser"+m)
     details = @um.get_user_props(u.name)
     assert_equal("testuser"+m, details["name"], "Expected username to match #{details} ")

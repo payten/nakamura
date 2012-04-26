@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura'
 require 'nakamura/test'
 require 'nakamura/contacts'
@@ -18,7 +20,7 @@ class TC_MyContactTest < Test::Unit::TestCase
   end
 
   def test_connect_users
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     @log.info("Creating user aaron"+m)
     a = create_user("aaron"+m)
     @log.info("Creating user nico"+m)

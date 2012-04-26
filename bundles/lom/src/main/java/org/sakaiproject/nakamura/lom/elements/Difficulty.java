@@ -40,8 +40,9 @@ public class Difficulty extends VocabularyType {
 
   @Override
   public String generateXML() {
-    if (super.generateXML().equals(""))
+    if (super.generateXML().equals("")) {
       return "";
+    }
     return new String("<difficulty>" + super.generateXML() + "</difficulty>");
   }
 }

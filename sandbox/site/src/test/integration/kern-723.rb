@@ -18,7 +18,7 @@ class TC_Kern723Test < Test::Unit::TestCase
 
   def test_message_to_site
     # We create a test site.
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
     sitecreator = create_user("testuser#{m}")

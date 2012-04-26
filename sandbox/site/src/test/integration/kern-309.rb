@@ -34,7 +34,7 @@ class TC_Kern309Test < Test::Unit::TestCase
   end
 
   def test_309
-    @m = Time.now.to_i.to_s
+    @m = uniqueness()
 	u = create_user("ian"+@m)
 	nico = create_user("nico"+@m)
 	@s.switch_user(u)

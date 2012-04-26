@@ -45,5 +45,5 @@ else
 fi
 
 ## start the server
-java  $d32 -Xmx512m -server -XX:MaxPermSize=256m -Dcom.sun.management.jmxremote -jar ${TOOLSDIR}/../app/target/org.sakaiproject.nakamura.app-${K2VERSION}.jar -f -
+java $d32 -Dfile.encoding=UTF8 -Xmx512m -server -XX:MaxPermSize=256m -Dcom.sun.management.jmxremote -jar ${TOOLSDIR}/../app/target/org.sakaiproject.nakamura.app-${K2VERSION}.jar -f -
 

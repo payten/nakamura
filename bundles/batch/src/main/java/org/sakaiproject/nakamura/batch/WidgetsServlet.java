@@ -46,12 +46,14 @@ import java.util.Map.Entry;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "WidgetsServlet", okForVersion = "1.1",
+@ServiceDocumentation(name = "WidgetsServlet", okForVersion = "1.2",
     shortDescription = "List all the widgets",
     description = "Gives a list of all the known widgets in the system.",
     bindings = { @ServiceBinding(type = BindingType.PATH, bindings = "/var/widgets") },
     methods = {
-    @ServiceMethod(parameters = {
+    @ServiceMethod(
+          name = "GET",
+          parameters = {
           @ServiceParameter(name = "callback",
               description = "Optional parameter that determines the name of the callback function for the json-p output. If this parameter is not found, than normal json will be outputted.")
           },

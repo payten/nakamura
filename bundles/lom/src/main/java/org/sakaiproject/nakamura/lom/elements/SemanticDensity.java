@@ -39,8 +39,9 @@ public class SemanticDensity extends VocabularyType {
   
   @Override
   public String generateXML() {
-    if (super.generateXML().equals(""))
+    if (super.generateXML().equals("")) {
       return "";
+    }
     return new String("<semanticDensity>" + super.generateXML() + "</semanticDensity>");
   }
 }

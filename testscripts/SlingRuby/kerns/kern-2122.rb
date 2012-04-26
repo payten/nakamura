@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'nakamura/file'
 require 'nakamura/users'
@@ -18,11 +21,11 @@ class TC_Kern2122 < Test::Unit::TestCase
     @fm = FileManager.new(@s)
     @um = UserManager.new(@s)
     @full_group_creator = SlingUsers::FullGroupCreator.new @s
-    @full_group_creator.log.level = Logger::INFO
+    @full_group_creator.log.level = @log.level
   end
 
   def test_add_and_remove_viewers
-    m = Time.now.to_i.to_s
+    m = uniqueness()
 
     # Create some users
     # manager = create_user("manager-#{m}")
@@ -30,12 +33,11 @@ class TC_Kern2122 < Test::Unit::TestCase
     viewer2 = create_user("viewer2-#{m}")
 
     @s.switch_user(viewer1)
-    ticks = Time.now.to_f
 
     managed_group = @full_group_creator.create_full_group viewer1.name, "group-#{m}", "kern-2122 int test group", "kern-2122 int test group description"
     assert_not_nil(managed_group, "expected managed group to be created")
 
-    file_name = "random-#{ticks}.txt"
+    file_name = "random-#{uniqueness()}.txt"
     file_body = "Add the time to make it sort of random #{Time.now.to_f}."
     upload_res = @fm.upload_pooled_file(file_name, file_body, 'text/plain')
     assert_equal("201",upload_res.code,"should have succeeded in uploading file #{file_name}")
@@ -55,8 +57,10 @@ class TC_Kern2122 < Test::Unit::TestCase
     viewers = json["viewers"]
     assert_equal(3, viewers.length, "should be 3 viewers added by viewer1" )
 
-    # now have viewer1 try to remove viewer2
-    remove_viewer2_res = @fm.manage_members(file_id, nil, [viewer2.name], nil, nil)
+    # now have viewer2 try to remove viewer1
+    @s.switch_user(viewer2)
+    remove_viewer1_res = @fm.manage_members(file_id, nil, [viewer1.name], nil, nil)
+    assert_equal('403', remove_viewer1_res.code)
     members_res = @fm.get_members file_id
     json = JSON.parse(members_res.body)
     assert_equal("200",members_res.code)
@@ -65,6 +69,7 @@ class TC_Kern2122 < Test::Unit::TestCase
 
     # now have viewer1 remove managed group
     # this is how to remove an item from the library of a group managed by a user
+    @s.switch_user(viewer1)
     remove_group_res = @fm.manage_members(file_id, nil, [managed_group.name], nil, nil)
     assert_equal("200",remove_group_res.code, "expected viewer1 to be able to remove a group managed by them")
     members_res = @fm.get_members file_id

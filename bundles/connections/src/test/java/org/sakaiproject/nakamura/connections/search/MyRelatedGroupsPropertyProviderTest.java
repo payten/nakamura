@@ -25,8 +25,8 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_TITLE_PROPERTY;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -49,7 +49,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  *

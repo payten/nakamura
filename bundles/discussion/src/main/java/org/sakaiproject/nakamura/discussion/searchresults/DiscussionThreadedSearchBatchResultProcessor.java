@@ -50,6 +50,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.RepositoryException;
 
@@ -120,11 +121,11 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
       }
 
       // Now that we have all the base posts, we can sort the replies properly
-      for (String parentId : postChildren.keySet()) {
-        Post parentPost = allPosts.get(parentId);
+      for (Entry<String, List<Post>> postChild : postChildren.entrySet()) {
+        Post parentPost = allPosts.get(postChild.getKey());
         if (parentPost != null) {
           List<Post> childrenList = parentPost.getChildren();
-          List<Post> childrenActual = postChildren.get(parentId);
+          List<Post> childrenActual = postChild.getValue();
           childrenList.addAll(childrenActual);
         }
       }

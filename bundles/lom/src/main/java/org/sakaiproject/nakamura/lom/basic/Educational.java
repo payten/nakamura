@@ -321,35 +321,51 @@ public class Educational extends Serialize {
     StringBuilder sb = new StringBuilder("");
     if (this.getInteractivityType() != null)
       sb.append(this.getInteractivityType().generateXML());
-    if (this.getLearningResourceType() != null)
-      for (int i = 0; i < this.getLearningResourceType().size(); i ++)
+    if (this.getLearningResourceType() != null) {
+      for (int i = 0; i < this.getLearningResourceType().size(); i++) {
         sb.append(this.getLearningResourceType().get(i).generateXML());
-    if (this.getInteractivityLevel() != null)
+      }
+    }
+    if (this.getInteractivityLevel() != null) {
       sb.append(this.getInteractivityLevel().generateXML());
-    if (this.getSemanticDensity() != null)
+    }
+    if (this.getSemanticDensity() != null) {
       sb.append(this.getSemanticDensity().generateXML());
-    if (this.getIntendedEndUserRole() != null)
-      for (int i = 0; i < this.getIntendedEndUserRole().size(); i++)
+    }
+    if (this.getIntendedEndUserRole() != null) {
+      for (int i = 0; i < this.getIntendedEndUserRole().size(); i++) {
         sb.append(this.getIntendedEndUserRole().get(i).generateXML());
-    if (this.getContext() != null)
-      for (int i = 0; i < this.getContext().size(); i++)
+      }
+    }
+    if (this.getContext() != null) {
+      for (int i = 0; i < this.getContext().size(); i++) {
         sb.append(this.getContext().get(i).generateXML());
-    if (this.getTypicalAgeRange() != null)
-      for (int i = 0; i < this.getTypicalAgeRange().size(); i++)
+      }
+    }
+    if (this.getTypicalAgeRange() != null) {
+      for (int i = 0; i < this.getTypicalAgeRange().size(); i++) {
         sb.append(this.getTypicalAgeRange().get(i).generateXML());
-    if (this.getDifficulty() != null)
+      }
+    }
+    if (this.getDifficulty() != null) {
       sb.append(this.getDifficulty().generateXML());
-    if (this.getTypicalLearningTime() != null)
+    }
+    if (this.getTypicalLearningTime() != null) {
       sb.append(this.getTypicalLearningTime().generateXML());
-    if (this.getDescription() != null) 
-      for (int i = 0; i < this.getDescription().size(); i++)
+    }
+    if (this.getDescription() != null) {
+      for (int i = 0; i < this.getDescription().size(); i++) {
         sb.append(this.getDescription().get(i).generateXML());
-    if (this.getLanguage() != null)
-      for (int i = 0;i < this.getLanguage().size(); i++)
+      }
+    }
+    if (this.getLanguage() != null) {
+      for (int i = 0; i < this.getLanguage().size(); i++) {
         sb.append("<language>" + this.getLanguage().get(i)+ "</language>");
-    
-    if (sb.toString().equals(""))
+      }
+    }
+    if (sb.toString().equals("")) {
       return "";
+    }
     return new String("<educational>" + sb.toString() + "</educational>");
   }
 }

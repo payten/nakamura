@@ -51,8 +51,9 @@ public class Contribute extends Serialize{
     String entityName = "entity";
     String dateName = "date";
     JSONObject roleJSON = JSONUtil.getJSONObject(json, roleName);
-    if (roleJSON != null)
+    if (roleJSON != null) {
       role = new Role(roleJSON, type);
+    }
     
     String entityString = JSONUtil.getStringValue(json, entityName);
     if (entityString == null) {
@@ -70,8 +71,9 @@ public class Contribute extends Serialize{
     }
     
     JSONObject dateJSON = JSONUtil.getJSONObject(json, dateName);
-    if (dateJSON != null)
+    if (dateJSON != null) {
       date = new Date(dateJSON);
+    }
   }
   
   public CONTRIBUTETYPE getType() {
@@ -91,8 +93,9 @@ public class Contribute extends Serialize{
   }
 
   public void addEntity (String vcard) {
-    if (entity == null)
+    if (entity == null) {
       entity = new ArrayList<Entity>();
+    }
     entity.add(new Entity(vcard));
   }
   public void setEntity(List<Entity> entity) {
@@ -110,16 +113,20 @@ public class Contribute extends Serialize{
   @Override
   public String generateXML() {
     StringBuilder sb = new StringBuilder("");
-    if (this.getDate() != null)
+    if (this.getDate() != null) {
       sb.append(this.getDate().generateXML());
-    if (this.getEntity() != null) {
-      for (int i = 0; i < this.getEntity().size(); i++)
-        sb.append(entity.get(i).generateXML());
     }
-    if (this.getRole() != null)
+    if (this.getEntity() != null) {
+      for (int i = 0; i < this.getEntity().size(); i++) {
+        sb.append(entity.get(i).generateXML());
+      }
+    }
+    if (this.getRole() != null) {
       sb.append(this.getRole().generateXML());
-    if (sb.toString().equals(""))
+    }
+    if (sb.toString().equals("")) {
       return "";
+    }
     return new String ("<contribute>" + sb.toString() + "</contribute>");
   }
 }

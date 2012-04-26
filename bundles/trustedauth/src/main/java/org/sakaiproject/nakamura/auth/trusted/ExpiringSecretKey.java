@@ -37,6 +37,7 @@ public class ExpiringSecretKey {
    * @param expires the time of expiry epoch in ms.
    */
   public ExpiringSecretKey(byte[] b, String algorithm, long expires, String serverId) {
+    b = b.clone();
     secretKey = new SecretKeySpec(b, algorithm);
     this.expires = expires;
     this.secretKeyData = new ExpiringSecretKeyData(expires, algorithm, b, serverId);

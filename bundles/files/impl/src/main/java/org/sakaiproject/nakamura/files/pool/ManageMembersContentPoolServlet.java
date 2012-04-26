@@ -60,7 +60,9 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.user.AuthorizableCountChanger;
 import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +80,7 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
   @Property(name = "service.vendor", value = "The Sakai Foundation"),
   @Property(name = "service.description", value = "Manages the Managers, Editors, and Viewers for pooled content.") })
-@ServiceDocumentation(name = "Manage Members Content Pool Servlet", okForVersion = "1.1",
+@ServiceDocumentation(name = "Manage Members Content Pool Servlet", okForVersion = "1.2",
   shortDescription = "List and manage the managers, editors, and viewers for a file in the content pool.",
   description = "List and manage the managers, editors, and viewers for a file in the content pool.",
   bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = { "sakai/pooled-content" },
@@ -216,7 +218,9 @@ import javax.servlet.http.HttpServletResponse;
   protected transient ProfileService profileService;
   @Reference
   protected transient BasicUserInfoService basicUserInfoService;
-
+  @Reference
+  protected transient AuthorizableCountChanger authorizableCountChanger; 
+  
   /**
    * Retrieves the list of members.
    *
@@ -344,6 +348,7 @@ import javax.servlet.http.HttpServletResponse;
    * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
+  @SuppressWarnings("unchecked")
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
@@ -477,6 +482,9 @@ import javax.servlet.http.HttpServletResponse;
 
       updateContentMembers(session, pooledContent, viewerSet,  managerSet, editorSet);
       updateContentAccess(session, pooledContent, aclModifications);
+
+      this.authorizableCountChanger.notify(UserConstants.CONTENT_ITEMS_PROP, addViewers, addEditors, addManagers,
+          removeViewers, removeEditors, removeManagers);
 
       response.setStatus(SC_OK);
 

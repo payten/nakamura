@@ -120,8 +120,9 @@ public class Manifest {
   
   private void setJSON(JSONObject json, String manifestName) throws ManifestErrorException{
     JSONObject j = JSONUtil.getJSONObject(json, manifestName);
-    if (j == null)
+    if (j == null) {
       throw new ManifestErrorException("Manifest element is not found");
+    }
     this.json = j;
   }
   public Organizations getOrganizations() {
@@ -145,8 +146,9 @@ public class Manifest {
   }
   
   public void addSubManifest(Manifest m) {
-    if (subManifests == null)
+    if (subManifests == null) {
       subManifests = new ArrayList<Manifest>();
+    }
     subManifests.add(m);
   }
 
@@ -197,18 +199,24 @@ public class Manifest {
     		"http://www.imsglobal.org/xsd/imsmd_v1p2.xsd\"";
     head.append(attr);
     StringBuilder sb = new StringBuilder("");
-    if (this.getMetadata() != null)
+    if (this.getMetadata() != null) {
       sb.append(this.getMetadata().generateXML());
-    if (this.getIdentifier() != null)
+    }
+    if (this.getIdentifier() != null) {
       head.append(" identifier=\"" + this.getIdentifier() + "\"");
-    if (this.getVersion() != null)
+    }
+    if (this.getVersion() != null) {
       head.append(" version=\"" + this.getVersion() + "\"");
-    if (this.getXmlBase() != null)
+    }
+    if (this.getXmlBase() != null) {
       head.append(" xml:base=\"" + this.getXmlBase() + "\"");
-    if (this.getOrganizations() != null)
+    }
+    if (this.getOrganizations() != null) {
       sb.append(this.getOrganizations().generateXML());
-    if (this.getResources() != null)
+    }
+    if (this.getResources() != null) {
       sb.append(this.getResources().generateXML());
+    }
     if (this.getSubManifests() != null) {
       for (int i = 0; i < this.getSubManifests().size(); i++) {
         sb.append(this.getSubManifests().get(i).generateXML());

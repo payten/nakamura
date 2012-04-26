@@ -44,6 +44,7 @@ import org.sakaiproject.nakamura.api.lite.SessionAdaptable;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.user.AuthorizableCountChanger;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.user.lite.resource.RepositoryHelper;
 
@@ -64,7 +65,10 @@ public class LiteAbstractSakaiGroupPostServletTest {
   
   @Mock
   private ResourceResolver resourceResolver;
-  
+
+  @Mock
+  private AuthorizableCountChanger authorizableCountChanger;
+
   private LiteAbstractSakaiGroupPostServlet servlet;
 
   private Repository repository;
@@ -100,6 +104,9 @@ public class LiteAbstractSakaiGroupPostServletTest {
         
       }
     };
+
+    servlet.authorizableCountChanger = authorizableCountChanger;
+    servlet.repository = repository;
 
   }
 
@@ -184,10 +191,7 @@ public class LiteAbstractSakaiGroupPostServletTest {
     when(request.getRemoteUser()).thenReturn("ieb");
     when(request.getParameterValues(":member")).thenReturn(
         new String[] { "ieb" });
-    
-    servlet.repository = repository;  
-    
-    
+
     ArrayList<Modification> changes = new ArrayList<Modification>();
     
     Map<String, Object> toSave = Maps.newLinkedHashMap();

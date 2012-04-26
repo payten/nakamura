@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 include SlingUsers
 
@@ -8,7 +10,7 @@ class TC_Kern1025Test < Test::Unit::TestCase
   include SlingTest
 
   def test_me_servlet_from_group_manager
-    m = Time.now.to_nsec
+    m = uniqueness()
     manager = create_user("user-manager-#{m}")
     group = Group.new("g-test-#{m}")
     @s.switch_user(User.admin_user())

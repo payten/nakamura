@@ -99,6 +99,7 @@ public class RoleStep extends AbstractWorldCreationStep {
 
       if ("members-only".equals(visibility)) {
         subgroupJSON.accumulate(":viewer", subGroupID);
+        subgroupJSON.accumulate(":viewer", mainGroupID);
         subgroupJSON.accumulate(":viewer@Delete", "everyone");
         subgroupJSON.accumulate(":viewer@Delete", "anonymous");
         this.mainGroupUpdateData.accumulate(":viewer", subGroupID);

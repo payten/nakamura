@@ -21,7 +21,7 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>1.1</version>
+    <version>1.2.0</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.jcr</artifactId>
@@ -40,12 +40,10 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-nakamura </Bundle-Category>
-            <Export-Package> org.sakaiproject.nakamura.api.jcr.* </Export-Package>
-            <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
+            <Bundle-Category>sakai-nakamura</Bundle-Category>
+            <Export-Package>org.sakaiproject.nakamura.api.jcr.*</Export-Package>
+            <Private-Package>org.sakaiproject.nakamura.jcr.*</Private-Package>
             <Sling-Nodetypes>SLING-INF/nodetypes/types.cnd</Sling-Nodetypes>
-            <Embed-Transitive>true</Embed-Transitive>
-            <Embed-Dependency />
           </instructions>
         </configuration>
       </plugin>
@@ -86,6 +84,14 @@
   </build>
   <dependencies>
     <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.osgi.core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.apache.felix.scr.annotations</artifactId>
+    </dependency>
+    <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
     </dependency>
@@ -96,6 +102,36 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.apache.felix.scr</artifactId>
+      <version>1.6.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.jcr.api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.apache.felix.webconsole</artifactId>
+      <version>3.1.8</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.commons.json</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
     </dependency>
   </dependencies>
 </project>

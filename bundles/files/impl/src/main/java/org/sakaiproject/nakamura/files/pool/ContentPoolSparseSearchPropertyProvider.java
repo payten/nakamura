@@ -30,10 +30,12 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
+import org.sakaiproject.nakamura.api.user.AuthorizableUtil;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -83,13 +85,12 @@ public class ContentPoolSparseSearchPropertyProvider implements SolrSearchProper
       String userId = ClientUtils.escapeQueryChars(sessionUserId);
       StringBuilder managers = new StringBuilder("AND manager:(").append(userId);
       StringBuilder viewers = new StringBuilder("AND viewer:(").append(userId);
-
-      // add groups to the parameters
-      String[] groups = auth.getPrincipals();
-      for (String group : groups) {
-        String groupId = ClientUtils.escapeQueryChars(group);
-        managers.append(" OR ").append(groupId);
-        viewers.append(" OR ").append(groupId);
+     
+      //add groups
+      List<Authorizable> groups = AuthorizableUtil.getUserFacingGroups(auth,authMgr);
+      for (Authorizable group : groups){
+        managers.append(" OR " + group.getId());
+        viewers.append(" OR " + group.getId());
       }
 
       // cap off the parameters

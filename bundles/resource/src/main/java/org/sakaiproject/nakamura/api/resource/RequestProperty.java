@@ -17,13 +17,13 @@
  */
 package org.sakaiproject.nakamura.api.resource;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.servlets.post.SlingPostConstants;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Encapsulates all infos from the respective request parameters that are needed
@@ -124,11 +124,11 @@ public class RequestProperty {
     }
 
     public void setValues(RequestParameter[] values) {
-        this.values = values;
+    this.values = values.clone();
     }
 
     public RequestParameter[] getDefaultValues() {
-        return defaultValues;
+    return defaultValues.clone();
     }
 
     public void setDefaultValues(RequestParameter[] defaultValues) {
@@ -176,6 +176,8 @@ public class RequestProperty {
         if (stringValues == null) {
             if (values == null && useDefaultWhenMissing) {
                 stringValues = new String[] { defaultValues[0].getString() };
+            } else if (values == null) {
+              return null;
             } else if (values.length > 1) {
                 // TODO: how the default values work for MV props is not very
                 // clear

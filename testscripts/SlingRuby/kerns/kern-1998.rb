@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'nakamura/file'
 require 'nakamura/users'
@@ -18,14 +20,14 @@ class TC_Kern1998Test < Test::Unit::TestCase
     @s.switch_user(u1)
 
     # create a new tag to work with
-    m = Time.now.to_nsec
+    m = uniqueness()
     tagname = "test#{m}"
     res = @s.execute_post(@s.url_for("/tags/#{tagname}"), {'_charset_' => 'utf8', 'sakai:tag-name' => tagname, 'sling:resourceType' => 'sakai/tag'})
     assert_equal('201', res.code, 'Should be able to create a new tag.')
 
     # add some content and tag each thing added
     4.times do |i|
-      m = Time.now.to_nsec
+      m = uniqueness()
       res = @fm.upload_pooled_file("random-#{m}.txt", 'Plain content', 'text/plain')
       assert_equal('201', res.code, 'Expected to be able to create pooled content')
       uploadresult = JSON.parse(res.body)
@@ -37,7 +39,7 @@ class TC_Kern1998Test < Test::Unit::TestCase
 
     # add some content but don't tag it to create the negative case
     2.times do |i|
-      m = Time.now.to_nsec
+      m = uniqueness()
       res = @fm.upload_pooled_file("random-#{m}.txt", 'Plain content', 'text/plain')
       assert_equal('201', res.code, 'Expected to be able to create pooled content')
     end
@@ -75,14 +77,14 @@ class TC_Kern1998Test < Test::Unit::TestCase
     @s.switch_user(u1)
 
     # create a new tag to work with
-    m = Time.now.to_nsec
+    m = uniqueness()
     tagname = "test#{m}"
     res = @s.execute_post(@s.url_for("/tags/#{tagname}"), {'_charset_' => 'utf8', 'sakai:tag-name' => tagname, 'sling:resourceType' => 'sakai/tag'})
     assert_equal('201', res.code, 'Should be able to create a new tag.')
 
     # add some content and tag each thing added
     2.times do |i|
-      m = Time.now.to_nsec
+      m = uniqueness()
       res = @fm.upload_pooled_file("random-#{m}.txt", 'Plain content', 'text/plain')
       assert_equal('201', res.code, 'Expected to be able to create pooled content')
       uploadresult = JSON.parse(res.body)
@@ -94,7 +96,7 @@ class TC_Kern1998Test < Test::Unit::TestCase
 
     # add some content but don't tag it to create the negative case
     4.times do |i|
-      m = Time.now.to_nsec
+      m = uniqueness()
       res = @fm.upload_pooled_file("random-#{m}.txt", 'Plain content', 'text/plain')
       assert_equal('201', res.code, 'Expected to be able to create pooled content')
     end
@@ -133,7 +135,7 @@ class TC_Kern1998Test < Test::Unit::TestCase
 
     # add some content but don't tag it to create the negative case
     4.times do |i|
-      m = Time.now.to_nsec
+      m = uniqueness()
       res = @fm.upload_pooled_file("random-#{m}.txt", 'Plain content', 'text/plain')
       assert_equal('201', res.code, 'Expected to be able to create pooled content')
     end
@@ -164,7 +166,7 @@ class TC_Kern1998Test < Test::Unit::TestCase
   def is_priority?(result)
     if (!result['sakai:tags'].nil? && result['sakai:tags'].length >= 1) \
         || (!result['sakai:tag-uuid'].nil? && result['sakai:tag-uuid'].length >= 1) \
-        || !result['description'].nil? || result['hasPreview'] == 'true'
+        || !result['sakai:description'].nil? || result['hasPreview'] == 'true'
       true
     else
       false

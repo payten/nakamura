@@ -51,10 +51,8 @@ import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 import javax.jcr.RepositoryException;
@@ -134,9 +132,10 @@ public class MyRelatedGroupsSearchBatchResultProcessor implements
         renderAuthorizable(request, writer, g, processedGroups);
       }
       firstQueryTicks = System.currentTimeMillis();
-      if (LOG.isDebugEnabled())
+      if (LOG.isDebugEnabled()) {
         LOG.debug("writeResults() first query processing took {} seconds",
             new Object[] { (float) (firstQueryTicks - startTicks) / 1000 });
+      }
       if (processedGroups.size() < nitems) {
         /* Not enough results, add some random groups per spec */
         final StringBuilder sourceQuery = new StringBuilder("resourceType:");
@@ -158,9 +157,10 @@ public class MyRelatedGroupsSearchBatchResultProcessor implements
         }
       }
       secondQueryTicks = System.currentTimeMillis();
-      if (LOG.isDebugEnabled())
+      if (LOG.isDebugEnabled()) {
         LOG.debug("writeResults() second query processing took {} seconds",
             new Object[] { (float) (secondQueryTicks - firstQueryTicks) / 1000 });
+      }
       if (processedGroups.size() < VOLUME) {
         LOG.info(
             "Did not meet functional specification. There should be at least {} results; actual size was: {}",
@@ -176,9 +176,10 @@ public class MyRelatedGroupsSearchBatchResultProcessor implements
       throw new IllegalStateException(e);
     }
     long endTicks = System.currentTimeMillis();
-    if (LOG.isDebugEnabled())
+    if (LOG.isDebugEnabled()) {
       LOG.debug("writeResults() took {} seconds",
           new Object[] { (float) (endTicks - startTicks) / 1000 });
+    }
   }
 
   /**

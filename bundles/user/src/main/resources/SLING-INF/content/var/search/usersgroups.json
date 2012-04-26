@@ -1,17 +1,15 @@
 {
   "sling:resourceType": "sakai/solr-search",
-  "sakai:query-template": "(((type:g AND resourceType:authorizable) ${_categoryAnd} AND (name:(${q}) OR title:(${q}) OR description:(${q}) OR title:(${q}) OR content:(${q}) OR widgetdata:(${q}) OR ngram:(${q}) OR edgengram:(${q}) OR tag:(${q}))) OR ((type:u AND resourceType:authorizable) AND (name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) OR title:(${q}) OR content:(${q}) OR widgetdata:(${q}) OR ngram:(${q}) OR edgengram:(${q}) OR tag:(${q}))))",
+  "sakai:query-template": "(((type:g AND resourceType:authorizable) ${_categoryAnd} AND (name:(${q}) OR title:(${q}) OR description:(${q}) OR title:(${q}) OR content:(${q}) OR ngram:(${q}) OR edgengram:(${q}) OR tag:(${q}))) OR ((type:u AND resourceType:(authorizable OR profile)) AND (name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) OR title:(${q}) OR content:(${q}) OR ngram:(${q}) OR edgengram:(${q}) OR tag:(${q})${_fullProfileOr})))",
   "sakai:query-template-options": {
-      "sort": "${sortOn} ${sortOrder}",
-      "group": true,
-      "group.field": "returnpath"
+      "sort": "${sortOn} ${sortOrder}"
   },
   "sakai:query-template-defaults": {
     "sortOn": "score",
     "sortOrder": "desc",
     "_categoryAnd": ""
   },
-  "sakai:propertyprovider" : ["CategoryPropertyProvider"],
+  "sakai:propertyprovider" : ["CategoryPropertyProvider", "FullProfile"],
   "sakai:resultprocessor": "Profile",
   "sakai:title": "Users, Groups",
   "sakai:shortDescription": "Get the profiles of select users and groups.",

@@ -22,7 +22,7 @@
 	<parent>
 		<artifactId>base</artifactId>
 		<groupId>org.sakaiproject.nakamura</groupId>
-		<version>1.1</version>
+		<version>1.2.0</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
@@ -83,8 +83,7 @@
 		<dependency>
 			<groupId>org.sakaiproject.nakamura</groupId>
 			<artifactId>org.sakaiproject.nakamura.core</artifactId>
-			<version>1.1-20111013</version>
-			<type>bundle</type>
+                        <scope>provided</scope>
 		</dependency>
 
 		<dependency>
@@ -97,7 +96,7 @@
 		<dependency>
 			<groupId>org.sakaiproject.nakamura</groupId>
 			<artifactId>org.sakaiproject.nakamura.user</artifactId>
-			<version>1.1</version>
+			<version>1.2.0</version>
 			<type>bundle</type>
 			<scope>compile</scope>
 		</dependency>
@@ -105,7 +104,7 @@
 		<dependency>
 			<groupId>org.sakaiproject.nakamura</groupId>
 			<artifactId>org.sakaiproject.nakamura.utils</artifactId>
-			<version>1.1</version>
+			<version>1.2.0</version>
 			<type>bundle</type>
 			<scope>compile</scope>
 		</dependency>
@@ -284,14 +283,14 @@
 		<dependency>
 			<groupId>org.sakaiproject.nakamura</groupId>
 			<artifactId>org.sakaiproject.nakamura.email.outgoing</artifactId>
-			<version>1.1</version>
+			<version>1.2.0</version>
 			<type>bundle</type>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.sakaiproject.nakamura</groupId>
 			<artifactId>org.sakaiproject.nakamura.messaging</artifactId>
-			<version>1.1</version>
+			<version>1.2.0</version>
 			<type>bundle</type>
 			<scope>compile</scope>
 		</dependency>
@@ -305,7 +304,7 @@
 		<dependency>
 			<groupId>org.sakaiproject.nakamura</groupId>
 			<artifactId>org.sakaiproject.nakamura.templates</artifactId>
-			<version>1.1</version>
+			<version>1.2.0</version>
 			<type>bundle</type>
 		</dependency>
 	</dependencies>

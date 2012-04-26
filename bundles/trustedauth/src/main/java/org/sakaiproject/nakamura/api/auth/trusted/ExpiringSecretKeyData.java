@@ -44,7 +44,7 @@ public class ExpiringSecretKeyData implements Serializable {
    */
   public ExpiringSecretKeyData(long expires, String algorithm,  byte[] encoded, String serverId) {
     this.expires = expires;
-    this.encoded = encoded;
+    this.encoded = encoded.clone();
     this.algorithm = algorithm;
     this.serverId = serverId;
   }

@@ -1,5 +1,8 @@
 #!/usr/bin/ruby
 
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura'
 require 'nakamura/search'
 include SlingInterface

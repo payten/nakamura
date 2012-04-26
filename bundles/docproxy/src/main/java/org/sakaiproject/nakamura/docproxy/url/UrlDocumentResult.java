@@ -153,30 +153,40 @@ public class UrlDocumentResult implements ExternalDocumentResult {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     UrlDocumentResult other = (UrlDocumentResult) obj;
-    if (contentLength != other.contentLength)
+    if (contentLength != other.contentLength) {
       return false;
+    }
     if (contentType == null) {
-      if (other.contentType != null)
+      if (other.contentType != null) {
         return false;
-    } else if (!contentType.equals(other.contentType))
+      }
+    } else if (!contentType.equals(other.contentType)) {
       return false;
+    }
     if (properties == null) {
-      if (other.properties != null)
+      if (other.properties != null) {
         return false;
-    } else if (!properties.equals(other.properties))
+      }
+    } else if (!properties.equals(other.properties)) {
       return false;
+    }
     if (uri == null) {
-      if (other.uri != null)
+      if (other.uri != null) {
         return false;
-    } else if (!uri.equals(other.uri))
+      }
+    } else if (!uri.equals(other.uri)) {
       return false;
+    }
     return true;
   }
 

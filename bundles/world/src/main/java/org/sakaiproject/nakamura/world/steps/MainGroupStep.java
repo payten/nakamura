@@ -50,6 +50,10 @@ public class MainGroupStep extends AbstractWorldCreationStep {
     groupJSON.put("sakai:templateid", this.worldTemplate.getString("id"));
     groupJSON.put("sakai:joinRole", this.worldTemplate.getString("joinRole"));
     groupJSON.put("sakai:creatorRole", this.worldTemplate.getString("creatorRole"));
+    // customStyle is an optional parameter to apply a style to the world
+    if (this.worldTemplate.has("customStyle")) {
+      groupJSON.put("sakai:customStyle", this.worldTemplate.getString("customStyle"));
+    }
     try {
       // arrays of JSON come back out of Sling as arrays of strings, so we have to convert, bcause sakai:roles is
       // really supposed to be an array of JSON, stringified

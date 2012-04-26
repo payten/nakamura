@@ -54,8 +54,9 @@ public class Resource extends HasMetadata {
       if (fileArray != null) {
         for (int i = 0; i < fileArray.length(); i++) {
           JSONObject object = fileArray.optJSONObject(i);
-          if (object != null)
+          if (object != null) {
             addFile(new File(object));
+          }
         }
       }
     } else {
@@ -68,8 +69,9 @@ public class Resource extends HasMetadata {
       if (dependencyArray != null) {
         for (int i = 0; i < dependencyArray.length(); i++) {
           JSONObject object = dependencyArray.optJSONObject(i);
-          if (object != null)
+          if (object != null) {
             addDependency(new Dependency(object));
+          }
         }
       }
     } else {
@@ -108,8 +110,9 @@ public class Resource extends HasMetadata {
   }
   
   public void addDependency(Dependency d) {
-    if (dependencies == null)
+    if (dependencies == null) {
       dependencies = new ArrayList<Dependency>();
+    }
     dependencies.add(d);
   }
   
@@ -167,8 +170,9 @@ public class Resource extends HasMetadata {
         sb.append(this.getDependencies().get(i).generateXML());
       }
     }
-    if (sb.toString().equals("") && head.equals("<resource"))
+    if (sb.toString().equals("") && head.equals("<resource")) {
       return sb.toString();
+    }
     return new String(head.toString() + ">" + sb.toString() + "</resource>");
   }
 }

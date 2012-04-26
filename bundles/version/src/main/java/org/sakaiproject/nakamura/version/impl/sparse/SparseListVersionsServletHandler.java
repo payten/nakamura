@@ -34,6 +34,7 @@ import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.AbstractSafeMethodsServletResourceHandler;
 import org.sakaiproject.nakamura.api.resource.SafeServletResourceHandler;
 import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
+import org.sakaiproject.nakamura.lite.content.InternalContent;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,10 +78,6 @@ public class SparseListVersionsServletHandler extends AbstractSafeMethodsServlet
   */
   public static final String PARAMS_PAGE = "page";
 
-  /**
-   *
-   */
-  private static final long serialVersionUID = 764192946800357626L;
   private static final Logger LOGGER = LoggerFactory.getLogger(SparseListVersionsServletHandler.class);
 
   public void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -140,7 +137,12 @@ public class SparseListVersionsServletHandler extends AbstractSafeMethodsServlet
         write.value(versionId);
         Content vContent = contentManager.getVersion(path, versionId);
         writeEditorDetails(vContent, write, authorizableManager);
-        ExtendedJSONWriter.writeNodeContentsToWriter(write, vContent);
+        write.key(InternalContent.CREATED_FIELD);
+        write.value(vContent.getProperty(InternalContent.CREATED_FIELD));
+        write.key(InternalContent.LASTMODIFIED_BY_FIELD);
+        write.value(vContent.getProperty(InternalContent.LASTMODIFIED_BY_FIELD));
+        write.key("_versionNumber");
+        write.value(vContent.getProperty("_versionNumber"));
         write.endObject();
       }
       write.endObject();

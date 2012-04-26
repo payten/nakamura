@@ -21,7 +21,6 @@ import org.apache.solr.client.solrj.response.FacetField;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.SortedMap;
 
 
 public interface SolrSearchResultSet {

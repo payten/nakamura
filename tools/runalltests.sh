@@ -1,5 +1,5 @@
 #!/bin/bash
-TESTS=`find . -name testall.sh`
+TESTS=`find . -name 'target' -prune -o -name testall.sh -print`
 for i in $TESTS
 do
 	pushd `dirname $i`

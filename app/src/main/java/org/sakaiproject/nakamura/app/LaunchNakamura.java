@@ -229,7 +229,7 @@ public class LaunchNakamura extends javax.swing.JFrame {
 
         runStatus = APP_RUNNING;
         isStartupFinished();
-      } catch (IOException e) {
+      } catch (Exception e) {
         statusLabel.setText("Nakamura is startup failed " + e.getMessage());
       }
     } else {

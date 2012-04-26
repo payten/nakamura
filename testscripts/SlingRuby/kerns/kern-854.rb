@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'test/unit.rb'
 include SlingUsers
@@ -10,7 +12,7 @@ class TC_Kern854 < Test::Unit::TestCase
   include SlingTest
 
   def test_widgetlisting
-    m = Time.now.to_nsec
+    m = uniqueness()
 
     # Store the original widget settings somewhere.
     @widget_options = getWidgetServiceConfiguration()

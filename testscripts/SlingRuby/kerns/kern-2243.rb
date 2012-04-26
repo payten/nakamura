@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'test/unit.rb'
 include SlingUsers
@@ -10,7 +13,7 @@ class TC_Kern2243 < Test::Unit::TestCase
 
   def setup
     super
-    @m = Time.now.to_f.to_s.gsub('.', '')
+    @m = uniqueness()
 
     @shared_props = {
         "booleanProp"=> true,
@@ -114,8 +117,9 @@ class TC_Kern2243 < Test::Unit::TestCase
     assert_equal(["something", "else"], props["stringArrayProp"])
 
     # dates
-    assert_equal("Fri Jan 01 2010 00:00:00 GMT-0800", props["dateProp"])
-    assert_equal(["Fri Jan 01 2010 00:00:00 GMT-0800", "Sat Jan 01 2011 00:00:00 GMT-0800"], props["dateArrayProp"])
+    dt_offset = Time.new(2010,1,1).strftime('%z')
+    assert_equal("Fri Jan 01 2010 00:00:00 GMT#{dt_offset}", props["dateProp"])
+    assert_equal(["Fri Jan 01 2010 00:00:00 GMT#{dt_offset}", "Sat Jan 01 2011 00:00:00 GMT#{dt_offset}"], props["dateArrayProp"])
 
   end
 end

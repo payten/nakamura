@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 require 'test/unit.rb'
 include SlingSearch
@@ -15,21 +17,21 @@ class TC_Kern734Test < Test::Unit::TestCase
   
   
   def test_modify_prefs_basicAuth
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     @s.trustedauth = false
     admin = User.new("admin","admin")
 	modifyPrefs(admin,"basic")
   end
 
   def test_modify_prefs_trustedAuth
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     @s.trustedauth = true
     admin = User.new("admin","admin")
 	modifyPrefs(admin,"trusted")
   end
 
   def test_modify_prefs_basicAuthNewUser
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     @s.trustedauth = false
 	
 	u = "user"+m
@@ -38,7 +40,7 @@ class TC_Kern734Test < Test::Unit::TestCase
 	modifyPrefs(testUser,"basic")
   end
   def test_modify_prefs_trustedAuthNewUser
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     @s.trustedauth = false
 	
 	u = "userbasic"+m
@@ -48,7 +50,7 @@ class TC_Kern734Test < Test::Unit::TestCase
   end
   
   def modifyPrefs(testUser,type)
-    m = Time.now.to_i.to_s
+    m = uniqueness()
 	
 	@s.switch_user(testUser)
 	

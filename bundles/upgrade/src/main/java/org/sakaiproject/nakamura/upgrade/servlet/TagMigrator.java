@@ -37,7 +37,6 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.solr.SolrServerService;
-import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +69,7 @@ public class TagMigrator {
   private SolrServerService solrSearchService;
 
   public void migrate(final SlingHttpServletResponse response, boolean dryRun, boolean reindexAll)
-          throws RepositoryException, StorageClientException, AccessDeniedException, SolrServerException {
+      throws RepositoryException, StorageClientException, AccessDeniedException, SolrServerException {
 
     org.sakaiproject.nakamura.api.lite.Session sparseSession = null;
     Session jcrSession = null;
@@ -81,9 +80,9 @@ public class TagMigrator {
 
       if (needsMigration(sparseSession) || reindexAll) {
         SparseUpgradeServlet.writeToResponse("Migrating tags from JCR to Sparse...", response);
-        Set<String> allTags = getUniqueTags();
-        ensureTagsExistInJCR(allTags, jcrSession, dryRun);
-        saveTagsInSparse(jcrSession, sparseSession, dryRun);
+        Set<String> allTags = getUniqueTagsFromSolr();
+        addUniqueTagsFromJCR(allTags, jcrSession);
+        saveTagsInSparse(allTags, sparseSession, dryRun);
       } else {
         SparseUpgradeServlet.writeToResponse("Tag Migrator already ran on this system, skipping migration", response);
       }
@@ -99,12 +98,12 @@ public class TagMigrator {
   }
 
   private boolean needsMigration(org.sakaiproject.nakamura.api.lite.Session session)
-          throws StorageClientException, AccessDeniedException {
+      throws StorageClientException, AccessDeniedException {
     ContentManager cm = session.getContentManager();
     return !cm.exists(SYSTEM_LOG_PATH);
   }
 
-  private Set<String> getUniqueTags() throws SolrServerException {
+  private Set<String> getUniqueTagsFromSolr() throws SolrServerException {
     Set<String> allTags = new HashSet<String>();
     int start = 0;
     int processedDocs = 0;
@@ -143,71 +142,47 @@ public class TagMigrator {
     // go direct to solr server so we can get all documents more easily
     QueryResponse solrResponse = this.solrSearchService.getServer().query(query);
     LOGGER.info("Got " + solrResponse.getResults().getNumFound() + " tagged documents from solr index; " +
-            "this batch starts at " + solrResponse.getResults().getStart());
+        "this batch starts at " + solrResponse.getResults().getStart());
     return solrResponse.getResults();
   }
 
-  private void ensureTagsExistInJCR(Set<String> allTags, Session session, boolean dryRun) throws RepositoryException {
-    Node jcrTags;
+  private void addUniqueTagsFromJCR(Set<String> uniqueTags, Session session) throws
+      RepositoryException {
     try {
-      jcrTags = session.getNode("/tags");
-    } catch (PathNotFoundException ignored) {
-      jcrTags = session.getRootNode().addNode("tags");
-    }
-    for (String tag : allTags) {
-      if (!jcrTags.hasNode(tag)) {
-        String tagPath = tag;
-        if ( tagPath.startsWith("/tags")) {
-          tagPath = tagPath.substring("/tags".length());
-        }
-        if ( tagPath.startsWith("/")) {
-          tagPath = tagPath.substring(1);
-        }
-        if (tagPath.length() > 0) {
-          LOGGER.info("JCR lacks the tag " + tagPath + ", creating it at /tags/" + tagPath);
-          if (!dryRun) {
-            JcrUtils.deepGetOrCreateNode(session, "/tags/" + tagPath);
-          }
-        }
-      }
-    }
-    if (!dryRun) {
-      session.save();
-    }
-
-  }
-
-  private void saveTagsInSparse(Session jcrSession, org.sakaiproject.nakamura.api.lite.Session sparseSession, boolean dryRun)
-          throws StorageClientException, AccessDeniedException, RepositoryException {
-
-    ContentManager cm = sparseSession.getContentManager();
-
-    // loop over tags in jcr and save them to sparse
-    Node jcrTags = jcrSession.getNode("/tags");
-    if (jcrTags != null) {
-      NodeIterator iterator = jcrTags.getNodes();
+      Node topLevelTags = session.getNode("/tags");
+      NodeIterator iterator = topLevelTags.getNodes();
       while (iterator.hasNext()) {
         Node node = iterator.nextNode();
-
         // make sure we only recreate actual sakai:tag nodes
         if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
           if (node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).
-                  getString().equals(FilesConstants.RT_SAKAI_TAG)) {
-            String tag = node.getName();
-            String tagPath = "/tags/" + tag;
-            if (cm.exists(tagPath)) {
-              LOGGER.info("Tag " + tag + " already exists in sparse, skipping");
-            } else {
-              LOGGER.info("Tag " + tag + " does not yet exist in sparse, creating");
-              Content content = new Content(tagPath,
-                      ImmutableMap.of(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-                              (Object) FilesConstants.RT_SAKAI_TAG));
-              content.setProperty(FilesConstants.SAKAI_TAG_NAME, tag);
-              if (!dryRun) {
-                cm.update(content);
-              }
-            }
+              getString().equals(FilesConstants.RT_SAKAI_TAG)) {
+            uniqueTags.add(node.getName());
           }
+        }
+      }
+    } catch (PathNotFoundException ignored) {
+      // no /tags dir in JCR, so skip
+    }
+  }
+
+  private void saveTagsInSparse(Set<String> allTags, org.sakaiproject.nakamura.api.lite.Session sparseSession, boolean dryRun)
+      throws StorageClientException, AccessDeniedException, RepositoryException {
+
+    ContentManager cm = sparseSession.getContentManager();
+
+    for (String tag : allTags) {
+      String tagPath = "/tags/" + tag;
+      if (cm.exists(tagPath)) {
+        LOGGER.info("Tag " + tag + " already exists in sparse, skipping");
+      } else {
+        LOGGER.info("Tag " + tag + " does not yet exist in sparse, creating");
+        Content content = new Content(tagPath,
+            ImmutableMap.of(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+                (Object) FilesConstants.RT_SAKAI_TAG));
+        content.setProperty(FilesConstants.SAKAI_TAG_NAME, tag);
+        if (!dryRun) {
+          cm.update(content);
         }
       }
     }
@@ -215,7 +190,7 @@ public class TagMigrator {
     // log when the migrator ran if this is for real
     if (!dryRun) {
       Content systemLog = new Content(SYSTEM_LOG_PATH,
-              ImmutableMap.<String, Object>of("migrationTime", System.currentTimeMillis()));
+          ImmutableMap.<String, Object>of("migrationTime", System.currentTimeMillis()));
       cm.update(systemLog);
     }
 

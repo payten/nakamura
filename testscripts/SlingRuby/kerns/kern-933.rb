@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'nakamura/test'
 include SlingUsers
 
@@ -8,7 +10,7 @@ class TC_Kern993Test < Test::Unit::TestCase
   include SlingTest
 
   def test_profile_set_by_user_creation
-    m = Time.now.to_nsec
+    m = uniqueness()
     userid = "testuser-#{m}"
     firstname = "Thurston"
     lastname = "Howell #{m}"
@@ -22,7 +24,7 @@ class TC_Kern993Test < Test::Unit::TestCase
       "lastName" => lastname,
       "_charset_" => "UTF-8"
     })
-    assert_equal("200", res.code, "Should have created user as admin")
+    assert_equal("201", res.code, "Should have created user as admin")
     testuser = User.new(userid)
     public = testuser.public_path_for(@s)
     path = "#{public}/authprofile"

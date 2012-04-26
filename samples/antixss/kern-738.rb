@@ -13,7 +13,7 @@ class TC_Kern458Test < Test::Unit::TestCase
   
   def test_getdev
     # We create a test site.
-    m = Time.now.to_i.to_s
+    m = uniqueness()
     testnode = "/test"+m
     res = @s.execute_post(@s.url_for(testnode),
       "badContent1" => "<script",

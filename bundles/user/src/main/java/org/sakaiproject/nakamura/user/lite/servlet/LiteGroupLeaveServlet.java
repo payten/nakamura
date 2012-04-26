@@ -56,7 +56,7 @@ import javax.servlet.http.HttpServletResponse;
  * can not edit the group and therefore can't remove themself. This servlet acts on behalf
  * of the user to leave a group and does not allow removal of any other user.
  */
-@ServiceDocumentation(name = "LiteGroupLeaveServlet documentation", okForVersion = "1.1",
+@ServiceDocumentation(name = "LiteGroupLeaveServlet documentation", okForVersion = "1.2",
   shortDescription = "Servlet to allow a user to leave a group",
   description = "Servlet to allow a user to leave a group, responding to groups using the 'leave' selector. Only works for removing the logged in user.",
   bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sparse/joinrequests",
@@ -147,5 +147,10 @@ public class LiteGroupLeaveServlet extends LiteAbstractSakaiGroupPostServlet {
     // remove manager permissions
     handleAuthorizablesOnProperty(groupToLeave, UserConstants.PROP_GROUP_MANAGERS,
         new String[] { authId }, null, toSave);
+
+    // notify the authz count updater of change
+    this.authorizableCountChanger.notify(UserConstants.GROUP_MEMBERS_PROP, groupToLeave.getId());
+    this.authorizableCountChanger.notify(UserConstants.GROUP_MEMBERSHIPS_PROP, authId);
+
   }
 }

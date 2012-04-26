@@ -111,15 +111,19 @@ public class LiteMessageSentListener implements EventHandler {
       session = contentRepository.loginAdministrative();
       String path = (String) event.getProperty(MessageConstants.EVENT_LOCATION);
       Content message = session.getContentManager().get(path);
-      String resourceType = (String) message.getProperty(
-          JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY);
-      if (MessageConstants.SAKAI_MESSAGE_RT.equals(resourceType)) {
+      if (message != null) {
+        String resourceType = (String) message.getProperty(
+            JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY);
+        if (MessageConstants.SAKAI_MESSAGE_RT.equals(resourceType)) {
 
-        MessageRoutes routes = messageRouterManager.getMessageRouting(message);
+          MessageRoutes routes = messageRouterManager.getMessageRouting(message);
 
-        for (LiteMessageTransport transport : transports.values()) {
-          transport.send(routes, event, message);
+          for (LiteMessageTransport transport : transports.values()) {
+            transport.send(routes, event, message);
+          }
         }
+      } else {
+        LOG.info("Unable to find message from event [{}]", path);
       }
     } catch (AccessDeniedException e) {
       LOG.error(e.getMessage(), e);

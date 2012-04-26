@@ -89,15 +89,18 @@ public class Annotation extends Serialize{
   @Override
   public String generateXML() {
     StringBuilder sb = new StringBuilder("");
-    if (this.getEntity() != null)
+    if (this.getEntity() != null) {
       sb.append("<entity>" + this.getEntity() + "</entity>");
+    }
     if (this.getDescription() != null) {
       sb.append(this.getDescription().generateXML());
     }
-    if (this.getDate() != null)
+    if (this.getDate() != null) {
       sb.append(this.getDate().generateXML());
-    if (sb.toString().equals(""))
+    }
+    if (sb.toString().equals("")) {
       return "";
+    }
     return new String("<annotation>" + sb.toString() + "</annotation>");
   }
 }

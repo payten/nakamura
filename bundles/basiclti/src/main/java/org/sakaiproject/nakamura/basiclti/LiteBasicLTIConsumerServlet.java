@@ -50,14 +50,9 @@ import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.RELEAS
 import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.RELEASE_PRINCIPAL_NAME;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.RELEASE_PRINCIPAL_NAME_LOCK;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.TOPIC_BASICLTI_ACCESSED;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.TOPIC_BASICLTI_CHANGED;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.TOPIC_BASICLTI_LAUNCHED;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.TOPIC_BASICLTI_REMOVED;
-import static org.sakaiproject.nakamura.basiclti.LiteBasicLTIServletUtils.getInvalidUserPrivileges;
-import static org.sakaiproject.nakamura.basiclti.LiteBasicLTIServletUtils.isAdminUser;
-import static org.sakaiproject.nakamura.basiclti.LiteBasicLTIServletUtils.removeProperty;
 import static org.sakaiproject.nakamura.basiclti.LiteBasicLTIServletUtils.sensitiveKeys;
-import static org.sakaiproject.nakamura.basiclti.LiteBasicLTIServletUtils.unsupportedKeys;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Property;
@@ -65,8 +60,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.request.RequestParameter;
-import org.apache.sling.api.request.RequestParameterMap;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
@@ -93,11 +86,9 @@ import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.Permission;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
-import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -115,7 +106,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.jcr.PropertyIterator;
 import javax.jcr.PropertyType;
@@ -143,24 +133,7 @@ import javax.servlet.http.HttpServletResponse;
           @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
           @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.")
         }),
-      @ServiceMethod(name = "POST", description = "Create or update LTI launch parameters or widget settings.",
-        parameters = {
-          @ServiceParameter(name = LTI_KEY, description = "The opaque key given by the LTI provider."),
-          @ServiceParameter(name = LTI_SECRET, description = "The shared secret given by the LTI provider."),
-          @ServiceParameter(name = LTI_URL, description = "The LTI end point of the LTI provider."),
-          @ServiceParameter(name = LTI_VTOOL_ID, description = "The virtualToolId if acting as a virtual tool."),
-          @ServiceParameter(name = RELEASE_EMAIL, description = "Controls privacy of email address in launch data."),
-          @ServiceParameter(name = RELEASE_NAMES, description = "Controls privacy of first/last name in launch data."),
-          @ServiceParameter(name = RELEASE_PRINCIPAL_NAME, description = "Controls privacy of username in launch data."),
-          @ServiceParameter(name = "*", description = "The service will try to persist any parameter that is available in the POST data. Some keys will be ignored if unsupported."),
-          @ServiceParameter(name = "*@TypeHint", description = "The service adheres to the @TypeHint sling conventions as much as possible.")
-        },
-        response = {
-          @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
-          @ServiceResponse(code = HttpServletResponse.SC_BAD_REQUEST, description = "Multi-valued parameters are not supported."),
-          @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
-          @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.")
-        }),
+      @ServiceMethod(name = "POST", description = "This operation is not bound to this servlet and is deprected. Use the SparsePostServlet operation 'basiclti' instead."),
       @ServiceMethod(name = "PUT", description = "The PUT method is not supported for sakai/basiclti nodes.",
         response = {
           @ServiceResponse(code = HttpServletResponse.SC_METHOD_NOT_ALLOWED, description = "PUT method not allowed.")
@@ -176,7 +149,7 @@ import javax.servlet.http.HttpServletResponse;
           @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to delete the node due to a runtime error.")
         })
     })
-@SlingServlet(methods = { "GET", "POST", "PUT", "DELETE" }, resourceTypes = { "sakai/basiclti" })
+@SlingServlet(methods = { "GET", "PUT", "DELETE" }, resourceTypes = { "sakai/basiclti" })
 public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = 5985490994324951127L;
   private static final Logger LOG = LoggerFactory
@@ -313,8 +286,14 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
               settings.putAll(readSensitiveNode(content));
             }
             final Map<String, Object> adminSettings = getAdminSettings(content, false);
-            settings.putAll(adminSettings);
-            renderJson(response.getWriter(), settings);
+            // Starting with the properties we've saved, we override them with admin settings
+            // only when the corresponding admin lock isn't turned on.
+            final Map<String, Object> effectiveSettings = new HashMap<String, Object>();
+            effectiveSettings.putAll(settings);
+            for (final String setting : adminSettings.keySet()) {
+              effectiveSetting(setting, effectiveSettings, adminSettings, settings);
+            }
+            renderJson(response.getWriter(), effectiveSettings);
           } catch (Exception e) {
             sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                 e.getLocalizedMessage(), e, response);
@@ -794,150 +773,6 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
           response);
     }
     response.setStatus(HttpServletResponse.SC_OK);
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
-   *      org.apache.sling.api.SlingHttpServletResponse)
-   */
-  @Override
-  protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws ServletException, IOException {
-    final Resource resource = request.getResource();
-    if (resource == null) {
-      sendError(HttpServletResponse.SC_NOT_FOUND, "Resource could not be found",
-          new Error("Resource could not be found"), response);
-    }
-    final Content node = resource.adaptTo(Content.class);
-    if (node == null) {
-      sendError(HttpServletResponse.SC_NOT_FOUND, "Resource could not be found: "
-          + resource.getPath(), new Error("Resource could not be found"), response);
-    }
-    final Session session = StorageClientUtils.adaptToSession(request
-        .getResourceResolver().adaptTo(javax.jcr.Session.class));
-    try {
-      final Map<String, String> sensitiveData = new HashMap<String, String>(
-          sensitiveKeys.size());
-      // loop through request parameters
-      final RequestParameterMap requestParameterMap = request.getRequestParameterMap();
-      for (final Entry<String, RequestParameter[]> entry : requestParameterMap.entrySet()) {
-        final String key = entry.getKey();
-        if (key.endsWith("@TypeHint")) {
-          continue;
-        }
-        final RequestParameter[] requestParameterArray = entry.getValue();
-        if (requestParameterArray == null || requestParameterArray.length == 0) {
-          removeProperty(node, key);
-        } else {
-          if (requestParameterArray.length > 1) {
-            sendError(HttpServletResponse.SC_BAD_REQUEST,
-                "Multi-valued parameters are not supported", null, response);
-            return;
-          } else {
-            final String value = requestParameterArray[0].getString("UTF-8");
-            if ("".equals(value)) {
-              removeProperty(node, key);
-            } else { // has a valid value
-              if (sensitiveKeys.contains(key)) {
-                sensitiveData.put(key, value);
-              } else {
-                if (!unsupportedKeys.contains(key)) {
-                  final String typeHint = key + "@TypeHint";
-                  if (requestParameterMap.containsKey(typeHint)
-                      && "Boolean".equals(requestParameterMap.get(typeHint)[0]
-                          .getString())) {
-                    node.setProperty(key,Boolean.valueOf(value));
-                  } else {
-                    node.setProperty(key, value);
-                  }
-                }
-              }
-            }
-          }
-        }
-      } // end request parameters loop
-      // safety precaution - just to be safe
-      for (String skey : sensitiveKeys) {
-        removeProperty(node, skey);
-      }
-      session.getContentManager().update(node);
-      updateSensitiveNode(node, session, sensitiveData);
-
-      // Send out an OSGi event that we changed a basic/lti node.
-      Dictionary<String, String> properties = new Hashtable<String, String>();
-      properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
-      EventUtils.sendOsgiEvent(properties, TOPIC_BASICLTI_CHANGED, eventAdmin);
-    } catch (Exception e) {
-      sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage(), e,
-          response);
-    }
-  }
-
-  /**
-   * 
-   * @param parent
-   * @param userSession
-   * @param sensitiveData
-   * @throws StorageClientException
-   * @throws org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException
-   */
-  private void updateSensitiveNode(final Content parent, final Session userSession,
-      Map<String, String> sensitiveData) throws StorageClientException,
-      org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException {
-    if (parent == null) {
-      throw new IllegalArgumentException("Node parent==null");
-    }
-    // if (!"sakai/basiclti".equals(parent.getProperty("sling:resourceType"))) {
-    // throw new
-    // IllegalArgumentException("sling:resourceType != sakai/basiclti");
-    // }
-    if (userSession == null) {
-      throw new IllegalArgumentException("userSession == null");
-    }
-    if (sensitiveData == null || sensitiveData.isEmpty()) {
-      // do nothing - virtual tool use case
-      return;
-    }
-    final String adminNodePath = parent.getPath() + "/" + LTI_ADMIN_NODE_NAME;
-    // now let's elevate Privileges and do some admin modifications
-    Session adminSession = null;
-    try {
-      adminSession = sparseRepository.loginAdministrative();
-      final Content adminNode = adminSession.getContentManager().get(adminNodePath);
-      for (final Entry<String, String> entry : sensitiveData.entrySet()) {
-        adminNode.setProperty(entry.getKey(), entry.getValue());
-      }
-      adminSession.getContentManager().update(adminNode);
-    } finally {
-      if (adminSession != null) {
-        adminSession.logout();
-      }
-    } // end admin elevation
-    // sanity check to verify user does not have permissions to sensitive node
-    boolean invalidPrivileges = false;
-    if (!isAdminUser(userSession)) { // i.e. normal user
-      final AccessControlManager acm = userSession.getAccessControlManager();
-      final Permission[] userPrivs = acm.getPermissions(Security.ZONE_CONTENT,
-          adminNodePath);
-      if (userPrivs != null && userPrivs.length > 0) {
-        Set<Permission> invalidUserPrivileges = getInvalidUserPrivileges(acm);
-        for (final Permission permission : userPrivs) {
-          if (invalidUserPrivileges.contains(permission)) {
-            LOG.error("{} has invalid permission: {} on {}",
-                new Object[] { userSession.getUserId(), permission.toString(),
-                    adminNodePath });
-            invalidPrivileges = true;
-            break;
-          }
-        }
-      }
-    }
-    if (invalidPrivileges) {
-      throw new IllegalStateException(userSession.getUserId()
-          + " has invalid privileges: " + adminNodePath);
-    }
   }
 
   /**

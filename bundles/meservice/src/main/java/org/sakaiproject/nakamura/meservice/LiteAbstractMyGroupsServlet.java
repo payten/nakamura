@@ -17,14 +17,11 @@
  */
 package org.sakaiproject.nakamura.meservice;
 
-import com.google.common.base.Functions;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
-import com.google.common.collect.Multisets;
-import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
+
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ValueMap;
@@ -38,8 +35,8 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
-import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,9 +45,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -233,7 +228,7 @@ public abstract class LiteAbstractMyGroupsServlet extends SlingSafeMethodsServle
   }
 
   protected boolean isPseudoGroup(Group group) {
-    return (Boolean.TRUE.equals(group.getProperty(UserConstants.PROP_PSEUDO_GROUP)) &&
+    return (Boolean.parseBoolean(String.valueOf(group.getProperty(UserConstants.PROP_PSEUDO_GROUP))) &&
             group.getProperty(UserConstants.PROP_PARENT_GROUP_ID) != null);
   }
 

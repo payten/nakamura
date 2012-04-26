@@ -61,6 +61,7 @@ import javax.servlet.ServletException;
       bindings = { "/system/query" }
     )
   },
+  okForVersion = "1.2",
   methods = {
     @ServiceMethod(
       name = "GET",

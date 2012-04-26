@@ -87,8 +87,9 @@ public class Metadata extends Serialize {
     if (this.getLom() != null) {
       sb.append(this.getLom().generateXML());
     }
-    if(sb.toString().equals(""))
+    if (sb.toString().equals("")) {
       return "";
+    }
     return new String("<metadata>" + sb.toString() + "</metadata>");
   }
 }

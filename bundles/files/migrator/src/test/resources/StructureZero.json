@@ -1,0 +1,67 @@
+{
+  "page1":{
+    "_ref":"id9642791",
+    "_order":0,
+    "_title":"Page 1",
+    "main":{
+      "_ref":"id9642791",
+      "_order":0,
+      "_title":"Test Sakai Doc",
+      "_poolpath":"/p/kZOE1rkaa",
+      "_childCount":0,
+      "_id":"main",
+      "_elements":[]
+    },
+    "_canEdit":true,
+    "_canSubedit":true,
+    "_poolpath":"/p/kZOE1rkaa",
+    "_childCount":1,
+    "_id":"page1",
+    "_elements":[
+      {
+        "_ref":"id9642791",
+        "_order":0,
+        "_title":"Test Sakai Doc",
+        "_poolpath":"/p/kZOE1rkaa",
+        "_childCount":0,
+        "_id":"main",
+        "_elements":[]
+      }
+    ]
+  },
+  "_childCount":1,
+  "id4004633":{
+    "_ref":"id4004633",
+    "_title":"Page 2",
+    "_order":1,
+    "_canSubedit":true,
+    "_canEdit":true,
+    "_poolpath":"/p/kZOE1rkaa",
+    "main":{
+      "_ref":"id4004633",
+      "_order":0,
+      "_title":"Untitled Page",
+      "_childCount":0,
+      "_canSubedit":true,
+      "_canEdit":true,
+      "_poolpath":"/p/kZOE1rkaa",
+      "_id":"main",
+      "_elements":[]
+    },
+    "_childCount":1,
+    "_id":"id4004633",
+    "_elements":[
+      {
+        "_ref":"id4004633",
+        "_order":0,
+        "_title":"Untitled Page",
+        "_childCount":0,
+        "_canSubedit":true,
+        "_canEdit":true,
+        "_poolpath":"/p/kZOE1rkaa",
+        "_id":"main",
+        "_elements":[]
+      }
+    ]
+  }
+}

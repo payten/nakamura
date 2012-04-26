@@ -63,12 +63,15 @@ public class Identifier extends Serialize {
   @Override
   public String generateXML() {
     StringBuilder sb = new StringBuilder("");
-    if (this.getCatalog() != null)
+    if (this.getCatalog() != null) {
       sb.append("<catalog>" + this.getCatalog() + "</catalog>");
-    if (this.getEntry() != null)
+    }
+    if (this.getEntry() != null) {
       sb.append("<entry>" + this.getEntry() + "</entry>");
-    if (sb.toString().equals(""))
+    }
+    if (sb.toString().equals("")) {
       return "";
+    }
     return new String("<identifier>" + sb.toString() + "</identifier>");
   }
 }

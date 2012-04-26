@@ -17,14 +17,12 @@
  */
 package org.sakaiproject.nakamura.presence.search;
 
-import java.util.Map;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.osgi.framework.Constants;
@@ -37,7 +35,6 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
-import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
@@ -45,11 +42,12 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.jcr.RepositoryException;
+import java.util.Map;
 
 /**
  * Search result processor to write out profile information when search returns home nodes
@@ -129,10 +127,10 @@ public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcess
       String authorizableId = (String) result.getFirstValue("path");
       Authorizable auth = authMgr.findAuthorizable(authorizableId);
 
-      if (!objectInProgress) {
-        write.object();
-      }
       if (auth != null) {
+        if (!objectInProgress) {
+          write.object();
+        }
         Map<String,Object> map = basicUserInfoService.getProperties(auth);
 
         ExtendedJSONWriter.writeValueMapInternals(write, map);
@@ -143,9 +141,9 @@ public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcess
           // add contact information if appropriate
           connMgr.writeConnectionInfo(exWriter, session, currUser, authorizableId);
         }
-      }
-      if (!objectInProgress) {
-        write.endObject();
+        if (!objectInProgress) {
+          write.endObject();
+        }
       }
     } catch (StorageClientException e) {
       LOGGER.error(e.getMessage(), e);

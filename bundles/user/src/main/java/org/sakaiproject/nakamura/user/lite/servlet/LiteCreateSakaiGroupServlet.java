@@ -64,6 +64,7 @@ import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProvider;
 import org.sakaiproject.nakamura.user.lite.resource.LiteNameSanitizer;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
+import org.sakaiproject.nakamura.util.parameters.ParameterMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,7 +125,7 @@ import javax.servlet.http.HttpServletResponse;
                 "yyyy-MM-dd", 
                 "dd.MM.yyyy HH:mm:ss",
                 "dd.MM.yyyy"})})
-@ServiceDocumentation(name="Create Group Servlet", okForVersion = "1.1",
+@ServiceDocumentation(name="Create Group Servlet", okForVersion = "1.2",
     description="Creates a new group. Maps on to nodes of resourceType sparse/groups like " +
     		"/system/userManager/group. This servlet responds at /system/userManager/group.create.html",
     shortDescription="Creates a new group",
@@ -291,7 +292,7 @@ public class LiteCreateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServl
 
                 saveAll(session, toSave);
                 try {
-                  postProcessorService.process(group, session, ModificationType.CREATE, request);
+                  postProcessorService.process(group, session, ModificationType.CREATE, ParameterMap.extractParameters(request));
                 } catch (Exception e) {
                   LOGGER.warn(e.getMessage(), e);
                   response

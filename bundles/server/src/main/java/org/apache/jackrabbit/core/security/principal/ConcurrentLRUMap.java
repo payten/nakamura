@@ -35,13 +35,22 @@ public class ConcurrentLRUMap<K, V> implements Map<K, V> {
 
     @Override
     public boolean equals(Object obj) {
-      try {
-        @SuppressWarnings("unchecked")
-        Holder<T> t = (Holder<T>) obj;
-        return value.equals(t.value);
-      } catch (ClassCastException e) {
-        return false;
+      boolean eq = false;
+      if (obj != null) {
+        try {
+          @SuppressWarnings("unchecked")
+          Holder<T> t = (Holder<T>) obj;
+          eq = value.equals(t.value);
+        } catch (ClassCastException e) {
+          eq = false;
+        }
       }
+      return eq;
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
     }
 
   }
@@ -49,7 +58,6 @@ public class ConcurrentLRUMap<K, V> implements Map<K, V> {
   /**
    * 
    */
-  private static final long serialVersionUID = 6397790801684912025L;
   private Map<K, Holder<V>> delegate = new ConcurrentHashMap<K, Holder<V>>();
   private int maxSize = 100;
 
