@@ -5,6 +5,7 @@
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>base</artifactId>
       <version>1.2.0</version>
+      <relativePath>../../pom.xml</relativePath>
     </parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>org.sakaiproject.nakamura.ojdbc</artifactId>
