@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": "group:(${group}) AND (name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) OR title:(${q}) OR description:(${q}) OR basicinfo:(${q}) OR ngram:(${q}) OR edgengram:(${q}))",
+  "sakai:query-template": "group:(${group}) AND (name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) OR title:(${q}) OR description:(${q}) OR profile:(${q}) OR ngram:(${q}) OR edgengram:(${q}))",
   "sakai:query-template-options": {
       "fq": "resourceType:authorizable",
       "sort": "${sortOn} ${sortOrder}",
