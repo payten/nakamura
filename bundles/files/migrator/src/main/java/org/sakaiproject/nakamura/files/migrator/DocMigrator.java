@@ -129,11 +129,18 @@ public class DocMigrator implements FileMigrationService {
     return !content.hasProperty(STRUCTURE_ZERO);
   }
 
+
+  private JSONObject getStructureZero (Content content) throws JSONException
+  {
+    return new JSONObject(StorageClientUtils.toString(content.getProperty(STRUCTURE_ZERO)));
+  }
+
+
   private boolean contentHasUpToDateStructure(Content content) throws SakaiDocMigrationException {
     Session adminSession = null;
     try {
       adminSession = repository.loginAdministrative();
-      JSONObject structure0 = new JSONObject((String) content.getProperty(STRUCTURE_ZERO));
+      JSONObject structure0 = getStructureZero(content);
       return !requiresMigration(structure0, content, adminSession.getContentManager());
     } catch (Exception e) {
       throw new SakaiDocMigrationException();
@@ -169,7 +176,7 @@ public class DocMigrator implements FileMigrationService {
       // pull the content JSON using an admin session
       Content adminContent = adminContentManager.get(content.getPath());
       ExtendedJSONWriter.writeContentTreeToWriter(stringJsonWriter, adminContent, false, -1);
-      JSONObject newPageStructure = createNewPageStructure(new JSONObject((String) content.getProperty(STRUCTURE_ZERO)), new JSONObject(stringWriter.toString()));
+      JSONObject newPageStructure = createNewPageStructure(getStructureZero(content), new JSONObject(stringWriter.toString()));
 
       JSONObject convertedStructure = (JSONObject) convertArraysToObjects(newPageStructure);
       validateStructure(convertedStructure);
